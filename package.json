@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "react-responsive-carousel": "^3.2.23",
+    "styled-components": "^5.3.6"
+  }
+}
