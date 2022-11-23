@@ -7,8 +7,8 @@ import '../styles/flickity.css'
 const flickityOptions = {
     initialIndex: 1
 }
-//NIE UMIEM PRZEKAZYWAĆ ŚCIEŻEK DO OBRAZKÓW HELP ME KURWA
-export default function Carousel({vid1src,vid2src,vid3src,vid4src}: SelectedVideos) {
+//NIE UMIEM PRZEKAZYWAĆ ŚCIEŻEK DO OBRAZKÓW HALP IM IN DANGER
+export default function Carousel({videos}: SelectedVideos) {
   return (
     <Flickity
       className={'carousel'} // default ''
@@ -18,9 +18,9 @@ export default function Carousel({vid1src,vid2src,vid3src,vid4src}: SelectedVide
       reloadOnUpdate // default false
       static // default false
     >
-    <img src="https://placeimg.com/640/480/animals" />
-    <img src="https://placeimg.com/640/480/nature" />
-    <img src="https://placeimg.com/640/480/architecture" />
+    {
+    videos.map(video=> <img src={video}/>)
+    }
     </Flickity>
   )
 }

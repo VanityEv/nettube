@@ -5,19 +5,16 @@ import ResponsiveAppBar from './components/ResponsiveAppBar';
 import SearchBar from './components/SearchBar';
 import Carousel from './components/Carousel';
 
-
-export interface TestCardProps {
+export type TestCardProps = {
   title: string,
   alt: string,
   description: string,
   thumbnail: string
 }
-export interface SelectedVideos {
-  vid1src: string,
-  vid2src: string,
-  vid3src: string,
-  vid4src: string,
-}
+
+export type SelectedVideos = {
+  videos: Array<string>;
+} 
 
 const TestCard: TestCardProps = {
   title: "Testowy",
@@ -31,13 +28,12 @@ const TestCard2: TestCardProps = {
   thumbnail: "",
   description: "testowy description2"
 }
-//
-const TestCarousel: SelectedVideos = {
-  vid1src: "path",
-  vid2src: "path2",
-  vid3src: "path3",
-  vid4src: "path4",
+
+const images: SelectedVideos = {
+  videos:  ['https://placeimg.com/640/480/animals', 'https://placeimg.com/640/480/nature', 'https://placeimg.com/640/480/architecture']
 }
+const videos = ['https://placeimg.com/640/480/animals', 'https://placeimg.com/640/480/nature', 'https://placeimg.com/640/480/architecture'];
+
 function App() {
 
   return (
@@ -45,7 +41,7 @@ function App() {
       <ResponsiveAppBar />
     </nav><div className='wrapping'>
       <SearchBar/>
-      <Carousel {...TestCarousel}/>
+      <Carousel {...images}/>
         <Grid2 container spacing={2}>
           <Grid2 xs={3}>
             <MediaCard {...TestCard} />
