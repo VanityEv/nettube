@@ -1,59 +1,20 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
-import MediaCard from "./components/MediaCard";
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
-import ResponsiveAppBar from "./components/ResponsiveAppBar";
-import SearchBar from "./components/SearchBar";
-import Carousel from "./components/Carousel";
-
-export type TestCardProps = {
-	title: string;
-	alt: string;
-	description: string;
-	thumbnail: string;
-};
-
-const TestCard: TestCardProps = {
-	title: "Testowy",
-	alt: "alter",
-	thumbnail: "bleach.png",
-	description: "testowy description",
-};
-const TestCard2: TestCardProps = {
-	title: "Testowy2",
-	alt: "alter2",
-	thumbnail: "",
-	description: "testowy description2",
-};
-
-const DUMMY:TestCardProps[] = [];
-for (let i = 0; i < 10; i++) {
-	DUMMY.push(TestCard);
-}
-
-const links = [
-	"https://placeimg.com/640/480/animals",
-	"https://placeimg.com/640/480/nature",
-	"https://placeimg.com/640/480/architecture",
-];
+import Genres from "./pages/Genres";
+import HomePage from "./pages/HomePage"
+import Movies from "./pages/Movies";
+import Series from "./pages/Series";
 
 function App() {
 	return (
-		<>
-			<nav>
-				<ResponsiveAppBar />
-			</nav>
-			<div className="wrapping">
-				<SearchBar />
-				<Carousel links={links} />
-				<Grid2 container spacing={2}>
-					{DUMMY.map((item) => (
-						<Grid2 xs={12} md={3}>
-							<MediaCard {...item} />
-						</Grid2>
-					))}
-				</Grid2>
-			</div>
-		</>
+		<BrowserRouter>
+		<Routes>
+			<Route path='/' element={<HomePage/>}/>
+			<Route path='/Movies' element={<Movies/>}/>
+			<Route path='/Series' element={<Series/>}/>
+			<Route path='/Genres' element={<Genres/>}/>
+		</Routes>
+		</BrowserRouter>
 	);
 }
 
