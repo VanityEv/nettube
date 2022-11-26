@@ -1,62 +1,73 @@
-import { styled, alpha } from '@mui/material/styles';
-import InputBase from '@mui/material/InputBase';
-import SearchIcon from '@mui/icons-material/Search';
+import { styled, useTheme } from "@mui/material/styles";
+import InputBase from "@mui/material/InputBase";
+import SearchIcon from "@mui/icons-material/Search";
+import { useMediaQuery } from "@mui/material";
 
-const Search = styled('div')(({ theme }) => ({
-    position: 'fixed',
-    textAlign: 'center',
-    borderRadius: '50px',
-    padding: '10px',
-    backgroundColor: alpha(theme.palette.common.white, 0.15),
-    '&:hover': {
-      backgroundColor: alpha(theme.palette.common.white, 0.25),
-    },
-    boxShadow: "1px 1px 20px -8px rgba(66, 68, 90, 1)",
-    marginRight: theme.spacing(2),
-    marginLeft: 0,
-    width: '100%',
-    [theme.breakpoints.up('sm')]: {
-      marginLeft: theme.spacing(3),
-      width: 'auto',
-    },
-  }));
-  
-  const SearchIconWrapper = styled('div')(({ theme }) => ({
-    padding: theme.spacing(0, 2),
-    height: '2.5rem',
-    position: 'absolute',
-    pointerEvents: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  }));
-  
-  const StyledInputBase = styled(InputBase)(({ theme }) => ({
-    color: 'inherit',
-    '& .MuiInputBase-input': {
-      padding: theme.spacing(1, 1, 1, 0),
-      // vertical padding + font size from searchIcon
-      paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-      transition: theme.transitions.create('width'),
-      width: '100%',
-      [theme.breakpoints.up('md')]: {
-        width: '20ch',
-      },
-    },
-  }));          
+const Search = styled("div")(({ theme }) => ({
+	[theme.breakpoints.up("desktop")]: {
+		marginLeft: theme.spacing(3),
+		width: "auto",
+	},
+	display: "flex",
+	alignItems: "center",
+}));
 
-  function SearchBar() {
-    return(
-    <Search>
-    <SearchIconWrapper>
-      <SearchIcon />
-    </SearchIconWrapper>
-    <StyledInputBase
-      placeholder="Search videos..."
-      inputProps={{ 'aria-label': 'search' }}
-    />
-  </Search>
-    );
-  }
-  export default SearchBar;
-         
+const SearchIconWrapper = styled("div")(({ theme }) => ({
+	height: "2.5rem",
+	margin: "1rem",
+	position: "absolute",
+	pointerEvents: "none",
+	display: "flex",
+	alignItems: "center",
+	justifyContent: "center",
+	zIndex: theme.zIndex.tooltip,
+	[theme.breakpoints.down("desktop")]: {
+		color: theme.palette.common.white,
+	},
+	[theme.breakpoints.up("desktop")]: {
+		color: theme.palette.common.black,
+	},
+}));
+
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+	textAlign: "center",
+	borderRadius: theme.radius.sm,
+	padding: "10px",
+	backgroundColor: theme.palette.common.white,
+	color: theme.palette.common.black,
+	width: "100%",
+	"& .MuiInputBase-input": {
+		padding: theme.spacing(1, 1, 1, 0),
+		// vertical padding + font size from searchIcon
+		marginLeft: `calc(1em + ${theme.spacing(4)})`,
+		transition: theme.transitions.create("width"),
+		width: "100%",
+		[theme.breakpoints.up("desktop")]: {
+			width: "20ch",
+		},
+	},
+}));
+
+/**
+ * TODO: Dodać warianty mobile i desktop - w mobile widoczna sama lupa, po której kliknięciu
+ * pojawia się search na całym navbarze.
+ * W desktop doszlifować wygląd - ustalić jakie radiusy chcemy
+ */
+function SearchBar() {
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down("desktop"));
+	return (
+		<Search>
+			<SearchIconWrapper>
+				<SearchIcon />
+			</SearchIconWrapper>
+			{!isMobile && (
+				<StyledInputBase
+					placeholder="Search videos..."
+					inputProps={{ "aria-label": "search" }}
+				/>
+			)}
+		</Search>
+	);
+}
+export default SearchBar;

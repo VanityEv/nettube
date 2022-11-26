@@ -7,14 +7,14 @@ export default function Footer() {
   return (
     <footer>
       <Box
-        px={{ xs: 3, sm: 10 }}
-        py={{ xs: 5, sm: 10 }}
+        px={{ mobile: 3, desktop: 10 }}
+        py={{ mobile: 5, desktop: 10 }}
         bgcolor="primary.main"
         color="white"
       >
-        <Container maxWidth="lg">
+        <Container>
           <Grid container spacing={5}>
-            <Grid item xs={12} sm={4}>
+            <Grid item mobile={12} desktop={4}>
               <Box borderBottom={1}>Module1</Box>
               <Box>
                 <Link href="/" color="inherit">
@@ -32,7 +32,7 @@ export default function Footer() {
                 </Link>
               </Box>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item mobile={12} desktop={4}>
               <Box borderBottom={1}>Module2</Box>
               <Box>
                 <Link href="/" color="inherit">
@@ -45,7 +45,7 @@ export default function Footer() {
                 </Link>
               </Box>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item mobile={12} desktop={4}>
               <Box borderBottom={1}>Module3</Box>
               <Box>
                 <Link href="/" color="inherit">
@@ -64,7 +64,7 @@ export default function Footer() {
               </Box>
             </Grid>
           </Grid>
-          <Box textAlign="center" pt={{ xs: 5, sm: 0 }} pb={{ xs: 5, sm: 0 }}>
+          <Box textAlign="center" pt={{ mobile: 5, desktop: 0 }} pb={{ mobile: 5, desktop: 0 }}>
             NetTube &reg; {new Date().getFullYear()}
           </Box>
         </Container>

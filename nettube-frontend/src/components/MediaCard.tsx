@@ -11,7 +11,7 @@ import TransitionsModal from './TransitionsModal';
 
 export default function MediaCard({title,alt,description,thumbnail}: TestCardProps) {
 //Dalej nie mam pojęcia jak przekazać te pola z MediaCard do TransitionsModal
-  const TestProps: TestCardProps = {
+  const TestProps = {
     title: "test",
     alt: "test",
     description: "test",
