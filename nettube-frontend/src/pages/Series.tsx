@@ -4,15 +4,11 @@ import SearchBar from "../components/SearchBar";
 
 function Series() {
 	return (
-        <>
-        <nav>
-            <ResponsiveAppBar/>
-        </nav>
-        <div className="wrapping">
-            <SearchBar />
-        </div>
-        <Footer/>
-    </>
+		<>
+			<ResponsiveAppBar />
+			<div></div>
+			<Footer />
+		</>
 	);
 }
 

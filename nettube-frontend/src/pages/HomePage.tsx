@@ -15,7 +15,7 @@ export type TestCardProps = {
 const TestCard: TestCardProps = {
 	title: "Testowy",
 	alt: "alter",
-	thumbnail: "https://i.ytimg.com/vi/d_rbdAawZZg/maxresdefault.jpg",
+	thumbnail: "assets/bleach.png",
 	description: "testowy description",
 };
 const TestCard2: TestCardProps = {
@@ -25,7 +25,7 @@ const TestCard2: TestCardProps = {
 	description: "testowy description2",
 };
 
-const DUMMY:TestCardProps[] = [];
+const DUMMY: TestCardProps[] = [];
 for (let i = 0; i < 10; i++) {
 	DUMMY.push(TestCard);
 }
@@ -39,21 +39,18 @@ const links = [
 function HomePage() {
 	return (
 		<>
-			<nav>
-				<ResponsiveAppBar/>
-			</nav>
-			<div className="wrapping">
-				<SearchBar />
+			<ResponsiveAppBar />
+			<div>
 				<Carousel links={links} />
 				<Grid2 container spacing={2}>
-					{DUMMY.map((item) => (
-						<Grid2 xs={12} md={3}>
+					{DUMMY.map((item, key) => (
+						<Grid2 key={key} mobile={12} desktop={3}>
 							<MediaCard {...item} />
 						</Grid2>
 					))}
 				</Grid2>
 			</div>
-			<Footer/>
+			<Footer />
 		</>
 	);
 }
