@@ -6,6 +6,7 @@ import Genres from "./pages/Genres";
 import HomePage from "./pages/HomePage";
 import Movies from "./pages/Movies";
 import Series from "./pages/Series";
+import Profile from "./pages/Profile";
 
 function App() {
 	return (
@@ -16,6 +17,7 @@ function App() {
 					<Route path="/Movies" element={<Movies />} />
 					<Route path="/Series" element={<Series />} />
 					<Route path="/Genres" element={<Genres />} />
+					<Route path="/Profile" element={<Profile />} />
 				</Routes>
 			</BrowserRouter>
 		</ThemeProvider>

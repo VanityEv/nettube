@@ -13,7 +13,6 @@ import {
 	MenuItem,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import AdbIcon from "@mui/icons-material/Adb";
 import { Link } from "react-router-dom";
 import SearchBar from "./SearchBar";
 
@@ -41,12 +40,13 @@ function ResponsiveAppBar() {
 	/**
 	 * TODO: zachowanie SearchBar - w widoku mobile powinna być lupa, po kliknięciu której rozwija się search.
 	 * Obecnie lupa nakłada się na Open settings - bug
+   * <AdbIcon sx={{ display: { mobile: "none", desktop: "flex" }, mr: 1 }} />
 	 */
 	return (
 		<AppBar position="sticky" color="primary">
 			<Container>
 				<Toolbar disableGutters>
-					<AdbIcon sx={{ display: { mobile: "none", desktop: "flex" }, mr: 1 }} />
+					<img src="logo.svg" width="70px" height="auto"/>
 					<Typography
 						variant="h6"
 						noWrap
@@ -102,13 +102,11 @@ function ResponsiveAppBar() {
 							))}
 						</Menu>
 					</Box>
-
-					<AdbIcon sx={{ display: { mobile: "flex", desktop: "none" }, mr: 1 }} />
 					<Typography
 						variant="h5"
 						noWrap
 						component="a"
-						href=""
+						href="/"
 						sx={{
 							mr: 2,
 							display: { mobile: "flex", desktop: "none" },
@@ -161,7 +159,9 @@ function ResponsiveAppBar() {
 						>
 							{settings.map((setting, key) => (
 								<MenuItem key={key} onClick={handleCloseUserMenu}>
+									<Link style={{ textDecoration: "none" }} key={key} to={"/" + setting}>
 									<Typography textAlign="center">{setting}</Typography>
+									</Link>
 								</MenuItem>
 							))}
 						</Menu>
