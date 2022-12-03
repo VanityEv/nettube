@@ -1,16 +1,19 @@
-import express from "express"
-import cors from 'cors'
-import config from "./config/config.js"
+import express from "express";
+import cors from "cors";
+import config from "./config/config.js";
+import UserRouter from "./services/user/UserRouter.js";
+import VideosRouter from "./services/video/VideoRouter.js";
+import bodyParser from "body-parser";
 
-const app = express()
-const port = config.server.port
+const app = express();
+const port = config.server.port;
 
-app.use(cors())
+app.use(cors());
+app.use(bodyParser.json());
 
-app.get("/", (req, res) => {
-    res.json({message: "Static site rendering"});
+app.use("/user", UserRouter);
+app.use("/videos", VideosRouter);
+
+app.listen(port, () => {
+	console.log(`Server running on port ${port}`);
 });
-
-app.listen(port, ()=>{
-    console.log( `Server running on port ${port}`)
-})
