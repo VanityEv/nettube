@@ -13,7 +13,7 @@ type CarouselProps = {
  */
 const SwiperImage = styled("img")`
 	width: 100vw;
-	height: 25vh;
+	height: 50vh;
 	object-fit: cover;
 `;
 

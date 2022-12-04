@@ -2,6 +2,8 @@ import { styled, useTheme } from "@mui/material/styles";
 import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
 import { useMediaQuery } from "@mui/material";
+import { uiActions } from "../store/ui";
+import { useAppDispatch, useAppSelector } from "../hooks/reduxHooks";
 
 const Search = styled("div")(({ theme }) => ({
 	[theme.breakpoints.up("desktop")]: {
@@ -56,6 +58,13 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 function SearchBar() {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("desktop"));
+	const dispatch = useAppDispatch();
+	const searchValue = useAppSelector((state) => state.ui.searchValue);
+
+	const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		dispatch(uiActions.onChangeSearchValue(event.target.value));
+	};
+
 	return (
 		<Search>
 			<SearchIconWrapper>
@@ -65,6 +74,8 @@ function SearchBar() {
 				<StyledInputBase
 					placeholder="Search videos..."
 					inputProps={{ "aria-label": "search" }}
+					value={searchValue}
+					onChange={handleSearchChange}
 				/>
 			)}
 		</Search>

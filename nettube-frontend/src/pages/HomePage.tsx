@@ -1,9 +1,6 @@
 import MediaCard from "../components/MediaCard";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
-import ResponsiveAppBar from "../components/ResponsiveAppBar";
-import SearchBar from "../components/SearchBar";
 import Carousel from "../components/Carousel";
-import Footer from "../components/Footer";
 
 export type TestCardProps = {
 	title: string;
@@ -31,15 +28,14 @@ for (let i = 0; i < 10; i++) {
 }
 
 const links = [
-	"https://placeimg.com/640/480/animals",
-	"https://placeimg.com/640/480/nature",
-	"https://placeimg.com/640/480/architecture",
+	"https://wallpapercave.com/wp/wp3982534.jpg",
+	"https://wallpaperaccess.com/full/5486200.jpg",
+	"https://images2.alphacoders.com/879/879599.png",
 ];
 
 function HomePage() {
 	return (
 		<>
-			<ResponsiveAppBar />
 			<div>
 				<Carousel links={links} />
 				<Grid2 container spacing={2}>
@@ -50,7 +46,6 @@ function HomePage() {
 					))}
 				</Grid2>
 			</div>
-			<Footer />
 		</>
 	);
 }
