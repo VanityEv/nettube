@@ -7,11 +7,23 @@ import HomePage from "./pages/HomePage";
 import Movies from "./pages/Movies";
 import Series from "./pages/Series";
 import Profile from "./pages/Profile";
+import ResponsiveAppBar from "./components/ResponsiveAppBar";
+import Footer from "./components/Footer";
+import { useEffect } from "react";
+import { fetchVideosData } from "./store/videos-actions";
+import { useAppDispatch } from "./hooks/reduxHooks";
 
-function App() {
+const App = () => {
+	const dispatch = useAppDispatch();
+
+	useEffect(() => {
+		dispatch(fetchVideosData());
+	}, [dispatch]);
+
 	return (
 		<ThemeProvider theme={theme}>
 			<BrowserRouter>
+				<ResponsiveAppBar />
 				<Routes>
 					<Route path="/" element={<HomePage />} />
 					<Route path="/Movies" element={<Movies />} />
@@ -19,9 +31,10 @@ function App() {
 					<Route path="/Genres" element={<Genres />} />
 					<Route path="/Profile" element={<Profile />} />
 				</Routes>
+				<Footer />
 			</BrowserRouter>
 		</ThemeProvider>
 	);
-}
+};
 
 export default App;

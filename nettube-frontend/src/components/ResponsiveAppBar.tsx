@@ -15,6 +15,7 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import { Link } from "react-router-dom";
 import SearchBar from "./SearchBar";
+import { useTheme } from "@material-ui/core";
 
 const pages = ["Movies", "Series", "Genres"];
 const settings = ["Profile", "Account", "Dashboard", "Logout"];
@@ -22,6 +23,7 @@ const settings = ["Profile", "Account", "Dashboard", "Logout"];
 function ResponsiveAppBar() {
 	const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
 	const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+	const theme = useTheme();
 
 	const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
 		setAnchorElNav(event.currentTarget);
@@ -40,30 +42,30 @@ function ResponsiveAppBar() {
 	/**
 	 * TODO: zachowanie SearchBar - w widoku mobile powinna być lupa, po kliknięciu której rozwija się search.
 	 * Obecnie lupa nakłada się na Open settings - bug
-   * <AdbIcon sx={{ display: { mobile: "none", desktop: "flex" }, mr: 1 }} />
+	 * <AdbIcon sx={{ display: { mobile: "none", desktop: "flex" }, mr: 1 }} />
 	 */
 	return (
 		<AppBar position="sticky" color="primary">
 			<Container>
 				<Toolbar disableGutters>
-					<img src="logo.svg" width="70px" height="auto"/>
-					<Typography
-						variant="h6"
-						noWrap
-						component="a"
-						href="/"
-						sx={{
-							mr: 2,
-							display: { mobile: "none", desktop: "flex" },
-							fontFamily: "monospace",
-							fontWeight: 700,
-							letterSpacing: ".1rem",
-							color: "inherit",
-							textDecoration: "none",
-						}}
-					>
-						NetTube
-					</Typography>
+					<Link style={{ textDecoration: "none" }} to={"/"}>
+						<img src="logo.svg" width="70px" height="auto" />
+						<Typography
+							variant="h6"
+							noWrap
+							sx={{
+								mr: 2,
+								display: { mobile: "none", desktop: "flex" },
+								fontFamily: "monospace",
+								fontWeight: 700,
+								letterSpacing: ".1rem",
+								color: theme.palette.common.white,
+								textDecoration: "none",
+							}}
+						>
+							NetTube
+						</Typography>
+					</Link>
 					<Box sx={{ flexGrow: 1, display: { mobile: "flex", desktop: "none" } }}>
 						<IconButton
 							size="large"
@@ -159,8 +161,12 @@ function ResponsiveAppBar() {
 						>
 							{settings.map((setting, key) => (
 								<MenuItem key={key} onClick={handleCloseUserMenu}>
-									<Link style={{ textDecoration: "none" }} key={key} to={"/" + setting}>
-									<Typography textAlign="center">{setting}</Typography>
+									<Link
+										style={{ textDecoration: "none" }}
+										key={key}
+										to={"/" + setting}
+									>
+										<Typography textAlign="center">{setting}</Typography>
 									</Link>
 								</MenuItem>
 							))}

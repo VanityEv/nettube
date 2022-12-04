@@ -5,9 +5,7 @@ import SearchBar from "../components/SearchBar";
 function Series() {
 	return (
 		<>
-			<ResponsiveAppBar />
 			<div></div>
-			<Footer />
 		</>
 	);
 }

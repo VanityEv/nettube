@@ -1,16 +1,7 @@
-import Modal from "../components/TransitionsModal";
-import Footer from "../components/Footer";
-import ResponsiveAppBar from "../components/ResponsiveAppBar";
-import SearchBar from "../components/SearchBar";
+import { Box } from "@mui/material";
 
 function Movies() {
-	return (
-		<>
-			<ResponsiveAppBar />
-			<div></div>
-			<Footer />
-		</>
-	);
+	return <Box></Box>;
 }
 
 export default Movies;

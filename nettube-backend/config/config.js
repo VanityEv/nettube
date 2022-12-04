@@ -5,8 +5,8 @@ const config = {
 		password: "",
 		database: "",
 	},
-	server:{
-		port:3001
-	}
+	server: {
+		port: 3001,
+	},
 };
 export default config;
