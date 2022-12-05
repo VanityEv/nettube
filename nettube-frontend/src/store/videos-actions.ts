@@ -8,7 +8,7 @@ export const fetchVideosData = () => {
 		 * TODO: test fetchVideos
 		 */
 		const fetchVideos = async () => {
-			const response = await fetch(SERVER_ADDR + ":" + SERVER_PORT + "/getAllVideos", {
+			const response = await fetch(SERVER_ADDR + ":" + SERVER_PORT + "/videos/all", {
 				method: "GET", // *GET, POST, PUT, DELETE, etc.
 				mode: "cors", // no-cors, *cors, same-origin
 				cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
@@ -20,8 +20,8 @@ export const fetchVideosData = () => {
 			return await response.json();
 		};
 		try {
-			const videosData = await fetchVideos();
-			console.log(videosData);
+			const response = await fetchVideos();
+			const videosData = response.data;
 			dispatch(
 				videosActions.setVideos({
 					videos: videosData,
