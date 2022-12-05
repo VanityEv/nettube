@@ -5,7 +5,6 @@ import SearchBar from "../components/SearchBar";
 function Series() {
 	return (
 		<>
-			<div></div>
 		</>
 	);
 }

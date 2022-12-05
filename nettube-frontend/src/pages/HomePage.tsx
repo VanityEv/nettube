@@ -38,7 +38,7 @@ function HomePage() {
 		<>
 			<div>
 				<Carousel links={links} />
-				<Grid2 container spacing={2}>
+				<Grid2 container spacing={2} sx={{maxWidth:'100%'}}>
 					{DUMMY.map((item, key) => (
 						<Grid2 key={key} mobile={12} desktop={3}>
 							<MediaCard {...item} />
