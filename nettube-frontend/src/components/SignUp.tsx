@@ -1,48 +1,56 @@
-import * as React from "react";
+import {useState} from "react";
 import dayjs, { Dayjs } from "dayjs";
 import { DesktopDatePicker, MobileDatePicker } from "@mui/x-date-pickers";
-import {Link, Box, Typography, Container, CssBaseline, TextField, Button, FormControlLabel, FormLabel, Radio, RadioGroup, FormControl} from "@mui/material";
-import { ThemeProvider, useTheme } from "@mui/material/styles";
+import {Link, Box, Typography, Container, TextField, Button, FormControlLabel, FormLabel, Radio, RadioGroup} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { Stack, useMediaQuery } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { EMAIL_REGEX, PASSWORD_REGEX } from "../constants";
+import useHttp from "../hooks/useHttp";
 
 /**
  * TODO: naprawić wyświetlanie daty na mobilnym (albo nie umiem wyrażeń tenarnych albo MobileDatePicker nie działa)
  * Nie wyświetla poprawnego inputa dla mobile ale w sumie to ujdzie po testach dla mobile
  * TODO: zachowanie po wykryciu niepoprawnego hasła/niewystarczająco silnego hasła/maila, register handler
  */
+
+
  function SignUp() {
+  const [isError, setIsError] = useState({email: false, password: false, confirmpassword: false});
   const theme = useTheme();
-  const [value, setValue] = React.useState<Dayjs | null>(
+  const [value, setValue] = useState<Dayjs | null>(
     dayjs("2000-01-01T00:00:00")
   );
   const isMobile = useMediaQuery(theme.breakpoints.down("desktop"));
+  const {sendRequest} = useHttp()
+
   const handleChange = (newValue: Dayjs | null) => {
     setValue(newValue);
   };
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     if (data.get("password") != data.get("confirm-password")) {
-      alert("Password do not match!");
+      setIsError(prevState =>({...prevState, confirmpassword:true}));
     }
     if (!PASSWORD_REGEX.test(data.get("password") as string)) {
-      alert("Password is not strong enough!");
+      setIsError(prevState =>({...prevState, password:true}));
     }
     if (!EMAIL_REGEX.test(data.get("email") as string)) {
-      alert("Email is incorrect!");
+      setIsError(prevState =>({...prevState, email:true}));
     }
     console.log({
       email: data.get("birthdate"),
       password: data.get("password"),
     });
+    /**
+     * sendRequest({method:'POST', body:{data.get('email') as string}, endpoint:'checkEmail'})
+     */
   };
   return (
-    <ThemeProvider theme={theme}>
       <Container component="main" maxWidth="desktop">
-        <CssBaseline />
         <Box
           sx={{
             marginTop: 8,
@@ -81,9 +89,11 @@ import { EMAIL_REGEX, PASSWORD_REGEX } from "../constants";
                 autoFocus
               />
               <TextField
+                error={isError.email}
                 aria-label="email-field"
                 required
                 fullWidth
+                helperText={isError.email && "Email is incorrect!"}
                 id="email"
                 label="Email Address"
                 name="email"
@@ -115,9 +125,11 @@ import { EMAIL_REGEX, PASSWORD_REGEX } from "../constants";
                 )}
               </LocalizationProvider>
               <TextField
+                error={isError.password}
                 aria-label="password-field"
                 required
                 fullWidth
+                helperText={isError.password && "Password is not strong enough!"}
                 name="password"
                 label="Password"
                 type="password"
@@ -125,6 +137,8 @@ import { EMAIL_REGEX, PASSWORD_REGEX } from "../constants";
                 autoComplete="new-password"
               />
               <TextField
+                error={isError.confirmpassword}
+                helperText={isError.confirmpassword && "Passwords do not match!"}
                 aria-label="password-field"
                 required
                 fullWidth
@@ -173,7 +187,6 @@ import { EMAIL_REGEX, PASSWORD_REGEX } from "../constants";
           </Box>
         </Box>
       </Container>
-    </ThemeProvider>
   );
 }
 export default SignUp;
