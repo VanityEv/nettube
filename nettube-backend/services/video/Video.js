@@ -12,4 +12,9 @@ const getVideosByGenre = async (genre) => {
 	return result;
 };
 
-export { getOneVideo, getVideosByGenre };
+const getAllVideos = async (resultCallback) => {
+	const dbQuery = `SELECT * from videos`;
+	await query(dbQuery, resultCallback);
+};
+
+export { getOneVideo, getVideosByGenre, getAllVideos };
