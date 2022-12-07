@@ -16,7 +16,7 @@ function Movies() {
 						desktop={3}
 						sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
 					>
-						<MediaCard {...item} description={item.descr} />
+						<MediaCard {...item} />
 					</Grid2>
 				))}
 			</Grid2>

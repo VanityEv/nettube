@@ -9,13 +9,6 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { EMAIL_REGEX, PASSWORD_REGEX } from "../constants";
 import useHttp from "../hooks/useHttp";
 
-/**
- * TODO: naprawić wyświetlanie daty na mobilnym (albo nie umiem wyrażeń tenarnych albo MobileDatePicker nie działa)
- * Nie wyświetla poprawnego inputa dla mobile ale w sumie to ujdzie po testach dla mobile
- * TODO: zachowanie po wykryciu niepoprawnego hasła/niewystarczająco silnego hasła/maila, register handler
- */
-
-
  function SignUp() {
   const [isError, setIsError] = useState({email: false, password: false, confirmpassword: false});
   const theme = useTheme();

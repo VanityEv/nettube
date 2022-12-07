@@ -15,32 +15,34 @@ import { useAppDispatch } from "./hooks/reduxHooks";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
+import { fetchReviewsData } from "./store/reviews-actions";
 
 const App = () => {
-	const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch();
 
-	useEffect(() => {
-		dispatch(fetchVideosData());
-	}, [dispatch]);
+  useEffect(() => {
+    dispatch(fetchVideosData());
+    dispatch(fetchReviewsData());
+  }, [dispatch]);
 
-	return (
-		<ThemeProvider theme={theme}>
-			<BrowserRouter>
-				<ResponsiveAppBar />
-				<Routes>
-					<Route path="/" element={<HomePage />} />
-					<Route path="/Movies" element={<Movies />} />
-					<Route path="/Series" element={<Series />} />
-					<Route path="/Genres" element={<Genres />} />
-					<Route path="/Profile" element={<Profile />} />
-					<Route path="/Login" element={<Login/>}/>
-					<Route path="/Register" element={<Register/>}/>
-					<Route path="/Rescue" element={<ResetPassword/>}/>
-				</Routes>
-				<Footer />
-			</BrowserRouter>
-		</ThemeProvider>
-	);
+  return (
+    <ThemeProvider theme={theme}>
+      <BrowserRouter>
+        <ResponsiveAppBar />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/Movies" element={<Movies />} />
+          <Route path="/Series" element={<Series />} />
+          <Route path="/Genres" element={<Genres />} />
+          <Route path="/Profile" element={<Profile />} />
+          <Route path="/Login" element={<Login />} />
+          <Route path="/Register" element={<Register />} />
+          <Route path="/Rescue" element={<ResetPassword />} />
+        </Routes>
+        <Footer />
+      </BrowserRouter>
+    </ThemeProvider>
+  );
 };
 
 export default App;

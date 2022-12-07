@@ -7,15 +7,17 @@ import Favorite from "@mui/icons-material/Favorite";
 import IconButton from "@mui/material/IconButton";
 import TransitionsModal from "./TransitionsModal";
 import { useMediaQuery, useTheme } from "@mui/material";
+import { Video } from "../store/videos.types";
 
-export type MediaCardProps = {
+/*export type MediaCardProps = {
 	title: string;
 	alt: string;
 	description: string;
 	thumbnail: string;
 };
+*/
 
-export default function MediaCard({ title, alt, description, thumbnail }: MediaCardProps) {
+export default function MediaCard({id,tier,title,type,genre,production_year,production_country,age_restriction,grade,reviews_count, alt, descr, thumbnail }: Video) {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("desktop"));
 
@@ -30,7 +32,7 @@ export default function MediaCard({ title, alt, description, thumbnail }: MediaC
 				</Typography>
 				{!isMobile && (
 					<Typography variant="body2" color="text.secondary">
-						{description}
+						{descr}
 					</Typography>
 				)}
 			</CardContent>
@@ -40,10 +42,20 @@ export default function MediaCard({ title, alt, description, thumbnail }: MediaC
 				</IconButton>
 				<IconButton aria-label="play">
 					<TransitionsModal
+            id={id}
+            tier={tier}
 						title={title}
+            type={type}
+            genre={genre}
+            production_year={production_year}
+            production_country={production_country}
+            age_restriction={age_restriction}
+            grade={grade}
+            reviews_count={reviews_count}
 						alt={alt}
-						description={description}
+						descr={descr}
 						thumbnail={thumbnail}
+
 					/>
 				</IconButton>
 			</CardActions>

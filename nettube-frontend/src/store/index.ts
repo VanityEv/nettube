@@ -1,9 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
+import reviewSlice from "./reviews";
 import uiSlice from "./ui";
 import videosSlice from "./videos";
 
 const store = configureStore({
-	reducer: { ui: uiSlice.reducer, videos: videosSlice.reducer },
+	reducer: { ui: uiSlice.reducer, videos: videosSlice.reducer, reviews: reviewSlice.reducer },
 });
 
 export default store;
