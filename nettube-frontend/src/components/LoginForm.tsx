@@ -1,7 +1,7 @@
 import * as React from "react";
-import {Link, Box, Typography, Container, CssBaseline, TextField, Button, FormControlLabel, FormLabel, Radio, RadioGroup, FormControl} from "@mui/material";
+import {Link, Box, Typography, Container, CssBaseline, TextField, Button} from "@mui/material";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
-import { Stack, useMediaQuery } from "@mui/material";
+import { Stack } from "@mui/material";
 
 /**
  * TODO: Login handler
