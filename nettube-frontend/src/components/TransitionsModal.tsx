@@ -5,9 +5,8 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Video } from "../store/videos.types";
 import { useAppSelector } from "../hooks/reduxHooks";
-import Grid2 from "@mui/material/Unstable_Grid2";
+import { Stack } from "@mui/material";
 import ReviewBlock from "./ReviewBlock";
-/*import { MediaCardProps } from "./MediaCard";*/
 
 export default function TransitionsModal({
   id,
@@ -26,10 +25,8 @@ export default function TransitionsModal({
 }: Video) {
   const reviews = useAppSelector((state) => state.reviews.reviews);
   const selectedReviews = reviews.filter((review) => {
-    console.log(review.id, id);
     return review.show_id === id;
   });
-  console.log(selectedReviews);
   const [isOpen, setIsOpen] = useState(false);
   const handleIsOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
@@ -142,20 +139,23 @@ export default function TransitionsModal({
                 component="div"
                 textAlign="center"
               >
-                Average grade:{" "}
+                Average grade:
                 <Rating
                   name="read-only"
                   value={grade / 2}
                   precision={0.5}
                   readOnly
-                />{" "}
+                />
                 {grade}/10 ({reviews_count} reviews)
               </Typography>
-              <Grid2 container spacing={2} sx={{ maxWidth: "100%" }}>
+              <Stack
+                spacing={2}
+                sx={{ display: "flex", width: "100%", textOverflow: "clip" }}
+              >
                 {selectedReviews.map((item) => (
-                  <ReviewBlock {...item} />
+                  <ReviewBlock {...item} key={item.id} />
                 ))}
-              </Grid2>
+              </Stack>
             </Box>
           </Box>
         </Fade>
