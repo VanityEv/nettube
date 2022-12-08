@@ -8,10 +8,8 @@ const ReviewsRouter = Router(); // create router to create route bundle
 // const { SECRET = "secret" } = process.env;
 
 ReviewsRouter.get("/all", async (req, res) => {
-  console.log("wchodzi");
   try {
     await getAllReviews((reviews) => {
-      console.log(reviews);
       res.status(200).json({ result: "success", data: reviews });
     });
   } catch (error) {
