@@ -3,10 +3,11 @@ import ResponsiveAppBar from "../components/ResponsiveAppBar";
 import SearchBar from "../components/SearchBar";
 
 function Series() {
-	return (
-		<>
-		</>
-	);
+  return (
+    <>
+      <ResponsiveAppBar />
+    </>
+  );
 }
 
 export default Series;

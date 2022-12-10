@@ -1,21 +1,43 @@
-import * as React from "react";
-import {Link, Box, Typography, Container, CssBaseline, TextField, Button} from "@mui/material";
+import { useState } from "react";
+import {
+  Link,
+  Box,
+  Typography,
+  Container,
+  CssBaseline,
+  TextField,
+  Button,
+} from "@mui/material";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
 import { Stack } from "@mui/material";
-
+import { useAppDispatch } from "../hooks/reduxHooks";
+import { userLogin } from "../store/user-actions";
+import { UserCredentials } from "../store/user.types";
+import { useNavigate } from "react-router-dom";
 /**
- * TODO: Login handler
+ * TODO: Wywalenie Bad Request z logowania za pomocą błędnych danych
+ * TODO: Dodanie jakiegoś poczekania na zakończenie dispatcha?
+ * Wywala error że usera nie ma w bazie za pierwszym kliknięciem sign in (userToken ma wartość undefined), za drugim klikiem przechodzi normalnie
+ *
  */
 
- function SignIn() {
+function SignIn() {
+  const [isUser, setIsUser] = useState(true);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const theme = useTheme();
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      username: data.get("username"),
-      password: data.get("password"),
-    });
+    const userCredentials: UserCredentials = {
+      username: data.get("username") as string,
+      password: data.get("password") as string,
+    };
+    dispatch(userLogin(userCredentials));
+    localStorage.getItem("userToken") === null ||
+    localStorage.getItem("userToken") === "undefined"
+      ? setIsUser(false)
+      : navigate("/");
   };
   return (
     <ThemeProvider theme={theme}>
@@ -40,6 +62,13 @@ import { Stack } from "@mui/material";
             sx={{ mt: 3, pb: 2 }}
           >
             <Stack spacing={3}>
+              {!isUser ? (
+                <Box>
+                  <Typography sx={{ color: "red" }}>
+                    There is no user associated with given credentials!
+                  </Typography>
+                </Box>
+              ) : null}
               <TextField
                 aria-label="username-field"
                 name="username"
