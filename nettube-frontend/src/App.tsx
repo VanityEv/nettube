@@ -26,29 +26,35 @@ import { fetchReviewsData } from "./store/reviews-actions";
  * 
  */
 const App = () => {
-  const dispatch = useAppDispatch();
+	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
 
-  useEffect(() => {
-    dispatch(fetchVideosData());
-    dispatch(fetchReviewsData());
-  }, [dispatch]);
-  return (
-    <ThemeProvider theme={theme}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/Movies" element={<Movies />} />
-          <Route path="/Series" element={<Series />} />
-          <Route path="/Genres" element={<Genres />} />
-          <Route path="/Profile" element={<Profile />} />
-          <Route path="/Login" element={<Login />} />
-          <Route path="/Register" element={<Register />} />
-          <Route path="/Rescue" element={<ResetPassword />} />
-        </Routes>
-        <Footer />
-      </BrowserRouter>
-    </ThemeProvider>
-  );
+	useEffect(() => {
+		dispatch(fetchVideosData());
+		dispatch(fetchReviewsData());
+	}, [dispatch]);
+
+	useEffect(() => {
+		const token = localStorage.getItem("userToken");
+		// if (!token) {
+		// 	navigate("/Login");
+		// }
+	}, [navigate]);
+	return (
+		<ThemeProvider theme={theme}>
+			<Routes>
+				<Route path="/" element={<HomePage />} />
+				<Route path="/Movies" element={<Movies />} />
+				<Route path="/Series" element={<Series />} />
+				<Route path="/Genres" element={<Genres />} />
+				<Route path="/Profile" element={<Profile />} />
+				<Route path="/Login" element={<Login />} />
+				<Route path="/Register" element={<Register />} />
+				<Route path="/Rescue" element={<ResetPassword />} />
+			</Routes>
+			<Footer />
+		</ThemeProvider>
+	);
 };
 
 export default App;
