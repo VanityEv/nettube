@@ -1,42 +1,53 @@
 import { useState, useCallback } from "react";
 import { SERVER_ADDR, SERVER_PORT } from "../constants";
 
-type RequestConfig = {
-  body: any;
+type SingupData = {
+  username: string;
+  fullname: string;
+  email: string;
+  birthdate: string;
+  password: string;
+};
+
+type RequestSignupConfig = {
+  body: SingupData;
   method: "GET" | "POST";
-  endpoint:string;
+  endpoint: string;
 };
 
 const useHttp = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const sendRequest = useCallback(async (requestConfig: RequestConfig) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(
-        SERVER_ADDR + SERVER_PORT+requestConfig.endpoint,
-        requestConfig.body
-          ? {
-              method: requestConfig.method,
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(requestConfig.body),
-            }
-          : {}
-      );
+  const sendRequest = useCallback(
+    async (requestConfig: RequestSignupConfig) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(
+          SERVER_ADDR + ":" + SERVER_PORT + requestConfig.endpoint,
+          requestConfig.body
+            ? {
+                method: requestConfig.method,
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestConfig.body),
+              }
+            : {}
+        );
 
-      if (!response.ok) {
-        throw new Error("Request failed!");
+        if (!response.ok) {
+          throw new Error("Request failed!");
+        }
+
+        return await response.json();
+      } catch (err: any) {
+        setError(err.message || "Something went wrong!");
       }
-
-      return await response.json();
-    } catch (err: any) {
-      setError(err.message || "Something went wrong!");
-    }
-    setIsLoading(false);
-  }, []);
+      setIsLoading(false);
+    },
+    []
+  );
   return { isLoading, error, sendRequest };
 };
 export default useHttp;

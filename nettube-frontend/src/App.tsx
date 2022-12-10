@@ -1,6 +1,6 @@
 import { ThemeProvider } from "@mui/system";
 import theme from "./styles/theme";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import "./App.css";
 import Genres from "./pages/Genres";
 import HomePage from "./pages/HomePage";
@@ -17,6 +17,14 @@ import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import { fetchReviewsData } from "./store/reviews-actions";
 
+/**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
+ *   const navigate = useNavigate();
+  const token = localStorage.getItem("userToken");
+  if (!token) {
+    navigate("/login");
+  }
+ * 
+ */
 const App = () => {
   const dispatch = useAppDispatch();
 
@@ -24,11 +32,9 @@ const App = () => {
     dispatch(fetchVideosData());
     dispatch(fetchReviewsData());
   }, [dispatch]);
-
   return (
     <ThemeProvider theme={theme}>
       <BrowserRouter>
-        <ResponsiveAppBar />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/Movies" element={<Movies />} />

@@ -5,8 +5,9 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { Video } from "../store/videos.types";
 import { useAppSelector } from "../hooks/reduxHooks";
-import { Stack } from "@mui/material";
+import { Stack, Button } from "@mui/material";
 import ReviewBlock from "./ReviewBlock";
+import PlayCircleOutlineOutlinedIcon from "@mui/icons-material/PlayCircleOutlineOutlined";
 
 export default function TransitionsModal({
   id,
@@ -69,12 +70,10 @@ export default function TransitionsModal({
             />
             <Box
               style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                flexGrow: 1,
+                display: "grid",
                 padding: "1rem",
                 overflowY: "auto",
+                columnGap: 2,
               }}
             >
               <Typography
@@ -148,9 +147,20 @@ export default function TransitionsModal({
                 />
                 {grade}/10 ({reviews_count} reviews)
               </Typography>
+              <Button
+                variant="contained"
+                endIcon={<PlayCircleOutlineOutlinedIcon />}
+              >
+                Play
+              </Button>
               <Stack
                 spacing={2}
-                sx={{ display: "flex", width: "100%", textOverflow: "clip" }}
+                sx={{
+                  display: "flex",
+                  width: "100%",
+                  textOverflow: "clip",
+                  flexGrow: 1,
+                }}
               >
                 {selectedReviews.map((item) => (
                   <ReviewBlock {...item} key={item.id} />

@@ -16,6 +16,8 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { Link } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import { useTheme } from "@material-ui/core";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const pages = ["Movies", "Series", "Genres"];
 const settings = ["Profile", "Account", "Dashboard", "Logout"];
@@ -33,6 +35,7 @@ function ResponsiveAppBar() {
     setAnchorElNav(event.currentTarget);
   };
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+    localStorage.removeItem("userToken");
     setAnchorElUser(event.currentTarget);
   };
 
