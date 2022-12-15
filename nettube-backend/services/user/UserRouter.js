@@ -1,12 +1,12 @@
-import * as dotenv from "dotenv"; // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
+import * as dotenv from "dotenv";
 dotenv.config();
-import { Router } from "express"; // import router from express
-import bcrypt from "bcryptjs"; // import bcrypt to hash passwords
-import jwt from "jsonwebtoken"; // import jwt to sign tokens
-import { isUserInDB, createUser, findOneUser } from "./User.js";
+import { Router } from "express";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { isUserInDB, createUser, findOneUser, confirmUser } from "./User.js";
 import { sendConfirmationEmail } from "../mail/Mail.js";
 
-const UserRouter = Router(); // create router to create route bundle
+const UserRouter = Router();
 
 //DESTRUCTURE ENV VARIABLES WITH DEFAULTS
 const { SECRET = "secret" } = process.env;
@@ -18,6 +18,7 @@ UserRouter.post("/signup", async (req, res) => {
 			const isUserAlreadySigned = data[0].count > 0;
 			if (!isUserAlreadySigned) {
 				const hashedPassword = await bcrypt.hash(req.body.password, 10);
+				const registerToken = Math.floor(Math.random() * 1000000);
 				const userToRegister = {
 					username: req.body.username,
 					fullname: req.body.fullname,
@@ -25,10 +26,12 @@ UserRouter.post("/signup", async (req, res) => {
 					birthdate: req.body.birthdate,
 					email: req.body.email,
 					subscription: req.body.subscription,
+					registerToken: registerToken,
 				};
+
 				await createUser({ ...userToRegister }, (status) => {
 					if (status.affectedRows === 1) {
-						//sendConfirmationEmail(userToRegister.email);
+						sendConfirmationEmail(userToRegister.email, registerToken);
 						res.status(200).json({ result: "SUCCESS" });
 					} else {
 						res.status(400).json({ error: "INTERNAL_ERROR" });
@@ -68,6 +71,18 @@ UserRouter.post("/login", async (req, res) => {
 			} else {
 				res.status(400).json({ error: "User doesn't exist" });
 			}
+		});
+	} catch (error) {
+		res.status(400).json({ error });
+	}
+});
+
+UserRouter.post("/confirmRegister", async (req, res) => {
+	try {
+		await confirmUser(req.body.token, async (response) => {
+			const status = response.changedRows === 1 ? "SUCCESS" : "ERROR";
+			if (status === "SUCCESS") res.status(200).json({ result: "SUCCESS" });
+			if (status === "ERROR") res.status(500).json({ error: "This token has expired!" });
 		});
 	} catch (error) {
 		res.status(400).json({ error });
