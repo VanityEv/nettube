@@ -1,17 +1,8 @@
 import { useState, useCallback } from "react";
 import { SERVER_ADDR, SERVER_PORT } from "../constants";
 
-type SignUpData = {
-	username: string;
-	fullname: string;
-	email: string;
-	birthdate: string;
-	password: string;
-	subscription: number;
-};
-
 type RequestSignupConfig = {
-	body: SignUpData;
+	body: object;
 	method: "GET" | "POST";
 	endpoint: string;
 };
@@ -22,6 +13,7 @@ const useHttp = () => {
 	const sendRequest = useCallback(async (requestConfig: RequestSignupConfig) => {
 		setIsLoading(true);
 		setError(null);
+		console.log(SERVER_ADDR + ":" + SERVER_PORT + requestConfig.endpoint);
 		try {
 			const response = await fetch(
 				SERVER_ADDR + ":" + SERVER_PORT + requestConfig.endpoint,

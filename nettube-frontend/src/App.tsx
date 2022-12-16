@@ -16,6 +16,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import { fetchReviewsData } from "./store/reviews-actions";
+import ConfirmRegister from "./pages/ConfirmRegister";
 
 /**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
  *   const navigate = useNavigate();
@@ -51,6 +52,7 @@ const App = () => {
 				<Route path="/Login" element={<Login />} />
 				<Route path="/Register" element={<Register />} />
 				<Route path="/Rescue" element={<ResetPassword />} />
+				<Route path="/confirmRegister" element={<ConfirmRegister />} />
 			</Routes>
 			<Footer />
 		</ThemeProvider>
