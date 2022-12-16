@@ -3,7 +3,7 @@ import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
 import { useMediaQuery } from "@mui/material";
 import { uiActions } from "../store/ui";
-import { useAppDispatch, useAppSelector } from "../hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
 
 const Search = styled("div")(({ theme }) => ({
 	[theme.breakpoints.up("desktop")]: {

@@ -22,7 +22,6 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { EMAIL_REGEX, PASSWORD_REGEX } from "../constants";
 import useHttp from "../hooks/useHttp";
-import { useNavigate } from "react-router-dom";
 
 type SnackbarType = {
 	content: string;
@@ -123,7 +122,7 @@ function SignUp() {
 					alignItems: "center",
 				}}
 			>
-				<img src="logo.svg" width="150px" height="auto" />
+				<img alt="logo" src="logo.svg" width="150px" height="auto" />
 				<Typography component="h1" variant="h5">
 					Sign up
 				</Typography>
@@ -221,7 +220,7 @@ function SignUp() {
 						<Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
 							Sign Up
 						</Button>
-						<Link href="/Login" variant="body1">
+						<Link href="/signin" variant="body1">
 							Already have an account? Sign in
 						</Link>
 					</Stack>

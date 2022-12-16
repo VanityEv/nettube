@@ -1,13 +1,11 @@
-import Footer from "../components/Footer";
-import ResponsiveAppBar from "../components/ResponsiveAppBar";
-import SearchBar from "../components/SearchBar";
+import VideosList from "../components/VideosList";
 
 function Series() {
-  return (
-    <>
-      <ResponsiveAppBar />
-    </>
-  );
+	return (
+		<>
+			<VideosList />
+		</>
+	);
 }
 
 export default Series;

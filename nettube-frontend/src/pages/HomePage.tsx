@@ -1,5 +1,4 @@
 import Carousel from "../components/Carousel";
-import ResponsiveAppBar from "../components/ResponsiveAppBar";
 import Movies from "./Movies";
 
 const links = [
@@ -11,11 +10,8 @@ const links = [
 function HomePage() {
 	return (
 		<>
-			<ResponsiveAppBar />
-			<div>
-				<Carousel links={links} />
-				<Movies />
-			</div>
+			<Carousel links={links} />
+			<Movies />
 		</>
 	);
 }

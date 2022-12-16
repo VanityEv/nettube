@@ -1,4 +1,3 @@
-import ResponsiveAppBar from "../components/ResponsiveAppBar";
 import { useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import useHttp from "../hooks/useHttp";
@@ -21,9 +20,9 @@ const ConfirmRegister = () => {
 		sendConfirmRequest();
 		console.log(searchParams.get("token"));
 	}, [searchParams, sendRequest]);
+
 	return (
 		<>
-			<ResponsiveAppBar />
 			<p>Your email has been confirmed!</p>
 		</>
 	);

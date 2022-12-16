@@ -23,7 +23,7 @@ const sendConfirmationEmail = (email, registerToken) => {
 		from: MAIL_USERNAME,
 		to: email,
 		subject: "Confirm your account in Nettube",
-		text: `Click this link to confirm account creation: http://localhost:3000/confirmRegister?token=${registerToken}`,
+		text: `Click this link to confirm account creation: http://localhost:3000/confirm-register?token=${registerToken}`,
 	};
 	transporter.sendMail(mailOptions, (error, info) => {
 		if (error) {
