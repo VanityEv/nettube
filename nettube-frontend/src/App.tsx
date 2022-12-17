@@ -1,22 +1,23 @@
 import { ThemeProvider } from "@mui/system";
 import theme from "./styles/theme";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import "./App.css";
 import Genres from "./pages/Genres";
 import HomePage from "./pages/HomePage";
 import Movies from "./pages/Movies";
 import Series from "./pages/Series";
 import Profile from "./pages/Profile";
-import ResponsiveAppBar from "./components/ResponsiveAppBar";
 import Footer from "./components/Footer";
 import { useEffect } from "react";
 import { fetchVideosData } from "./store/videos-actions";
-import { useAppDispatch } from "./hooks/reduxHooks";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
+import { useAppDispatch } from "./hooks/useRedux";
 import ResetPassword from "./pages/ResetPassword";
 import { fetchReviewsData } from "./store/reviews-actions";
 import ConfirmRegister from "./pages/ConfirmRegister";
+import AppBar from "./components/AppBar";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import { uiActions } from "./store/ui";
 
 /**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
  *   const navigate = useNavigate();
@@ -29,11 +30,16 @@ import ConfirmRegister from "./pages/ConfirmRegister";
 const App = () => {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	useEffect(() => {
 		dispatch(fetchVideosData());
 		dispatch(fetchReviewsData());
 	}, [dispatch]);
+
+	useEffect(() => {
+		dispatch(uiActions.onChangeRoute({ route: location.pathname.slice(1) }));
+	}, [dispatch, location]);
 
 	useEffect(() => {
 		const token = localStorage.getItem("userToken");
@@ -43,16 +49,17 @@ const App = () => {
 	}, [navigate]);
 	return (
 		<ThemeProvider theme={theme}>
+			<AppBar />
 			<Routes>
 				<Route path="/" element={<HomePage />} />
-				<Route path="/Movies" element={<Movies />} />
-				<Route path="/Series" element={<Series />} />
-				<Route path="/Genres" element={<Genres />} />
-				<Route path="/Profile" element={<Profile />} />
-				<Route path="/Login" element={<Login />} />
-				<Route path="/Register" element={<Register />} />
-				<Route path="/Rescue" element={<ResetPassword />} />
-				<Route path="/confirmRegister" element={<ConfirmRegister />} />
+				<Route path="/movies" element={<Movies />} />
+				<Route path="/series" element={<Series />} />
+				<Route path="/genres" element={<Genres />} />
+				<Route path="/profile" element={<Profile />} />
+				<Route path="/signin" element={<SignIn />} />
+				<Route path="/signup" element={<SignUp />} />
+				<Route path="/reset-password" element={<ResetPassword />} />
+				<Route path="/confirm-register" element={<ConfirmRegister />} />
 			</Routes>
 			<Footer />
 		</ThemeProvider>

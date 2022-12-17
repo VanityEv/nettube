@@ -47,7 +47,7 @@ UserRouter.post("/signup", async (req, res) => {
 });
 
 // Login route to verify a user and get a token
-UserRouter.post("/login", async (req, res) => {
+UserRouter.post("/signin", async (req, res) => {
 	try {
 		// check if the user exists
 		await findOneUser(req.body.username, async (user) => {
