@@ -2,49 +2,137 @@ import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
-import { Box } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { Rating, Box, IconButton } from "@mui/material";
+import { Delete, ExpandMore } from "@mui/icons-material";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
+import useHttp from "../hooks/useHttp";
+import { useEffect, useState } from "react";
+
+type LikeEntry = {
+  thumbnail: string;
+  title: string;
+  alt: string;
+};
+type ReviewEntry = {
+  comment: string;
+  grade: number;
+  title: string;
+};
 
 function UserProfileAccordion() {
-	return (
-		<Box sx={{ flexGrow: 3 }}>
-			<Accordion defaultExpanded>
-				<AccordionSummary
-					expandIcon={<ExpandMoreIcon />}
-					aria-controls="panel1a-content"
-					id="panel1a-header"
-				>
-					<Typography>Liked shows</Typography>
-				</AccordionSummary>
-				<AccordionDetails>
-					<Grid2>
-						<Grid2 mobile={12} desktop={12} sx={{ mx: "auto", width: 200 }}>
-							<Typography>Test</Typography>
-						</Grid2>
-					</Grid2>
-				</AccordionDetails>
-			</Accordion>
-			<Accordion>
-				<AccordionSummary
-					expandIcon={<ExpandMoreIcon />}
-					aria-controls="panel2a-content"
-					id="panel2a-header"
-				>
-					<Typography>Comments & Reviews</Typography>
-				</AccordionSummary>
-				<AccordionDetails>
-					<Grid2>
-						<Grid2 mobile={12} desktop={12}>
-							<Typography>Test</Typography>
-						</Grid2>
-						<Grid2 mobile={12} desktop={12}>
-							<Typography>Test</Typography>
-						</Grid2>
-					</Grid2>
-				</AccordionDetails>
-			</Accordion>
-		</Box>
-	);
+  const { sendRequest } = useHttp();
+  const [likesData, setLikesData] = useState<LikeEntry[] | []>([]);
+  const [reviewsData, setReviewsData] = useState<ReviewEntry[] | []>([]);
+  const sendReviewsQuery = async () => {
+    const username = localStorage.getItem("username");
+    const response = await sendRequest({
+      method: "GET",
+      endpoint: `/reviews/userReviews/${username}`,
+    });
+    if (response.result === "SUCCESS") {
+      setReviewsData(response.data);
+    }
+  };
+
+  const sendLikesQuery = async () => {
+    const username = localStorage.getItem("username");
+    const response = await sendRequest({
+      method: "GET",
+      endpoint: `/user/userLikes/${username}`,
+    });
+    if (response.result === "SUCCESS") {
+      setLikesData(response.data);
+    }
+  };
+  useEffect(() => {
+    sendReviewsQuery();
+    sendLikesQuery();
+  }, []);
+
+  const handleDelete = () => {
+    console.log("testDelete");
+  };
+
+  return (
+    <Box sx={{ flexGrow: 3 }}>
+      <Accordion defaultExpanded>
+        <AccordionSummary
+          expandIcon={<ExpandMore />}
+          aria-controls="panel1a-content"
+          id="panel1a-header"
+        >
+          <Typography>Liked shows</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Grid2>
+            {likesData.map((like, id) => (
+              <Grid2
+                key={like.title.toLowerCase() + id}
+                mobile={12}
+                desktop={6}
+                sx={{
+                  mx: "auto",
+                  width: 200,
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  pl: "20px",
+                  boxShadow: "8px 8px 24px -21px rgba(66, 68, 90, 1)",
+                }}
+              >
+                <Box display="flex" flexDirection="row" alignItems="center">
+                  <img src={like.thumbnail} className="review-thumbnail" />
+                  <Typography
+                    sx={{ pl: "30px", letterSpacing: "1px", fontWeight: 700 }}
+                  >
+                    {like.title}
+                  </Typography>
+                </Box>
+                <IconButton
+                  sx={{ mr: "30px", fontSize: "12px" }}
+                  onClick={handleDelete}
+                >
+                  <Delete />
+                  Delete
+                </IconButton>
+              </Grid2>
+            ))}
+          </Grid2>
+        </AccordionDetails>
+      </Accordion>
+      <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMore />}
+          aria-controls="panel2a-content"
+          id="panel2a-header"
+        >
+          <Typography>Comments & Reviews</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Grid2>
+            {reviewsData.map((review) => (
+              <Grid2
+                sx={{
+                  justifyContent: "left",
+                }}
+              >
+                <h4 style={{ margin: 0, textAlign: "left" }}>{review.title}</h4>
+                <Rating
+                  name="read-only"
+                  value={review.grade / 2}
+                  precision={0.5}
+                  readOnly
+                />
+                <Typography sx={{ textAlign: "left" }}>
+                  {review.comment}
+                </Typography>
+              </Grid2>
+            ))}
+          </Grid2>
+        </AccordionDetails>
+      </Accordion>
+    </Box>
+  );
 }
 export default UserProfileAccordion;

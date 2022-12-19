@@ -7,7 +7,7 @@ export const userLogin = (userCredentials: UserCredentials) => {
   return async (dispatch: AppDispatch) => {
     const fetchUser = async () => {
       const response = await fetch(
-        SERVER_ADDR + ":" + SERVER_PORT + "/user/login",
+        SERVER_ADDR + ":" + SERVER_PORT + "/user/signin",
         {
           method: "POST", // *GET, POST, PUT, DELETE, etc.
           mode: "cors", // no-cors, *cors, same-origin
@@ -30,6 +30,7 @@ export const userLogin = (userCredentials: UserCredentials) => {
       const password = response.password;
       const userToken = response.token;
       localStorage.setItem("userToken", userToken);
+      localStorage.setItem("username", username);
       dispatch(
         userActions.setUser({
           username,

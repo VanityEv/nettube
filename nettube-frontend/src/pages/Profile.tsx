@@ -1,23 +1,66 @@
 import { Box } from "@mui/material";
 import ProfileCard, { ProfileInfo } from "../components/ProfileCard";
 import UserProfileAccordion from "../components/UserProfileAccordion";
-
-const testUser: ProfileInfo = {
-	uname: "Tester",
-	rname: "Tester Testowy",
-	email: "test@test",
-	birthdate: "12.01.1999",
-	subscriptiontype: "basic",
-};
+import useHttp from "../hooks/useHttp";
+import { useEffect, useState } from "react";
 
 function Profile() {
-	return (
-		<>
-			<Box sx={{ display: "flex", flexDirection: "row" }}>
-				<ProfileCard {...testUser} />
-				<UserProfileAccordion />
-			</Box>
-		</>
-	);
+  const { sendRequest } = useHttp();
+  const [userData, setData] = useState({
+    username: "",
+    fullname: "",
+    email: "",
+    birthdate: "",
+    subscription: 0,
+  });
+
+  const sendUserQuery = async () => {
+    const response = await sendRequest({
+      method: "POST",
+      body: {
+        username: localStorage.getItem("username"),
+      },
+      endpoint: "/user/getUserData",
+    });
+    if (response.result === "SUCCESS") {
+      setData(response);
+    }
+  };
+
+  const sendUpdateQuery = async (param: string, value: string) => {
+    const response = await sendRequest({
+      method: "POST",
+      body: {
+        param: param,
+        value: value,
+        username: localStorage.getItem("username"),
+      },
+      endpoint: "/user/updateUser",
+    });
+    if (response === "SUCCESS") {
+      sendUserQuery();
+    }
+  };
+
+  useEffect(() => {
+    sendUserQuery();
+  }, []);
+
+  const userProfileInfo: ProfileInfo = {
+    uname: userData.username,
+    fullname: userData.fullname,
+    email: userData.email,
+    birthdate: userData.birthdate,
+    subscriptiontype: userData.subscription,
+    confirmChange: sendUpdateQuery,
+  };
+  return (
+    <>
+      <Box sx={{ display: "flex", flexDirection: "row" }}>
+        <ProfileCard {...userProfileInfo} />
+        <UserProfileAccordion />
+      </Box>
+    </>
+  );
 }
 export default Profile;
