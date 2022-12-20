@@ -8,7 +8,6 @@ import {
   Avatar,
   Box,
   FormControl,
-  SelectChangeEvent,
   TextField,
   Radio,
   RadioGroup,
@@ -75,7 +74,7 @@ export default function ProfileCard({
             textAlign: "center",
           }}
         >
-          <Avatar>{uname.charAt(0)}</Avatar>
+          <Avatar>{uname[0]}</Avatar>
         </Box>
         <hr />
         <Typography sx={{ mb: 1 }} color="text.secondary">

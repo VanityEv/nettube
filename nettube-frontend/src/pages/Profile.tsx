@@ -14,7 +14,7 @@ function Profile() {
     subscription: 0,
   });
 
-  const sendUserQuery = async () => {
+  const fetchUserProfileInfo = async () => {
     const response = await sendRequest({
       method: "POST",
       body: {
@@ -38,12 +38,12 @@ function Profile() {
       endpoint: "/user/updateUser",
     });
     if (response === "SUCCESS") {
-      sendUserQuery();
+      fetchUserProfileInfo();
     }
   };
 
   useEffect(() => {
-    sendUserQuery();
+    fetchUserProfileInfo();
   }, []);
 
   const userProfileInfo: ProfileInfo = {
