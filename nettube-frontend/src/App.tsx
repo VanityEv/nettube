@@ -18,6 +18,7 @@ import AppBar from "./components/AppBar";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import { uiActions } from "./store/ui";
+import Logout from "./pages/Logout";
 
 /**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
  *   const navigate = useNavigate();
@@ -28,42 +29,43 @@ import { uiActions } from "./store/ui";
  * 
  */
 const App = () => {
-	const dispatch = useAppDispatch();
-	const navigate = useNavigate();
-	const location = useLocation();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-	useEffect(() => {
-		dispatch(fetchVideosData());
-		dispatch(fetchReviewsData());
-	}, [dispatch]);
+  useEffect(() => {
+    dispatch(fetchVideosData());
+    dispatch(fetchReviewsData());
+  }, [dispatch]);
 
-	useEffect(() => {
-		dispatch(uiActions.onChangeRoute({ route: location.pathname.slice(1) }));
-	}, [dispatch, location]);
+  useEffect(() => {
+    dispatch(uiActions.onChangeRoute({ route: location.pathname.slice(1) }));
+  }, [dispatch, location]);
 
-	useEffect(() => {
-		const token = localStorage.getItem("userToken");
-		// if (!token) {
-		// 	navigate("/Login");
-		// }
-	}, [navigate]);
-	return (
-		<ThemeProvider theme={theme}>
-			<AppBar />
-			<Routes>
-				<Route path="/" element={<HomePage />} />
-				<Route path="/movies" element={<Movies />} />
-				<Route path="/series" element={<Series />} />
-				<Route path="/genres" element={<Genres />} />
-				<Route path="/profile" element={<Profile />} />
-				<Route path="/signin" element={<SignIn />} />
-				<Route path="/signup" element={<SignUp />} />
-				<Route path="/reset-password" element={<ResetPassword />} />
-				<Route path="/confirm-register" element={<ConfirmRegister />} />
-			</Routes>
-			<Footer />
-		</ThemeProvider>
-	);
+  useEffect(() => {
+    const token = localStorage.getItem("userToken");
+    // if (!token) {
+    // 	navigate("/Login");
+    // }
+  }, [navigate]);
+  return (
+    <ThemeProvider theme={theme}>
+      <AppBar />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/movies" element={<Movies />} />
+        <Route path="/series" element={<Series />} />
+        <Route path="/genres" element={<Genres />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/confirm-register" element={<ConfirmRegister />} />
+        <Route path="/logout" element={<Logout />} />
+      </Routes>
+      <Footer />
+    </ThemeProvider>
+  );
 };
 
 export default App;

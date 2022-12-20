@@ -4,6 +4,8 @@
 /nettube-frontend/node_modules
 /nettube-backend/node_modules
 /.pnp
+node_modules/
+.history/
 .pnp.js
 
 # testing

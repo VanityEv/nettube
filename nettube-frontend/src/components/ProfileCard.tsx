@@ -8,11 +8,10 @@ import {
   Avatar,
   Box,
   FormControl,
-  SelectChangeEvent,
   TextField,
   Radio,
   RadioGroup,
-  FormLabel
+  FormLabel,
 } from "@mui/material";
 import useModal from "../hooks/useModal";
 import UserInfoModal from "./UserInfoModal";
@@ -20,26 +19,34 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 
 export type ProfileInfo = {
   uname: string;
-  rname: string;
+  fullname: string;
   email: string;
   birthdate: string;
-  subscriptiontype: string;
+  subscriptiontype: number;
+  confirmChange: (param: string, value: string) => Promise<void>;
 };
-
 
 export default function ProfileCard({
   uname,
-  rname,
+  fullname,
   email,
   birthdate,
   subscriptiontype,
+  confirmChange,
 }: ProfileInfo) {
   const { isOpen, toggle } = useModal();
-  const [subscription, setSubscription] = useState("");
   const [selectedModal, setSelectedModal] = useState("");
 
-  const handleChange = (event: SelectChangeEvent) => {
-    setSubscription(event.target.value as string);
+  const [updateValue, setValue] = useState("");
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value as string);
+  };
+
+  const handleUserUpdate = () => {
+    if (selectedModal === "fullname") {
+      confirmChange(selectedModal, updateValue);
+    }
   };
 
   const handleSelectedModal = (param: string) => {
@@ -51,7 +58,7 @@ export default function ProfileCard({
     <Card
       sx={{
         maxWidth: 275,
-        flexGrow:1,
+        flexGrow: 1,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -67,7 +74,7 @@ export default function ProfileCard({
             textAlign: "center",
           }}
         >
-          <Avatar>T</Avatar>
+          <Avatar>{uname[0]}</Avatar>
         </Box>
         <hr />
         <Typography sx={{ mb: 1 }} color="text.secondary">
@@ -76,33 +83,18 @@ export default function ProfileCard({
         <Typography sx={{ mb: 1 }} color="text.primary">
           {uname}
         </Typography>
-        <Button size="small" onClick={() => handleSelectedModal("username")}>
-          Change Username
-        </Button>
         <hr />
-        {selectedModal === "username" && (
-          <UserInfoModal isOpen={isOpen} toggle={toggle}>
-            <TextField
-              required
-              id="standard-required"
-              label="Username"
-              placeholder="New username"
-              variant="standard"
-            />
-            <Button size="small">Confirm</Button>
-          </UserInfoModal>
-        )}
         <Typography sx={{ mb: 1 }} color="text.secondary">
           Your real name:
         </Typography>
         <Typography sx={{ mb: 1 }} color="text.primary">
-          {rname}
+          {fullname}
         </Typography>
-        <Button size="small" onClick={() => handleSelectedModal("name")}>
+        <Button size="small" onClick={() => handleSelectedModal("fullname")}>
           Change name
         </Button>
         <hr />
-        {selectedModal === "name" && (
+        {selectedModal === "fullname" && (
           <UserInfoModal isOpen={isOpen} toggle={toggle}>
             <TextField
               required
@@ -111,8 +103,11 @@ export default function ProfileCard({
               defaultValue=""
               placeholder="New name"
               variant="standard"
+              onChange={handleChange}
             />
-            <Button size="small">Confirm</Button>
+            <Button size="small" onClick={handleUserUpdate}>
+              Confirm
+            </Button>
           </UserInfoModal>
         )}
 
@@ -158,7 +153,6 @@ export default function ProfileCard({
                 Choose subscription
               </FormLabel>
               <RadioGroup
-                
                 aria-labelledby="radio-buttons-subscription-label"
                 defaultValue="standard"
                 name="radio-buttons-subscription-label"
