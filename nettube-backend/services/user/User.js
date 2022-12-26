@@ -43,7 +43,6 @@ const checkOccurency = async (param, value, requestCallback) => {
 };
 
 const deleteLike = async (username, show_title, requestCallback) => {
-  console.log("delete like ");
   const dbQuery = `DELETE FROM user_likes WHERE user_id = (SELECT id from users where username = "${username}") AND video_id = (SELECT id from videos WHERE title = "${show_title}")`;
   await query(dbQuery, requestCallback);
 };

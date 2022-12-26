@@ -169,12 +169,10 @@ UserRouter.post("/checkOccurency", async (req, res) => {
 
 UserRouter.post("/deleteLike", async (req, res) => {
   try {
-    console.log(req.body);
     await deleteLike(
       req.body.username,
       req.body.show_title,
       async (response) => {
-        console.log(response);
         const status = response.affectedRows === 1 ? "SUCCESS" : "ERROR";
         if (status === "SUCCESS") res.status(200).json({ result: "SUCCESS" });
         if (status === "ERROR") res.status(500).json({ error: "ERROR" });
