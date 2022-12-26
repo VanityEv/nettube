@@ -37,6 +37,17 @@ const userLikes = async (username, requestCallback) => {
   await query(dbQuery, requestCallback);
 };
 
+const checkOccurency = async (param, value, requestCallback) => {
+  const dbQuery = `SELECT COUNT(*) as 'exists' FROM users WHERE ${param} = "${value}"`;
+  await query(dbQuery, requestCallback);
+};
+
+const deleteLike = async (username, show_title, requestCallback) => {
+  console.log("delete like ");
+  const dbQuery = `DELETE FROM user_likes WHERE user_id = (SELECT id from users where username = "${username}") AND video_id = (SELECT id from videos WHERE title = "${show_title}")`;
+  await query(dbQuery, requestCallback);
+};
+
 export {
   createUser,
   findOneUser,
@@ -44,4 +55,6 @@ export {
   isUserInDB,
   updateUser,
   userLikes,
+  checkOccurency,
+  deleteLike,
 };

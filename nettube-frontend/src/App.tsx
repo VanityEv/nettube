@@ -18,7 +18,7 @@ import AppBar from "./components/AppBar";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import { uiActions } from "./store/ui";
-import Logout from "./pages/Logout";
+import Signout from "./pages/Signout";
 
 /**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
  *   const navigate = useNavigate();
@@ -61,7 +61,7 @@ const App = () => {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/confirm-register" element={<ConfirmRegister />} />
-        <Route path="/logout" element={<Logout />} />
+        <Route path="/signout" element={<Signout />} />
       </Routes>
       <Footer />
     </ThemeProvider>
