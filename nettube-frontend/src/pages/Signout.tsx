@@ -1,4 +1,4 @@
-function Logout() {
+function Signout() {
   localStorage.removeItem("token");
   localStorage.removeItem("username");
   return (
@@ -8,4 +8,4 @@ function Logout() {
   );
 }
 
-export default Logout;
+export default Signout;

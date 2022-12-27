@@ -6,7 +6,10 @@ import { Rating, Box, IconButton } from "@mui/material";
 import { Delete, ExpandMore } from "@mui/icons-material";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import useHttp from "../hooks/useHttp";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
+//TODO: CSS: jakiś oddzielacz do reviews jeszcze nie wiem jaki (może po prostu rowSpacing?)
+//Nie wiem czy to tylko u mnie ale sprawdź czy jak klikasz change birthdate to masz z miejsca obwódke errora (nie powinno jej być w ogóle)
 
 type LikeEntry = {
   thumbnail: string;
@@ -23,7 +26,7 @@ function UserProfileAccordion() {
   const { sendRequest } = useHttp();
   const [likesData, setLikesData] = useState<LikeEntry[] | []>([]);
   const [reviewsData, setReviewsData] = useState<ReviewEntry[] | []>([]);
-  const sendReviewsQuery = async () => {
+  const sendReviewsQuery = useCallback(async () => {
     const username = localStorage.getItem("username");
     const response = await sendRequest({
       method: "GET",
@@ -32,9 +35,9 @@ function UserProfileAccordion() {
     if (response.result === "SUCCESS") {
       setReviewsData(response.data);
     }
-  };
+  }, []);
 
-  const sendLikesQuery = async () => {
+  const sendLikesQuery = useCallback(async () => {
     const username = localStorage.getItem("username");
     const response = await sendRequest({
       method: "GET",
@@ -43,14 +46,30 @@ function UserProfileAccordion() {
     if (response.result === "SUCCESS") {
       setLikesData(response.data);
     }
+  }, []);
+
+  const sendDeleteLikeQuery = async (show_title: string) => {
+    const username = localStorage.getItem("username");
+    const response = await sendRequest({
+      method: "POST",
+      body: {
+        username: username,
+        show_title: show_title,
+      },
+      endpoint: `/user/deleteLike`,
+    });
+    if (response.result === "SUCCESS") {
+      sendLikesQuery();
+    }
   };
+
   useEffect(() => {
     sendReviewsQuery();
     sendLikesQuery();
-  }, []);
+  }, [sendReviewsQuery, sendLikesQuery]);
 
-  const handleDelete = () => {
-    console.log("testDelete");
+  const handleDelete = (show_title: string) => {
+    sendDeleteLikeQuery(show_title);
   };
 
   return (
@@ -91,7 +110,9 @@ function UserProfileAccordion() {
                 </Box>
                 <IconButton
                   sx={{ mr: "30px", fontSize: "12px" }}
-                  onClick={handleDelete}
+                  onClick={() => {
+                    handleDelete(like.title);
+                  }}
                 >
                   <Delete />
                   Delete

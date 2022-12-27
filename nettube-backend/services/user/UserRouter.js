@@ -10,6 +10,8 @@ import {
   confirmUser,
   updateUser,
   userLikes,
+  checkOccurency,
+  deleteLike,
 } from "./User.js";
 import { sendConfirmationEmail } from "../mail/Mail.js";
 
@@ -147,6 +149,33 @@ UserRouter.post("/updateUser", async (req, res) => {
         if (status === "SUCCESS") res.status(200).json({ result: "SUCCESS" });
         if (status === "ERROR")
           res.status(500).json({ error: "UPDATE FAILED" });
+      }
+    );
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+});
+
+UserRouter.post("/checkOccurency", async (req, res) => {
+  try {
+    await checkOccurency(req.body.param, req.body.value, async (response) => {
+      const status = response[0].exists === 0 ? "NOT EXISTS" : "ALREADY EXISTS";
+      res.status(200).json({ result: status });
+    });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+});
+
+UserRouter.post("/deleteLike", async (req, res) => {
+  try {
+    await deleteLike(
+      req.body.username,
+      req.body.show_title,
+      async (response) => {
+        const status = response.affectedRows === 1 ? "SUCCESS" : "ERROR";
+        if (status === "SUCCESS") res.status(200).json({ result: "SUCCESS" });
+        if (status === "ERROR") res.status(500).json({ error: "ERROR" });
       }
     );
   } catch (error) {
