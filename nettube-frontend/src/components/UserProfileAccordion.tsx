@@ -11,7 +11,8 @@ import { useCallback, useEffect, useState } from "react";
 //TODO: CSS: jakiś oddzielacz do reviews jeszcze nie wiem jaki (może po prostu rowSpacing?)
 //Nie wiem czy to tylko u mnie ale sprawdź czy jak klikasz change birthdate to masz z miejsca obwódke errora (nie powinno jej być w ogóle)
 
-type LikeEntry = {
+export type LikeEntry = {
+  id: number;
   thumbnail: string;
   title: string;
   alt: string;

@@ -33,7 +33,7 @@ const updateUser = async (param, value, username, requestCallback) => {
   await query(dbQuery, requestCallback);
 };
 const userLikes = async (username, requestCallback) => {
-  const dbQuery = `SELECT videos.title, videos.thumbnail, videos.alt FROM videos WHERE id IN(SELECT video_id FROM user_likes WHERE user_id=(SELECT id FROM users WHERE username = "${username}") )`;
+  const dbQuery = `SELECT videos.id, videos.title, videos.thumbnail, videos.alt FROM videos WHERE id IN(SELECT video_id FROM user_likes WHERE user_id=(SELECT id FROM users WHERE username = "${username}") )`;
   await query(dbQuery, requestCallback);
 };
 
@@ -47,6 +47,11 @@ const deleteLike = async (username, show_title, requestCallback) => {
   await query(dbQuery, requestCallback);
 };
 
+const addLike = async (username, show_title, requestCallback) => {
+  const dbQuery = `INSERT INTO user_likes(video_id,user_id) VALUES((SELECT id FROM videos WHERE title="${show_title}"), (SELECT id FROM users WHERE username="${username}"))`;
+  await query(dbQuery, requestCallback);
+};
+
 export {
   createUser,
   findOneUser,
@@ -56,4 +61,5 @@ export {
   userLikes,
   checkOccurency,
   deleteLike,
+  addLike,
 };

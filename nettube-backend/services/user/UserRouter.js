@@ -12,6 +12,7 @@ import {
   userLikes,
   checkOccurency,
   deleteLike,
+  addLike,
 } from "./User.js";
 import { sendConfirmationEmail } from "../mail/Mail.js";
 
@@ -57,38 +58,62 @@ UserRouter.post("/signup", async (req, res) => {
 
 // Login route to verify a user and get a token
 UserRouter.post("/signin", async (req, res) => {
-  try {
-    // check if the user exists
-    await findOneUser(req.body.username, async (user) => {
-      const userToLogin = user[0];
+  if (req.body.password) {
+    try {
+      // check if the user exists
+      await findOneUser(req.body.username, async (user) => {
+        const userToLogin = user[0];
 
-      if (userToLogin) {
-        //check if password matches
-        const result = await bcrypt.compare(
-          req.body.password,
-          userToLogin.password
-        );
-        if (result) {
-          // sign token and send it in response
-          const token = await jwt.sign(
-            { username: userToLogin.username },
-            SECRET
+        if (userToLogin) {
+          //check if password matches
+          const result = await bcrypt.compare(
+            req.body.password,
+            userToLogin.password
           );
-          //console.log({ username: user.username, token });
-          res.status(200).json({
-            result: "SUCCESS",
-            username: userToLogin.username,
-            token,
-          });
+          if (result) {
+            // sign token and send it in response
+            const token = await jwt.sign(
+              { username: userToLogin.username },
+              SECRET
+            );
+            //console.log({ username: user.username, token });
+            res.status(200).json({
+              result: "SUCCESS",
+              username: userToLogin.username,
+              token,
+            });
+          } else {
+            res.status(400).json({ error: "PASSWORD_MISMATCH" });
+          }
         } else {
-          res.status(400).json({ error: "PASSWORD_MISMATCH" });
+          res.status(400).json({ error: "User doesn't exist" });
         }
-      } else {
-        res.status(400).json({ error: "User doesn't exist" });
-      }
-    });
-  } catch (error) {
-    res.status(400).json({ error });
+      });
+    } catch (error) {
+      res.status(400).json({ error });
+    }
+  } else if (req.body.token) {
+    try {
+      // check if the user exists
+      await findOneUser(req.body.username, async (user) => {
+        const userToLogin = user[0];
+        if (userToLogin) {
+          if (jwt.decode(req.body.token).username === userToLogin.username) {
+            res.status(200).json({
+              result: "SUCCESS",
+              username: userToLogin.username,
+              token: req.body.token,
+            });
+          } else {
+            res.status(400).json({ error: "TOKEN_MISMATCH" });
+          }
+        } else {
+          res.status(400).json({ error: "User doesn't exist" });
+        }
+      });
+    } catch (error) {
+      res.status(400).json({ error });
+    }
   }
 });
 
@@ -178,6 +203,18 @@ UserRouter.post("/deleteLike", async (req, res) => {
         if (status === "ERROR") res.status(500).json({ error: "ERROR" });
       }
     );
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+});
+
+UserRouter.post("/addLike", async (req, res) => {
+  try {
+    await addLike(req.body.username, req.body.show_title, async (response) => {
+      const status = response.affectedRows === 1 ? "SUCCESS" : "ERROR";
+      if (status === "SUCCESS") res.status(200).json({ result: "SUCCESS" });
+      if (status === "ERROR") res.status(500).json({ error: "ERROR" });
+    });
   } catch (error) {
     res.status(400).json({ error });
   }
