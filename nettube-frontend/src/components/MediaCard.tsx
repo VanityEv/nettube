@@ -8,25 +8,58 @@ import IconButton from "@mui/material/IconButton";
 import TransitionsModal from "./TransitionsModal";
 import { useMediaQuery, useTheme } from "@mui/material";
 import { Video } from "../store/videos.types";
+import { FavoriteBorder } from "@mui/icons-material";
+import { useState } from "react";
+import useHttp from "../hooks/useHttp";
+import Snackbar from "@mui/material";
+import { SnackbarType } from "../pages/SignUp";
 
-export default function MediaCard({
-  id,
-  tier,
-  title,
-  type,
-  genre,
-  production_year,
-  production_country,
-  age_restriction,
-  grade,
-  reviews_count,
-  alt,
-  descr,
-  thumbnail,
-}: Video) {
+type MediaCardProps = {
+  liked?: boolean;
+  video: Video;
+};
+
+export default function MediaCard({ liked, video }: MediaCardProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("desktop"));
+  const [clickedLike, setClickedLike] = useState(false);
+  const { sendRequest } = useHttp();
+  const sendDeleteLikeQuery = async (show_title: string) => {
+    const username = localStorage.getItem("username");
+    const response = await sendRequest({
+      method: "POST",
+      body: {
+        username: username,
+        show_title: show_title,
+      },
+      endpoint: `/user/deleteLike`,
+    });
+    if (response.result === "SUCCESS") {
+      setClickedLike(false);
+    }
+  };
 
+  const sendAddLikeQuery = async (show_title: string) => {
+    const username = localStorage.getItem("username");
+    const response = await sendRequest({
+      method: "POST",
+      body: {
+        username: username,
+        show_title: show_title,
+      },
+      endpoint: `/user/addLike`,
+    });
+    if (response.result === "SUCCESS") {
+      setClickedLike(true);
+    }
+  };
+
+  const handleFavoriteDelete = (title: string) => {
+    sendDeleteLikeQuery(title);
+  };
+  const handleFavoriteAdd = (title: string) => {
+    sendAddLikeQuery(title);
+  };
   return (
     <Card
       sx={{
@@ -38,8 +71,8 @@ export default function MediaCard({
     >
       <CardMedia
         component="img"
-        image={thumbnail}
-        alt={alt}
+        image={video.thumbnail}
+        alt={video.alt}
         sx={{ objectFit: "contain" }}
       />
       <CardContent>
@@ -49,34 +82,36 @@ export default function MediaCard({
           component="div"
           textAlign="center"
         >
-          {title}
+          {video.title}
         </Typography>
         {!isMobile && (
           <Typography variant="body2" color="text.secondary">
-            {descr}
+            {video.descr}
           </Typography>
         )}
       </CardContent>
       <CardActions>
-        <IconButton aria-label="add to favorites">
-          <Favorite />
-        </IconButton>
+        {liked || clickedLike ? (
+          <IconButton
+            aria-label="delete from favorites"
+            onClick={() => {
+              handleFavoriteDelete(video.title);
+            }}
+          >
+            <Favorite color="error" />
+          </IconButton>
+        ) : (
+          <IconButton
+            aria-label="add to favorites"
+            onClick={() => {
+              handleFavoriteAdd(video.title);
+            }}
+          >
+            <FavoriteBorder color="error" />
+          </IconButton>
+        )}
         <IconButton aria-label="play">
-          <TransitionsModal
-            id={id}
-            tier={tier}
-            title={title}
-            type={type}
-            genre={genre}
-            production_year={production_year}
-            production_country={production_country}
-            age_restriction={age_restriction}
-            grade={grade}
-            reviews_count={reviews_count}
-            alt={alt}
-            descr={descr}
-            thumbnail={thumbnail}
-          />
+          <TransitionsModal {...video} />
         </IconButton>
       </CardActions>
     </Card>
