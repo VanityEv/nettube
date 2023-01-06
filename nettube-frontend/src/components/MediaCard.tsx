@@ -11,109 +11,102 @@ import { Video } from "../store/videos.types";
 import { FavoriteBorder } from "@mui/icons-material";
 import { useState } from "react";
 import useHttp from "../hooks/useHttp";
-import Snackbar from "@mui/material";
-import { SnackbarType } from "../pages/SignUp";
 
 type MediaCardProps = {
-  liked?: boolean;
-  video: Video;
+	liked?: boolean;
+	video: Video;
 };
 
 export default function MediaCard({ liked, video }: MediaCardProps) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("desktop"));
-  const [clickedLike, setClickedLike] = useState(false);
-  const { sendRequest } = useHttp();
-  const sendDeleteLikeQuery = async (show_title: string) => {
-    const username = localStorage.getItem("username");
-    const response = await sendRequest({
-      method: "POST",
-      body: {
-        username: username,
-        show_title: show_title,
-      },
-      endpoint: `/user/deleteLike`,
-    });
-    if (response.result === "SUCCESS") {
-      setClickedLike(false);
-    }
-  };
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down("desktop"));
+	const [clickedLike, setClickedLike] = useState(false);
+	const { sendRequest } = useHttp();
+	const sendDeleteLikeQuery = async (show_title: string) => {
+		const username = localStorage.getItem("username");
+		const response = await sendRequest({
+			method: "POST",
+			body: {
+				username: username,
+				show_title: show_title,
+			},
+			endpoint: `/user/deleteLike`,
+		});
+		if (response.result === "SUCCESS") {
+			setClickedLike(false);
+		}
+	};
 
-  const sendAddLikeQuery = async (show_title: string) => {
-    const username = localStorage.getItem("username");
-    const response = await sendRequest({
-      method: "POST",
-      body: {
-        username: username,
-        show_title: show_title,
-      },
-      endpoint: `/user/addLike`,
-    });
-    if (response.result === "SUCCESS") {
-      setClickedLike(true);
-    }
-  };
+	const sendAddLikeQuery = async (show_title: string) => {
+		const username = localStorage.getItem("username");
+		const response = await sendRequest({
+			method: "POST",
+			body: {
+				username: username,
+				show_title: show_title,
+			},
+			endpoint: `/user/addLike`,
+		});
+		if (response.result === "SUCCESS") {
+			setClickedLike(true);
+		}
+	};
 
-  const handleFavoriteDelete = (title: string) => {
-    sendDeleteLikeQuery(title);
-  };
-  const handleFavoriteAdd = (title: string) => {
-    sendAddLikeQuery(title);
-  };
-  return (
-    <Card
-      sx={{
-        maxWidth: 345,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}
-    >
-      <CardMedia
-        component="img"
-        image={video.thumbnail}
-        alt={video.alt}
-        sx={{ objectFit: "contain" }}
-      />
-      <CardContent>
-        <Typography
-          gutterBottom
-          variant="h5"
-          component="div"
-          textAlign="center"
-        >
-          {video.title}
-        </Typography>
-        {!isMobile && (
-          <Typography variant="body2" color="text.secondary">
-            {video.descr}
-          </Typography>
-        )}
-      </CardContent>
-      <CardActions>
-        {liked || clickedLike ? (
-          <IconButton
-            aria-label="delete from favorites"
-            onClick={() => {
-              handleFavoriteDelete(video.title);
-            }}
-          >
-            <Favorite color="error" />
-          </IconButton>
-        ) : (
-          <IconButton
-            aria-label="add to favorites"
-            onClick={() => {
-              handleFavoriteAdd(video.title);
-            }}
-          >
-            <FavoriteBorder color="error" />
-          </IconButton>
-        )}
-        <IconButton aria-label="play">
-          <TransitionsModal {...video} />
-        </IconButton>
-      </CardActions>
-    </Card>
-  );
+	const handleFavoriteDelete = (title: string) => {
+		sendDeleteLikeQuery(title);
+	};
+	const handleFavoriteAdd = (title: string) => {
+		sendAddLikeQuery(title);
+	};
+	return (
+		<Card
+			sx={{
+				maxWidth: 345,
+				display: "flex",
+				flexDirection: "column",
+				alignItems: "center",
+			}}
+		>
+			<CardMedia
+				component="img"
+				image={video.thumbnail}
+				alt={video.alt}
+				sx={{ objectFit: "contain" }}
+			/>
+			<CardContent>
+				<Typography gutterBottom variant="h5" component="div" textAlign="center">
+					{video.title}
+				</Typography>
+				{!isMobile && (
+					<Typography variant="body2" color="text.secondary">
+						{video.descr}
+					</Typography>
+				)}
+			</CardContent>
+			<CardActions>
+				{liked || clickedLike ? (
+					<IconButton
+						aria-label="delete from favorites"
+						onClick={() => {
+							handleFavoriteDelete(video.title);
+						}}
+					>
+						<Favorite color="error" />
+					</IconButton>
+				) : (
+					<IconButton
+						aria-label="add to favorites"
+						onClick={() => {
+							handleFavoriteAdd(video.title);
+						}}
+					>
+						<FavoriteBorder color="error" />
+					</IconButton>
+				)}
+				<IconButton aria-label="play">
+					<TransitionsModal {...video} />
+				</IconButton>
+			</CardActions>
+		</Card>
+	);
 }
