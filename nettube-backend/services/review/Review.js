@@ -11,7 +11,7 @@ const getAllReviews = async (requestCallback) => {
 };
 
 const getReviewsByUser = async (username, requestCallback) => {
-  const dbQuery = `SELECT reviews.comment,reviews.grade, videos.title from reviews JOIN videos ON reviews.show_id = videos.id WHERE user_id = (SELECT id FROM users WHERE username = "${username}")`;
+  const dbQuery = `SELECT reviews.comment,reviews.grade, videos.title from reviews JOIN videos ON reviews.show_id = videos.id WHERE user_id = (SELECT id FROM users WHERE username = "${username}") ORDER BY reviews.id DESC`;
   await query(dbQuery, requestCallback);
 };
 

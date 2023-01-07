@@ -1,10 +1,14 @@
-import { Box } from "@mui/material";
+import { Box, useMediaQuery } from "@mui/material";
 import ProfileCard, { ProfileInfo } from "../components/ProfileCard";
 import UserProfileAccordion from "../components/UserProfileAccordion";
 import useHttp from "../hooks/useHttp";
 import { useEffect, useState } from "react";
+import AdminAccordion from "../components/AdminAccordion";
+import { useAppSelector } from "../hooks/useRedux";
+import theme from "../styles/theme";
 
 function Profile() {
+  const isMobile = useMediaQuery(theme.breakpoints.down("desktop"));
   const { sendRequest } = useHttp();
   const [userData, setData] = useState({
     username: "",
@@ -56,10 +60,25 @@ function Profile() {
   };
   return (
     <>
-      <Box sx={{ display: "flex", flexDirection: "row" }}>
-        <ProfileCard {...userProfileInfo} />
-        <UserProfileAccordion />
-      </Box>
+      {!isMobile ? (
+        <Box sx={{ display: "flex", flexDirection: "row" }}>
+          <ProfileCard {...userProfileInfo} />
+          {localStorage.getItem("acctype") === "3" ? (
+            <AdminAccordion />
+          ) : (
+            <UserProfileAccordion />
+          )}
+        </Box>
+      ) : (
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <ProfileCard {...userProfileInfo} />
+          {localStorage.getItem("acctype") === "3" ? (
+            <AdminAccordion />
+          ) : (
+            <UserProfileAccordion />
+          )}
+        </Box>
+      )}
     </>
   );
 }

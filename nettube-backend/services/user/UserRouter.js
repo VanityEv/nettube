@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import {
   isUserInDB,
   createUser,
+  getAllUsers,
   findOneUser,
   confirmUser,
   updateUser,
@@ -13,6 +14,7 @@ import {
   checkOccurency,
   deleteLike,
   addLike,
+  deleteUser,
 } from "./User.js";
 import { sendConfirmationEmail } from "../mail/Mail.js";
 
@@ -76,11 +78,12 @@ UserRouter.post("/signin", async (req, res) => {
               { username: userToLogin.username },
               SECRET
             );
-            //console.log({ username: user.username, token });
+            console.log({ acctype: userToLogin.account_type });
             res.status(200).json({
               result: "SUCCESS",
               username: userToLogin.username,
               token,
+              acctype: userToLogin.account_type,
             });
           } else {
             res.status(400).json({ error: "PASSWORD_MISMATCH" });
@@ -103,6 +106,7 @@ UserRouter.post("/signin", async (req, res) => {
               result: "SUCCESS",
               username: userToLogin.username,
               token: req.body.token,
+              acctype: userToLogin.account_type,
             });
           } else {
             res.status(400).json({ error: "TOKEN_MISMATCH" });
@@ -204,6 +208,29 @@ UserRouter.post("/addLike", async (req, res) => {
       const status = response.affectedRows === 1 ? "SUCCESS" : "ERROR";
       if (status === "SUCCESS") res.status(200).json({ result: "SUCCESS" });
       if (status === "ERROR") res.status(500).json({ error: "ERROR" });
+    });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+});
+
+UserRouter.get("/getAllUsers", async (req, res) => {
+  try {
+    await getAllUsers((users) => {
+      res.status(200).json({ result: "success", data: users });
+    });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+});
+
+UserRouter.post("/deleteUser", async (req, res) => {
+  try {
+    await deleteUser(req.body.id, async (response) => {
+      const status = response.affectedRows === 1;
+      status
+        ? res.status(200).json({ result: "success" })
+        : res.status(500).json({ error: "error" });
     });
   } catch (error) {
     res.status(400).json({ error });

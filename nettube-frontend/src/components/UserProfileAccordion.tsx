@@ -133,8 +133,9 @@ function UserProfileAccordion() {
         </AccordionSummary>
         <AccordionDetails>
           <Grid2>
-            {reviewsData.map((review) => (
+            {reviewsData.map((review, id) => (
               <Grid2
+                key={review.title.toLowerCase() + id}
                 sx={{
                   justifyContent: "left",
                 }}

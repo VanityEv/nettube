@@ -15,7 +15,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import useModal from "../hooks/useModal";
-import UserInfoModal from "./UserInfoModal";
+import FormModal from "./FormModal";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import useHttp from "../hooks/useHttp";
 import {
@@ -121,7 +121,7 @@ export default function ProfileCard({
       }
       setAlreadyExists(null);
     }
-  }, [alreadyExists]); // zmienne, których zmiana wywoła działanie
+  }, [alreadyExists]);
 
   return (
     <Card
@@ -129,7 +129,7 @@ export default function ProfileCard({
         maxWidth: 275,
         flexGrow: 1,
         display: "flex",
-        alignItems: "center",
+        alignItems: "top",
         justifyContent: "center",
         textAlign: "center",
       }}
@@ -143,7 +143,7 @@ export default function ProfileCard({
             textAlign: "center",
           }}
         >
-          <Avatar>{uname[0]}</Avatar>
+          <Avatar src="/assets/images/avatar.png" />
         </Box>
         <hr />
         <Typography sx={{ mb: 1 }} color="text.secondary">
@@ -164,7 +164,7 @@ export default function ProfileCard({
         </Button>
         <hr />
         {selectedModal === "fullname" && (
-          <UserInfoModal isOpen={isOpen} toggle={toggle}>
+          <FormModal isOpen={isOpen} toggle={toggle}>
             <TextField
               required
               id="standard-required"
@@ -177,7 +177,7 @@ export default function ProfileCard({
             <Button size="small" onClick={handleUserUpdate}>
               Confirm
             </Button>
-          </UserInfoModal>
+          </FormModal>
         )}
 
         <Typography sx={{ mb: 1 }} color="text.secondary">
@@ -191,7 +191,7 @@ export default function ProfileCard({
         </Button>
         <hr />
         {selectedModal === "email" && (
-          <UserInfoModal isOpen={isOpen} toggle={toggle}>
+          <FormModal isOpen={isOpen} toggle={toggle}>
             <TextField
               error={alreadyInUse.inUse || alreadyInUse.incorrect}
               required
@@ -208,7 +208,7 @@ export default function ProfileCard({
             <Button size="small" onClick={handleUserUpdate}>
               Confirm
             </Button>
-          </UserInfoModal>
+          </FormModal>
         )}
         <Typography sx={{ mb: 1 }} color="text.secondary">
           Your subscription type:
@@ -224,7 +224,7 @@ export default function ProfileCard({
         </Button>
         <hr />
         {selectedModal === "subscription" && (
-          <UserInfoModal isOpen={isOpen} toggle={toggle}>
+          <FormModal isOpen={isOpen} toggle={toggle}>
             <FormControl fullWidth>
               <FormLabel id="radio-buttons-subscription-label">
                 Choose subscription
@@ -256,7 +256,7 @@ export default function ProfileCard({
               Ultimate subscription plan: - - -
             </Typography>
             <Button size="small">Confirm</Button>
-          </UserInfoModal>
+          </FormModal>
         )}
         <Typography sx={{ mb: 1 }} color="text.secondary">
           Your birthdate:
@@ -268,7 +268,7 @@ export default function ProfileCard({
           Change birthdate
         </Button>
         {selectedModal === "birthdate" && (
-          <UserInfoModal isOpen={isOpen} toggle={toggle}>
+          <FormModal isOpen={isOpen} toggle={toggle}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               {!isMobile ? (
                 <DesktopDatePicker
@@ -301,7 +301,7 @@ export default function ProfileCard({
             <Button size="small" onClick={handleUserUpdate}>
               Confirm
             </Button>
-          </UserInfoModal>
+          </FormModal>
         )}
       </CardContent>
       <CardActions></CardActions>
