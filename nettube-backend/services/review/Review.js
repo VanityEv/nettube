@@ -16,9 +16,25 @@ const getReviewsByUser = async (username, requestCallback) => {
 };
 
 const addComment = async (data, requestCallback) => {
-	console.log("a");
 	const dbQuery = `INSERT INTO reviews (comment, grade, show_id, user_id) values ("${data.comment}",null, ${data.show_id}, (select id from users where username = "${data.username}"))`;
 	await query(dbQuery, requestCallback);
 };
 
-export { getAllReviews, getReviewByShow, getReviewsByUser, addComment };
+const getShowLikes = async (data, requestCallback) => {
+	const dbQuery = `select user_id, username from user_likes inner join users on users.id=user_likes.user_id where video_id=${data.show_id}`;
+	await query(dbQuery, requestCallback);
+};
+
+const setShowLike = async (data, requestCallback) => {
+	let dbQuery = `select *, username from user_likes inner join users on user_likes.user_id=users.id where video_id=${data.video_id} AND username="${data.username}"`;
+	await query(dbQuery, async (rows) => {
+		if (rows.length === 0) {
+			dbQuery = `insert into user_likes (video_id, user_id) values (${data.video_id}, (select id from users where username = "${data.username}"))`;
+		} else {
+			dbQuery = `DELETE FROM user_likes WHERE user_id = (select id from users where username = "${data.username}")`;
+		}
+		await query(dbQuery, requestCallback);
+	});
+};
+
+export { getAllReviews, getReviewByShow, getReviewsByUser, addComment, getShowLikes, setShowLike };

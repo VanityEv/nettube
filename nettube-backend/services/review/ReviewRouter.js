@@ -1,6 +1,13 @@
 //require("dotenv").config(); // load .env variables
 import { Router } from "express"; // import router from express
-import { getReviewByShow, getAllReviews, getReviewsByUser, addComment } from "./Review.js";
+import {
+	getReviewByShow,
+	getAllReviews,
+	getReviewsByUser,
+	addComment,
+	getShowLikes,
+	setShowLike,
+} from "./Review.js";
 
 const ReviewsRouter = Router(); // create router to create route bundle
 
@@ -34,6 +41,28 @@ ReviewsRouter.get("/userReviews/:username", async (req, res) => {
 		const username = req.params.username;
 		await getReviewsByUser(username, (userReviews) => {
 			res.status(200).json({ result: "SUCCESS", data: userReviews });
+		});
+	} catch (error) {
+		res.status(400).json({ error });
+	}
+});
+
+ReviewsRouter.get("/showLikes/:showId", async (req, res) => {
+	const show_id = req.params.showId;
+	try {
+		await getShowLikes({ show_id: show_id }, (likes) => {
+			res.status(200).json({ result: "SUCCESS", data: likes });
+		});
+	} catch (error) {
+		res.status(400).json({ error });
+	}
+});
+
+ReviewsRouter.post("/showLikes/setLike", async (req, res) => {
+	const { username, value, video_id } = req.body;
+	try {
+		await setShowLike({ username, value, video_id }, () => {
+			res.status(200).json({ result: "SUCCESS" });
 		});
 	} catch (error) {
 		res.status(400).json({ error });
