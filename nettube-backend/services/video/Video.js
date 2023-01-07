@@ -9,7 +9,6 @@ const getOneVideo = async (title, requestCallback) => {
 const getVideosByGenre = async (genre) => {
 	const dbQuery = `SELECT * from videos where genre = ${genre}`;
 	const result = await query(dbQuery);
-	return result;
 };
 
 const getAllVideos = async (resultCallback) => {

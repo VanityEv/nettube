@@ -35,7 +35,7 @@ export default function TransitionsModal({
 	const handleIsOpen = () => setIsOpen(true);
 	const handleClose = () => setIsOpen(false);
 	const handlePlay = () => {
-		navigate("/watch", { state: { title: title } });
+		navigate("/watch", { state: { showId: id, title: title } });
 	};
 
 	const theme = useTheme();
