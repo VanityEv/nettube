@@ -30,8 +30,7 @@ const Player = (props: Props) => {
 	const liked = likes.filter((item) => item.username === loggedUserUsername).length > 0;
 
 	const onLikeClick = async () => {
-		console.log("click");
-		const response = await sendRequest({
+		await sendRequest({
 			method: "POST",
 			endpoint: `/reviews/showLikes/setLike`,
 			body: {

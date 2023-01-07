@@ -21,7 +21,7 @@ function ReviewItem({ comment, grade, user_id }: ReviewItemProps) {
 		<Paper style={{ padding: "40px 20px" }} elevation={4}>
 			<Grid container wrap="nowrap" spacing={2}>
 				<Grid item>
-					<Avatar alt="Remy Sharp" />
+					<Avatar src="assets/images/avatar.png" />
 				</Grid>
 				<Grid
 					sx={{

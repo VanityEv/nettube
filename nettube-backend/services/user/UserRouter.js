@@ -72,7 +72,6 @@ UserRouter.post("/signin", async (req, res) => {
 					if (result) {
 						// sign token and send it in response
 						const token = await jwt.sign({ username: userToLogin.username }, SECRET);
-						//console.log({ username: user.username, token });
 						res.status(200).json({
 							result: "SUCCESS",
 							username: userToLogin.username,
@@ -90,7 +89,6 @@ UserRouter.post("/signin", async (req, res) => {
 		}
 	} else if (req.body.token) {
 		try {
-			// check if the user exists
 			await findOneUser(req.body.username, async (user) => {
 				const userToLogin = user[0];
 				if (userToLogin) {

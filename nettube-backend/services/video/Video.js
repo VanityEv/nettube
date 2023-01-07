@@ -1,24 +1,23 @@
 import query from "../db.js";
 
 const getOneVideo = async (title, requestCallback) => {
-	const dbQuery = `SELECT * from videos where title = ${title}`;
-	const result = await query(dbQuery, requestCallback);
-	return result;
+	const dbQuery = `SELECT * from videos where title = "${title}"`;
+	await query(dbQuery, requestCallback);
 };
 
 const getVideosByGenre = async (genre) => {
 	const dbQuery = `SELECT * from videos where genre = ${genre}`;
-	const result = await query(dbQuery);
+	await query(dbQuery);
 };
 
-const getAllVideos = async (resultCallback) => {
+const getAllVideos = async (requestCallback) => {
 	const dbQuery = `SELECT * from videos`;
-	await query(dbQuery, resultCallback);
+	await query(dbQuery, requestCallback);
 };
 
-const deleteVideo = async (title, resultCallback) => {
+const deleteVideo = async (title, requestCallback) => {
 	const dbQuery = `DELETE FROM videos WHERE title = '${title}'`;
-	await query(dbQuery, resultCallback);
+	await query(dbQuery, requestCallback);
 };
 
 const addVideo = async (
