@@ -59,27 +59,12 @@ VideosRouter.post("/deleteVideo", async (req, res) => {
 
 VideosRouter.post("/addVideo", async (req, res) => {
   try {
-    await addVideo(
-      req.body.title,
-      req.body.type,
-      req.body.genre,
-      req.body.production_year,
-      req.body.production_country,
-      req.body.director,
-      req.body.age_restriction,
-      req.body.tags,
-      req.body.descr,
-      req.body.thumbnail,
-      req.body.alt,
-      req.body.tier,
-      req.body.link,
-      async (response) => {
-        const status = response.affectedRows === 1;
-        status
-          ? res.status(200).json({ result: "success" })
-          : res.status(500).json({ error: "error" });
-      }
-    );
+    await addVideo(...req.body, async (response) => {
+      const status = response.affectedRows === 1;
+      status
+        ? res.status(200).json({ result: "success" })
+        : res.status(500).json({ error: "error" });
+    });
   } catch (error) {
     res.status(400).json({ error });
   }

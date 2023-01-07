@@ -40,7 +40,7 @@ function ResponsiveAppBar() {
   };
 
   const handleCloseNavMenu = () => {
-    //setAnchorElNav(null);
+    setAnchorElNav(null);
   };
 
   const handleCloseUserMenu = () => {
