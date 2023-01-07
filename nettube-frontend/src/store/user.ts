@@ -1,13 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { userLogin } from "./user-actions";
-
-type UserType = {
-  username: string;
-  userToken: string | null;
-  loading: boolean;
-  error: boolean | null;
-  success: boolean;
-};
+import { UserType } from "./user.types";
 
 const initialState: UserType = {
   loading: false,
@@ -21,6 +14,7 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
+    //Sign in
     setUser(state, action) {
       state.username = action.payload.username;
       state.userToken = action.payload.token;

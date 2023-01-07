@@ -12,8 +12,12 @@ const createUser = async (
   },
   requestCallback
 ) => {
-  const dbQuery = `INSERT INTO users (username, fullname, password, birthdate, subscription, confirmed, email, register_token)
-                     VALUES ("${username}", "${fullname}", "${password}", "${birthdate}", ${subscription}, 0, "${email}", "${registerToken}");`;
+  const dbQuery = `INSERT INTO users (username, fullname, password, birthdate, subscription, confirmed, email, register_token, account_type)
+                     VALUES ("${username}", "${fullname}", "${password}", "${birthdate}", ${subscription}, 0, "${email}", "${registerToken}", 1);`;
+  await query(dbQuery, requestCallback);
+};
+const getAllUsers = async (requestCallback) => {
+  const dbQuery = `SELECT * from users`;
   await query(dbQuery, requestCallback);
 };
 const findOneUser = async (username, requestCallback) => {
@@ -33,7 +37,7 @@ const updateUser = async (param, value, username, requestCallback) => {
   await query(dbQuery, requestCallback);
 };
 const userLikes = async (username, requestCallback) => {
-  const dbQuery = `SELECT videos.id, videos.title, videos.thumbnail, videos.alt FROM videos WHERE id IN(SELECT video_id FROM user_likes WHERE user_id=(SELECT id FROM users WHERE username = "${username}") )`;
+  const dbQuery = `SELECT videos.id, videos.title, videos.thumbnail, videos.alt FROM videos WHERE id IN(SELECT video_id FROM user_likes WHERE user_id=(SELECT id FROM users WHERE username = "${username}") ) `;
   await query(dbQuery, requestCallback);
 };
 
@@ -52,8 +56,14 @@ const addLike = async (username, show_title, requestCallback) => {
   await query(dbQuery, requestCallback);
 };
 
+const deleteUser = async (id, requestCallback) => {
+  const dbQuery = `DELETE FROM users where id=${id}`;
+  await query(dbQuery, requestCallback);
+};
+
 export {
   createUser,
+  getAllUsers,
   findOneUser,
   confirmUser,
   isUserInDB,
@@ -62,4 +72,5 @@ export {
   checkOccurency,
   deleteLike,
   addLike,
+  deleteUser,
 };

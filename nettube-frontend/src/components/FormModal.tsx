@@ -6,7 +6,7 @@ interface ModalType {
   toggle: () => void;
 }
 
-export default function Modal(props: ModalType) {
+export default function FormModal(props: ModalType) {
   return (
     <>
       {props.isOpen && (

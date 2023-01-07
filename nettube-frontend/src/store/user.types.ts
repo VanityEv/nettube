@@ -1,21 +1,21 @@
-export type User = {
-	id: number;
-	username: string;
-	email: string;
-	birthdate: number;
-	subscription_type: number;
+export type UserType = {
+  username: string;
+  userToken: string | null;
+  loading: boolean;
+  error: boolean | null;
+  success: boolean;
 };
 
 export type UserState = {
-	user: User;
+  user: UserType;
 };
 
 export type UserCredentials =
-	| {
-			username: string;
-			password: string;
-	  }
-	| {
-			username: string;
-			token: string;
-	  };
+  | {
+      username: string;
+      password: string;
+    }
+  | {
+      username: string;
+      token: string;
+    };
