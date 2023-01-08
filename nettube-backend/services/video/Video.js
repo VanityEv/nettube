@@ -21,7 +21,6 @@ const deleteVideo = async (title, requestCallback) => {
 };
 
 const addVideo = async (video, resultCallback) => {
-  console.log(video);
   const dbQuery = `INSERT INTO videos(title, type, genre, production_year, production_country, director, age_restriction, tags, descr, thumbnail, alt, grade, tier, reviews_count,link) VALUES("${video.title}",'${video.type}',"${video.genre}",${video.production_year},"${video.production_country}","${video.director}",${video.age_restriction},'${video.tags}',"${video.descr}",'${video.thumbnail}','${video.alt}',0,${video.tier},0,'${video.link}')`;
   await query(dbQuery, resultCallback);
 };
