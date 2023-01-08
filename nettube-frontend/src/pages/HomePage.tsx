@@ -1,5 +1,5 @@
 import Carousel from "../components/Carousel";
-import Movies from "./Movies";
+import VideosList from "../components/VideosList";
 
 const links = [
 	"https://wallpapercave.com/wp/wp3982534.jpg",
@@ -11,7 +11,7 @@ function HomePage() {
 	return (
 		<>
 			<Carousel links={links} />
-			<Movies />
+			<VideosList type="all" />
 		</>
 	);
 }

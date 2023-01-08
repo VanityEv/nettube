@@ -40,6 +40,8 @@ function ReviewItem({ comment, grade, user_id }: ReviewItemProps) {
 
 const Reviews = (props: ReviewsProps) => {
 	const { reviews } = props;
+	const reviewsWithoutComments = reviews.filter((review) => review.grade !== null);
+
 	return (
 		<Stack
 			spacing={2}
@@ -50,7 +52,7 @@ const Reviews = (props: ReviewsProps) => {
 				flexGrow: 1,
 			}}
 		>
-			{reviews.map((item) => (
+			{reviewsWithoutComments.map((item) => (
 				<ReviewItem {...item} key={item.id} />
 			))}
 		</Stack>
