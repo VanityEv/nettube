@@ -20,6 +20,11 @@ const addComment = async (data, requestCallback) => {
 	await query(dbQuery, requestCallback);
 };
 
+const addReview = async (data, requestCallback) => {
+	const dbQuery = `INSERT INTO reviews (comment, grade, show_id, user_id) values ("${data.comment}",${data.grade}, ${data.show_id}, (select id from users where username = "${data.username}"))`;
+	await query(dbQuery, requestCallback);
+};
+
 const getShowLikes = async (data, requestCallback) => {
 	const dbQuery = `select user_id, username from user_likes inner join users on users.id=user_likes.user_id where video_id=${data.show_id}`;
 	await query(dbQuery, requestCallback);
@@ -37,4 +42,12 @@ const setShowLike = async (data, requestCallback) => {
 	});
 };
 
-export { getAllReviews, getReviewByShow, getReviewsByUser, addComment, getShowLikes, setShowLike };
+export {
+	getAllReviews,
+	getReviewByShow,
+	getReviewsByUser,
+	addComment,
+	getShowLikes,
+	setShowLike,
+	addReview,
+};

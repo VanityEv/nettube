@@ -7,6 +7,7 @@ import {
 	addComment,
 	getShowLikes,
 	setShowLike,
+	addReview,
 } from "./Review.js";
 
 const ReviewsRouter = Router(); // create router to create route bundle
@@ -77,6 +78,22 @@ ReviewsRouter.post("/userReviews/addComment", async (req, res) => {
 	};
 	try {
 		await addComment(data, () => {
+			res.status(200).json({ result: "SUCCESS" });
+		});
+	} catch (error) {
+		res.status(500).json({ result: "error", error: error });
+	}
+});
+
+ReviewsRouter.post("/userReviews/addReview", async (req, res) => {
+	const data = {
+		comment: req.body.comment,
+		show_id: req.body.show_id,
+		username: req.body.username,
+		grade: req.body.grade,
+	};
+	try {
+		await addReview(data, () => {
 			res.status(200).json({ result: "SUCCESS" });
 		});
 	} catch (error) {

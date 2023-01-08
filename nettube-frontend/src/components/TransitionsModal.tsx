@@ -160,7 +160,7 @@ export default function TransitionsModal({
 							>
 								Play
 							</Button>
-							<Reviews reviews={selectedReviews} />
+							<Reviews showId={id} reviews={selectedReviews} />
 						</Box>
 					</Box>
 				</Fade>
