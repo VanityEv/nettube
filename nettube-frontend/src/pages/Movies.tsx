@@ -3,7 +3,7 @@ import VideosList from "../components/VideosList";
 function Movies() {
 	return (
 		<>
-			<VideosList />
+			<VideosList type="movies" />
 		</>
 	);
 }
