@@ -20,6 +20,7 @@ import SignUp from "./pages/SignUp";
 import { uiActions } from "./store/ui";
 import Signout from "./pages/Signout";
 import { userLogin } from "./store/user-actions";
+import Player from "./pages/Player";
 
 /**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
  *   const navigate = useNavigate();
@@ -49,7 +50,7 @@ const App = () => {
 		if (token && username) {
 			dispatch(userLogin({ token, username }));
 		}
-	}, [navigate]);
+	}, [dispatch, navigate]);
 	return (
 		<ThemeProvider theme={theme}>
 			<AppBar />
@@ -64,6 +65,7 @@ const App = () => {
 				<Route path="/reset-password" element={<ResetPassword />} />
 				<Route path="/confirm-register" element={<ConfirmRegister />} />
 				<Route path="/signout" element={<Signout />} />
+				<Route path="/watch" element={<Player />} />
 			</Routes>
 			<Footer />
 		</ThemeProvider>
