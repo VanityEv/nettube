@@ -12,8 +12,8 @@ const createUser = async (
   },
   requestCallback
 ) => {
-  const dbQuery = `INSERT INTO users (username, fullname, password, birthdate, subscription, confirmed, email, register_token, account_type)
-                     VALUES ("${username}", "${fullname}", "${password}", "${birthdate}", ${subscription}, 0, "${email}", "${registerToken}", 1);`;
+  const dbQuery = `INSERT INTO users (username, fullname, password, birthdate, subscription, confirmed, email, register_token, account_type, register_date, last_login)
+                     VALUES ("${username}", "${fullname}", "${password}", "${birthdate}", ${subscription}, 0, "${email}", "${registerToken}", 1, NOW(), NOW());`;
   await query(dbQuery, requestCallback);
 };
 const getAllUsers = async (requestCallback) => {
@@ -61,6 +61,11 @@ const deleteUser = async (id, requestCallback) => {
   await query(dbQuery, requestCallback);
 };
 
+const updateUserLoginDate = async (username, requestCallback) => {
+  const dbQuery = `UPDATE users SET last_login = NOW() WHERE username = '${username}'`;
+  await query(dbQuery, requestCallback);
+};
+
 export {
   createUser,
   getAllUsers,
@@ -73,4 +78,5 @@ export {
   deleteLike,
   addLike,
   deleteUser,
+  updateUserLoginDate,
 };

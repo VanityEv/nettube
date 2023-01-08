@@ -21,6 +21,7 @@ import Signout from './pages/Signout';
 import { userLogin } from './store/user-actions';
 import Player from './pages/Player';
 import { createTheme, CssBaseline, Divider, Paper } from '@mui/material';
+import Dashboard from './components/Dashboard';
 
 /**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
  *   const navigate = useNavigate();
@@ -86,7 +87,14 @@ const App = () => {
     dispatch(fetchVideosData());
     dispatch(fetchReviewsData());
   }, [dispatch]);
+  useEffect(() => {
+    dispatch(fetchVideosData());
+    dispatch(fetchReviewsData());
+  }, [dispatch]);
 
+  useEffect(() => {
+    dispatch(uiActions.onChangeRoute({ route: location.pathname.slice(1) }));
+  }, [dispatch, location]);
   useEffect(() => {
     dispatch(uiActions.onChangeRoute({ route: location.pathname.slice(1) }));
   }, [dispatch, location]);
@@ -108,6 +116,7 @@ const App = () => {
         <Route path="/series" element={<Series />} />
         <Route path="/genres" element={<Genres />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ResetPassword />} />

@@ -1,11 +1,22 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import VideosList from "../components/VideosList";
 
 function Movies() {
-	return (
-		<>
-			<VideosList type="movies" />
-		</>
-	);
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (
+      localStorage.getItem("username") === null ||
+      localStorage.getItem("username") === undefined
+    ) {
+      navigate("/signin");
+    }
+  }, []);
+  return (
+    <>
+      <VideosList type="movies" />
+    </>
+  );
 }
 
 export default Movies;

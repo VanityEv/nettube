@@ -29,10 +29,10 @@ export const userLogin = (userCredentials: UserCredentials) => {
       if (response.result === "SUCCESS") {
         const username = response.username;
         const userToken = response.token;
-        const account_type = response.acctype;
+        const account_type = response.account_type.toString();
         localStorage.setItem("userToken", userToken);
         localStorage.setItem("username", username);
-        localStorage.setItem("acctype", account_type);
+        localStorage.setItem("account_type", account_type);
         dispatch(
           userActions.setUser({
             username,

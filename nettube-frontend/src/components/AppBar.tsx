@@ -22,9 +22,11 @@ import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { uiActions } from '../store/ui';
 
 const pages = ['movies', 'series', 'genres'];
-const settings = ['profile', 'account', 'dashboard', 'logout'];
+const settings = ['profile', 'signout'];
 
 function ResponsiveAppBar() {
+  const username = localStorage.getItem('username');
+  const avatarLetter = username?.charAt(0);
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
   const theme = useTheme();
@@ -155,7 +157,7 @@ function ResponsiveAppBar() {
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar src="/assets/images/avatar.png" />
+                <Avatar>{avatarLetter} </Avatar>
               </IconButton>
             </Tooltip>
             <Menu
@@ -174,9 +176,16 @@ function ResponsiveAppBar() {
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
+              {localStorage.getItem('account_type') === '3' ? (
+                <MenuItem key={'dashboard'} onClick={handleCloseUserMenu}>
+                  <Link style={{ textDecoration: 'none' }} key={'dashboard'} to={'/dashboard'}>
+                    <Typography textAlign="center">Dashboard</Typography>
+                  </Link>
+                </MenuItem>
+              ) : null}
               {settings.map((setting, key) => (
                 <MenuItem key={key} onClick={handleCloseUserMenu}>
-                  <Link style={{ textDecoration: 'none', color: 'inherit' }} key={key} to={'/' + setting}>
+                  <Link style={{ textDecoration: 'none' }} key={key} to={'/' + setting}>
                     <Typography textAlign="center">{setting[0].toUpperCase() + setting.slice(1)}</Typography>
                   </Link>
                 </MenuItem>

@@ -2,27 +2,59 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
-import { Delete, ExpandMore, Gavel } from '@mui/icons-material';
+import { ChangeCircle, Delete, ExpandMore, Gavel } from '@mui/icons-material';
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2';
-import { Box, Button, Fade, IconButton, Modal, Rating, TextField, useMediaQuery, useTheme } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Fade,
+  IconButton,
+  Modal,
+  Rating,
+  Snackbar,
+  Stack,
+  TextField,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import useHttp from '../hooks/useHttp';
 import { useCallback, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { Video } from '../store/videos.types';
+
 import { fetchVideosData } from '../store/videos-actions';
+import { SnackbarType } from '../pages/SignUp';
 
 export type UserEntry = {
   id: number;
   username: string;
   email: string;
+  last_login: string;
 };
 
 //TODO: CSS - poprawki i layout
 function AdminAccordion() {
+  const [snackbar, setSnackbar] = useState<SnackbarType>({
+    content: '',
+    isOpened: false,
+    severity: undefined,
+  });
   const dispatch = useAppDispatch();
+  const [newURL, setNewURL] = useState('');
+  const [videoTitle, setVideoTitle] = useState('');
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNewURL(event.target.value as string);
+  };
   const [isOpen, setIsOpen] = useState(false);
+  const [isOpenURLModal, setIsOpenURLModal] = useState(false);
   const handleIsOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
+  const handleIsOpenUrlModal = (title: string) => {
+    setVideoTitle(title);
+    setIsOpenURLModal(true);
+  };
+  const handleCloseURLModal = () => setIsOpenURLModal(false);
   const [selectedType, setSelectedType] = useState<'film' | 'series'>('film');
   const { sendRequest } = useHttp();
   const videos = useAppSelector(state => state.videos.videos);
@@ -43,6 +75,22 @@ function AdminAccordion() {
     objectFit: 'contain',
     display: 'grid',
   };
+  const styleChangeURLModal = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: isMobile ? '100%' : '20%',
+    height: isMobile ? '20%' : '20%',
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: isMobile ? 2 : 12,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  };
   const sendFetchUsersQuery = useCallback(async () => {
     const response = await sendRequest({
       method: 'GET',
@@ -62,6 +110,14 @@ function AdminAccordion() {
       endpoint: `/user/deleteUser`,
     });
     if (response.result === 'success') {
+      setSnackbar({
+        content: 'User is now banned!',
+        isOpened: true,
+        severity: 'success',
+      });
+      setTimeout(() => {
+        setSnackbar({ content: '', isOpened: false, severity: undefined });
+      }, 3000);
       sendFetchUsersQuery();
     }
   }, []);
@@ -87,6 +143,14 @@ function AdminAccordion() {
       endpoint: `/videos/addVideo`,
     });
     if (response.result === 'success') {
+      setSnackbar({
+        content: 'Video has been added!',
+        isOpened: true,
+        severity: 'success',
+      });
+      setTimeout(() => {
+        setSnackbar({ content: '', isOpened: false, severity: undefined });
+      }, 3000);
       dispatch(fetchVideosData());
       handleClose();
     }
@@ -101,7 +165,36 @@ function AdminAccordion() {
       endpoint: `/videos/deleteVideo`,
     });
     if (response.result === 'success') {
+      setSnackbar({
+        content: 'Video has been deleted!',
+        isOpened: true,
+        severity: 'success',
+      });
+      setTimeout(() => {
+        setSnackbar({ content: '', isOpened: false, severity: undefined });
+      }, 3000);
       dispatch(fetchVideosData());
+    }
+  }, []);
+
+  const sendVideoURLChangeQuery = useCallback(async (title: string, url: string) => {
+    const response = await sendRequest({
+      method: 'POST',
+      body: {
+        title: title,
+        url: url,
+      },
+      endpoint: `/videos/changeURL`,
+    });
+    if (response.result === 'success') {
+      setSnackbar({
+        content: 'Video URL has been changed!',
+        isOpened: true,
+        severity: 'success',
+      });
+      setTimeout(() => {
+        setSnackbar({ content: '', isOpened: false, severity: undefined });
+      }, 3000);
     }
   }, []);
 
@@ -141,11 +234,27 @@ function AdminAccordion() {
     sendVideoDeleteQuery(title);
   };
 
+  const handleVideoURLChange = () => {
+    sendVideoURLChangeQuery(videoTitle, newURL);
+    setIsOpenURLModal(false);
+  };
+
   useEffect(() => {
     sendFetchUsersQuery();
   }, [sendFetchUsersQuery]);
   return (
     <Box sx={{ flexGrow: 3, pb: 3 }}>
+      <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={snackbar.isOpened}>
+        <Alert
+          onClose={() => {
+            setSnackbar({ content: '', isOpened: false, severity: undefined });
+          }}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.content}
+        </Alert>
+      </Snackbar>
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1a-content" id="panel1a-header">
           <Typography>Manage Users</Typography>
@@ -155,10 +264,10 @@ function AdminAccordion() {
             <Grid2
               key="table-of-content"
               mobile={12}
-              desktop={6}
+              desktop={12}
               sx={{
                 mx: 'auto',
-                width: 200,
+                maxWidth: '100%',
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -171,13 +280,14 @@ function AdminAccordion() {
                 {'User ID'}
                 <Typography sx={{ pl: '30px', fontWeight: 500, minWidth: 300 }}>{'Username'}</Typography>
                 <Typography sx={{ pl: '30px', fontWeight: 500 }}>{'Email address'}</Typography>
+                <Typography sx={{ pl: '30px', fontWeight: 500 }}>{'Last login date'}</Typography>
               </Box>
             </Grid2>
             {users.map((user, id) => (
               <Grid2
                 key={user.username.toLowerCase() + id}
                 mobile={12}
-                desktop={6}
+                desktop={12}
                 sx={{
                   mx: 'auto',
                   display: 'flex',
@@ -192,6 +302,7 @@ function AdminAccordion() {
                   {user.id}
                   <Typography sx={{ pl: '30px', fontWeight: 500, minWidth: 300 }}>{user.username}</Typography>
                   <Typography sx={{ pl: '30px', fontWeight: 500 }}>{user.email}</Typography>
+                  <Typography sx={{ pl: '30px', fontWeight: 500 }}>{user.last_login.substring(0, 10)}</Typography>
                 </Box>
                 <IconButton
                   sx={{ mr: '30px', fontSize: '12px' }}
@@ -325,6 +436,28 @@ function AdminAccordion() {
           </Box>
         </Fade>
       </Modal>
+      <Modal open={isOpenURLModal} onClose={handleCloseURLModal} closeAfterTransition>
+        <Fade in={isOpenURLModal}>
+          <Box component="div" sx={styleChangeURLModal}>
+            <Stack spacing={3}>
+              <TextField
+                required
+                id="newURL"
+                name="newURL"
+                label="newURL"
+                defaultValue=""
+                placeholder="New URL"
+                variant="standard"
+                onChange={handleChange}
+                fullWidth
+              />
+              <Button size="small" variant="contained" onClick={handleVideoURLChange}>
+                Confirm
+              </Button>
+            </Stack>
+          </Box>
+        </Fade>
+      </Modal>
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1a-content" id="panel1a-header">
           <Typography>Manage Movies</Typography>
@@ -388,6 +521,24 @@ function AdminAccordion() {
                     Average grade:
                     <Rating name="read-only" value={video.grade / 2} precision={0.5} readOnly sx={{ pr: '15px' }} />
                     {video.grade}/10 ({video.reviews_count} reviews)
+                    <IconButton
+                      sx={{ mr: '30px', fontSize: '12px' }}
+                      onClick={() => {
+                        handleIsOpenUrlModal(video.title);
+                      }}
+                    >
+                      <ChangeCircle />
+                      Change video URL
+                    </IconButton>
+                    <IconButton
+                      sx={{ mr: '30px', fontSize: '12px' }}
+                      onClick={() => {
+                        handleIsOpenUrlModal(video.title);
+                      }}
+                    >
+                      <ChangeCircle />
+                      Change video URL
+                    </IconButton>
                     <IconButton
                       sx={{ mr: '30px', fontSize: '12px' }}
                       onClick={() => {
@@ -464,6 +615,24 @@ function AdminAccordion() {
                     Average grade:
                     <Rating name="read-only" value={video.grade / 2} precision={0.5} readOnly sx={{ pr: '15px' }} />
                     {video.grade}/10 ({video.reviews_count} reviews)
+                    <IconButton
+                      sx={{ mr: '30px', fontSize: '12px' }}
+                      onClick={() => {
+                        handleIsOpenUrlModal(video.title);
+                      }}
+                    >
+                      <ChangeCircle />
+                      Change video URL
+                    </IconButton>
+                    <IconButton
+                      sx={{ mr: '30px', fontSize: '12px' }}
+                      onClick={() => {
+                        handleIsOpenUrlModal(video.title);
+                      }}
+                    >
+                      <ChangeCircle />
+                      Change video URL
+                    </IconButton>
                     <IconButton
                       sx={{ mr: '30px', fontSize: '12px' }}
                       onClick={() => {

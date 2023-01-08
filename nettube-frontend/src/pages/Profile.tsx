@@ -4,8 +4,16 @@ import UserProfileAccordion from '../components/UserProfileAccordion';
 import useHttp from '../hooks/useHttp';
 import { useEffect, useState } from 'react';
 import AdminAccordion from '../components/AdminAccordion';
+import { useNavigate } from 'react-router-dom';
 
 function Profile() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (localStorage.getItem('username') === null || localStorage.getItem('username') === undefined) {
+      navigate('/signin');
+    }
+  }, []);
+  console.log();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
   const { sendRequest } = useHttp();
@@ -62,12 +70,12 @@ function Profile() {
       {!isMobile ? (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
           <ProfileCard {...userProfileInfo} />
-          {localStorage.getItem('acctype') === '3' ? <AdminAccordion /> : <UserProfileAccordion />}
+          <UserProfileAccordion />
         </Box>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <ProfileCard {...userProfileInfo} />
-          {localStorage.getItem('acctype') === '3' ? <AdminAccordion /> : <UserProfileAccordion />}
+          <UserProfileAccordion />
         </Box>
       )}
     </>
