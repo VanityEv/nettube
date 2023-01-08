@@ -1,5 +1,5 @@
-import * as React from "react";
-import AppBar from "@mui/material/AppBar";
+import * as React from 'react';
+import AppBar from '@mui/material/AppBar';
 import {
   Box,
   Toolbar,
@@ -11,31 +11,33 @@ import {
   Button,
   Tooltip,
   MenuItem,
-} from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import { Link } from "react-router-dom";
-import SearchBar from "./SearchBar";
-import { useTheme } from "@material-ui/core";
-import { useAppSelector } from "../hooks/useRedux";
+  Switch,
+  FormControlLabel,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import { Link } from 'react-router-dom';
+import SearchBar from './SearchBar';
+import { useTheme } from '@material-ui/core';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { uiActions } from '../store/ui';
 
-const pages = ["movies", "series", "genres"];
-const settings = ["profile", "account", "dashboard", "logout"];
+const pages = ['movies', 'series', 'genres'];
+const settings = ['profile', 'account', 'dashboard', 'logout'];
 
 function ResponsiveAppBar() {
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
-    null
-  );
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
-    null
-  );
+  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
   const theme = useTheme();
-  const isSearchShown = useAppSelector((state) => state.ui.isSearchShown);
+  const isSearchShown = useAppSelector(state => state.ui.isSearchShown);
+  const selectedTheme = useAppSelector(state => state.ui.theme);
+  const checked = selectedTheme === 'dark';
+  const dispatch = useAppDispatch();
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
   };
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-    localStorage.removeItem("userToken");
+    localStorage.removeItem('userToken');
     setAnchorElUser(event.currentTarget);
   };
 
@@ -46,6 +48,11 @@ function ResponsiveAppBar() {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
+
+  const handleSwitchClick = () => {
+    dispatch(uiActions.onChangeTheme());
+  };
+
   /**
    * TODO: zachowanie SearchBar - w widoku mobile powinna być lupa, po kliknięciu której rozwija się search.
    * Obecnie lupa nakłada się na Open settings - bug
@@ -53,29 +60,27 @@ function ResponsiveAppBar() {
    */
   return (
     <AppBar position="sticky" color="primary">
-      <Container>
+      <Container sx={{ padding: '12px 24px' }}>
         <Toolbar disableGutters>
-          <Link style={{ textDecoration: "none" }} to={"/"}>
+          <Link style={{ textDecoration: 'none' }} to={'/'}>
             <img alt="logo" src="logo.svg" width="70px" height="auto" />
             <Typography
               variant="h6"
               noWrap
               sx={{
                 mr: 2,
-                display: { mobile: "none", desktop: "flex" },
-                fontFamily: "monospace",
+                display: { mobile: 'none', desktop: 'flex' },
+                fontFamily: 'monospace',
                 fontWeight: 700,
-                letterSpacing: ".1rem",
+                letterSpacing: '.1rem',
                 color: theme.palette.common.white,
-                textDecoration: "none",
+                textDecoration: 'none',
               }}
             >
               NetTube
             </Typography>
           </Link>
-          <Box
-            sx={{ flexGrow: 1, display: { mobile: "flex", desktop: "none" } }}
-          >
+          <Box sx={{ flexGrow: 1, display: { mobile: 'flex', desktop: 'none' } }}>
             <IconButton
               size="large"
               aria-label="account of current user"
@@ -90,26 +95,24 @@ function ResponsiveAppBar() {
               id="menu-appbar"
               anchorEl={anchorElNav}
               anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
+                vertical: 'bottom',
+                horizontal: 'left',
               }}
               keepMounted
               transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
+                vertical: 'top',
+                horizontal: 'left',
               }}
               open={Boolean(anchorElNav)}
               onClose={handleCloseNavMenu}
               sx={{
-                display: { mobile: "block", desktop: "none" },
+                display: { mobile: 'block', desktop: 'none' },
               }}
             >
               {pages.map((page, key) => (
                 <MenuItem key={key} onClick={handleCloseNavMenu}>
-                  <Link style={{ textDecoration: "none" }} to={"/" + page}>
-                    <Typography textAlign="center">
-                      {page.toUpperCase()}
-                    </Typography>
+                  <Link style={{ textDecoration: 'none' }} to={'/' + page}>
+                    <Typography textAlign="center">{page.toUpperCase()}</Typography>
                   </Link>
                 </MenuItem>
               ))}
@@ -122,38 +125,33 @@ function ResponsiveAppBar() {
             href="/"
             sx={{
               mr: 2,
-              display: { mobile: "flex", desktop: "none" },
+              display: { mobile: 'flex', desktop: 'none' },
               flexGrow: 1,
-              fontFamily: "monospace",
+              fontFamily: 'monospace',
               fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
+              letterSpacing: '.3rem',
+              color: 'inherit',
+              textDecoration: 'none',
             }}
           >
             NetTube
           </Typography>
 
-          <Box
-            sx={{ flexGrow: 1, display: { mobile: "none", desktop: "flex" } }}
-          >
+          <Box sx={{ flexGrow: 1, display: { mobile: 'none', desktop: 'flex' } }}>
             {pages.map((page, key) => (
-              <Link
-                style={{ textDecoration: "none" }}
-                key={key}
-                to={"/" + page}
-              >
-                <Button
-                  key={page}
-                  onClick={handleCloseNavMenu}
-                  sx={{ my: 2, color: "white", display: "block" }}
-                >
+              <Link style={{ textDecoration: 'none' }} key={key} to={'/' + page}>
+                <Button key={page} onClick={handleCloseNavMenu} sx={{ my: 2, color: 'white', display: 'block' }}>
                   {page}
                 </Button>
               </Link>
             ))}
           </Box>
           {isSearchShown && <SearchBar />}
+          <FormControlLabel
+            sx={{ paddingLeft: '12px' }}
+            control={<Switch checked={checked} onChange={handleSwitchClick} />}
+            label="dark"
+          />
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
@@ -161,31 +159,25 @@ function ResponsiveAppBar() {
               </IconButton>
             </Tooltip>
             <Menu
-              sx={{ mt: "45px" }}
+              sx={{ mt: '45px' }}
               id="menu-appbar"
               anchorEl={anchorElUser}
               anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
+                vertical: 'top',
+                horizontal: 'right',
               }}
               keepMounted
               transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
+                vertical: 'top',
+                horizontal: 'right',
               }}
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting, key) => (
                 <MenuItem key={key} onClick={handleCloseUserMenu}>
-                  <Link
-                    style={{ textDecoration: "none" }}
-                    key={key}
-                    to={"/" + setting}
-                  >
-                    <Typography textAlign="center">
-                      {setting[0].toUpperCase() + setting.slice(1)}
-                    </Typography>
+                  <Link style={{ textDecoration: 'none', color: 'inherit' }} key={key} to={'/' + setting}>
+                    <Typography textAlign="center">{setting[0].toUpperCase() + setting.slice(1)}</Typography>
                   </Link>
                 </MenuItem>
               ))}

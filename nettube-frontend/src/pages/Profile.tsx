@@ -1,47 +1,46 @@
-import { Box, useMediaQuery } from "@mui/material";
-import ProfileCard, { ProfileInfo } from "../components/ProfileCard";
-import UserProfileAccordion from "../components/UserProfileAccordion";
-import useHttp from "../hooks/useHttp";
-import { useEffect, useState } from "react";
-import AdminAccordion from "../components/AdminAccordion";
-import { useAppSelector } from "../hooks/useRedux";
-import theme from "../styles/theme";
+import { Box, useMediaQuery, useTheme } from '@mui/material';
+import ProfileCard, { ProfileInfo } from '../components/ProfileCard';
+import UserProfileAccordion from '../components/UserProfileAccordion';
+import useHttp from '../hooks/useHttp';
+import { useEffect, useState } from 'react';
+import AdminAccordion from '../components/AdminAccordion';
 
 function Profile() {
-  const isMobile = useMediaQuery(theme.breakpoints.down("desktop"));
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
   const { sendRequest } = useHttp();
   const [userData, setData] = useState({
-    username: "",
-    fullname: "",
-    email: "",
-    birthdate: "",
+    username: '',
+    fullname: '',
+    email: '',
+    birthdate: '',
     subscription: 0,
   });
 
   const fetchUserProfileInfo = async () => {
     const response = await sendRequest({
-      method: "POST",
+      method: 'POST',
       body: {
-        username: localStorage.getItem("username"),
+        username: localStorage.getItem('username'),
       },
-      endpoint: "/user/getUserData",
+      endpoint: '/user/getUserData',
     });
-    if (response.result === "SUCCESS") {
+    if (response.result === 'SUCCESS') {
       setData(response);
     }
   };
 
   const sendUpdateQuery = async (param: string, value: string) => {
     const response = await sendRequest({
-      method: "POST",
+      method: 'POST',
       body: {
         param: param,
         value: value,
-        username: localStorage.getItem("username"),
+        username: localStorage.getItem('username'),
       },
-      endpoint: "/user/updateUser",
+      endpoint: '/user/updateUser',
     });
-    if (response === "SUCCESS") {
+    if (response === 'SUCCESS') {
       fetchUserProfileInfo();
     }
   };
@@ -61,22 +60,14 @@ function Profile() {
   return (
     <>
       {!isMobile ? (
-        <Box sx={{ display: "flex", flexDirection: "row" }}>
+        <Box sx={{ display: 'flex', flexDirection: 'row' }}>
           <ProfileCard {...userProfileInfo} />
-          {localStorage.getItem("acctype") === "3" ? (
-            <AdminAccordion />
-          ) : (
-            <UserProfileAccordion />
-          )}
+          {localStorage.getItem('acctype') === '3' ? <AdminAccordion /> : <UserProfileAccordion />}
         </Box>
       ) : (
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <ProfileCard {...userProfileInfo} />
-          {localStorage.getItem("acctype") === "3" ? (
-            <AdminAccordion />
-          ) : (
-            <UserProfileAccordion />
-          )}
+          {localStorage.getItem('acctype') === '3' ? <AdminAccordion /> : <UserProfileAccordion />}
         </Box>
       )}
     </>
