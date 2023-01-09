@@ -1,26 +1,15 @@
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import Typography from "@mui/material/Typography";
-import { Delete, ExpandMore, Gavel } from "@mui/icons-material";
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
-import {
-  Box,
-  Button,
-  Fade,
-  IconButton,
-  Modal,
-  Rating,
-  TextField,
-  useMediaQuery,
-} from "@mui/material";
-import useHttp from "../hooks/useHttp";
-import { useCallback, useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
-import { Video } from "../store/videos.types";
-
-import theme from "../styles/theme";
-import { fetchVideosData } from "../store/videos-actions";
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Typography from '@mui/material/Typography';
+import { Delete, ExpandMore, Gavel } from '@mui/icons-material';
+import Grid2 from '@mui/material/Unstable_Grid2/Grid2';
+import { Box, Button, Fade, IconButton, Modal, Rating, TextField, useMediaQuery, useTheme } from '@mui/material';
+import useHttp from '../hooks/useHttp';
+import { useCallback, useEffect, useState } from 'react';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { Video } from '../store/videos.types';
+import { fetchVideosData } from '../store/videos-actions';
 
 export type UserEntry = {
   id: number;
@@ -34,51 +23,52 @@ function AdminAccordion() {
   const [isOpen, setIsOpen] = useState(false);
   const handleIsOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
-  const [selectedType, setSelectedType] = useState<"film" | "series">("film");
+  const [selectedType, setSelectedType] = useState<'film' | 'series'>('film');
   const { sendRequest } = useHttp();
-  const videos = useAppSelector((state) => state.videos.videos);
+  const videos = useAppSelector(state => state.videos.videos);
   const [users, setUsers] = useState<UserEntry[] | []>([]);
-  const isMobile = useMediaQuery(theme.breakpoints.down("desktop"));
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
   const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: isMobile ? "90%" : "70%",
-    height: isMobile ? "100%" : "70%",
-    bgcolor: "background.paper",
-    border: "2px solid #000",
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: isMobile ? '90%' : '70%',
+    height: isMobile ? '100%' : '70%',
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
     boxShadow: 24,
     p: isMobile ? 2 : 12,
-    objectFit: "contain",
-    display: "grid",
+    objectFit: 'contain',
+    display: 'grid',
   };
   const sendFetchUsersQuery = useCallback(async () => {
     const response = await sendRequest({
-      method: "GET",
+      method: 'GET',
       endpoint: `/user/getAllUsers`,
     });
-    if (response.result === "success") {
+    if (response.result === 'success') {
       setUsers(response.data);
     }
   }, []);
 
   const sendUserDeleteQuery = useCallback(async (id: number) => {
     const response = await sendRequest({
-      method: "POST",
+      method: 'POST',
       body: {
         id: id,
       },
       endpoint: `/user/deleteUser`,
     });
-    if (response.result === "success") {
+    if (response.result === 'success') {
       sendFetchUsersQuery();
     }
   }, []);
 
   const sendNewVideoQuery = useCallback(async (video: Video) => {
     const response = await sendRequest({
-      method: "POST",
+      method: 'POST',
       body: {
         title: video.title,
         type: video.type,
@@ -96,7 +86,7 @@ function AdminAccordion() {
       },
       endpoint: `/videos/addVideo`,
     });
-    if (response.result === "success") {
+    if (response.result === 'success') {
       dispatch(fetchVideosData());
       handleClose();
     }
@@ -104,13 +94,13 @@ function AdminAccordion() {
 
   const sendVideoDeleteQuery = useCallback(async (title: string) => {
     const response = await sendRequest({
-      method: "POST",
+      method: 'POST',
       body: {
         title: title,
       },
       endpoint: `/videos/deleteVideo`,
     });
-    if (response.result === "success") {
+    if (response.result === 'success') {
       dispatch(fetchVideosData());
     }
   }, []);
@@ -124,27 +114,27 @@ function AdminAccordion() {
     const data = new FormData(event.currentTarget);
     const newVideo: Video = {
       id: -1,
-      title: data.get("title") as string,
+      title: data.get('title') as string,
       type: selectedType,
-      genre: data.get("genres") as string,
-      production_year: parseInt(data.get("production_year") as string),
-      production_country: data.get("production_country") as string,
-      age_restriction: parseInt(data.get("age_restriction") as string),
-      tags: data.get("tags") as string,
-      director: data.get("director") as string,
-      descr: data.get("descr") as string,
-      thumbnail: data.get("thumbnail") as string,
+      genre: data.get('genres') as string,
+      production_year: parseInt(data.get('production_year') as string),
+      production_country: data.get('production_country') as string,
+      age_restriction: parseInt(data.get('age_restriction') as string),
+      tags: data.get('tags') as string,
+      director: data.get('director') as string,
+      descr: data.get('descr') as string,
+      thumbnail: data.get('thumbnail') as string,
       grade: 0,
-      alt: data.get("alt") as string,
-      tier: data.get("subscription_tier") as string,
+      alt: data.get('alt') as string,
+      tier: data.get('subscription_tier') as string,
       reviews_count: 0,
-      link: data.get("link") as string,
+      link: data.get('link') as string,
     };
     sendNewVideoQuery(newVideo);
   };
 
   const handleOpenModal = (type: string) => {
-    type === "film" ? setSelectedType("film") : setSelectedType("series");
+    type === 'film' ? setSelectedType('film') : setSelectedType('series');
     handleIsOpen();
   };
   const handleVideoDelete = (title: string) => {
@@ -157,11 +147,7 @@ function AdminAccordion() {
   return (
     <Box sx={{ flexGrow: 3, pb: 3 }}>
       <Accordion defaultExpanded>
-        <AccordionSummary
-          expandIcon={<ExpandMore />}
-          aria-controls="panel1a-content"
-          id="panel1a-header"
-        >
+        <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1a-content" id="panel1a-header">
           <Typography>Manage Users</Typography>
         </AccordionSummary>
         <AccordionDetails>
@@ -171,29 +157,20 @@ function AdminAccordion() {
               mobile={12}
               desktop={6}
               sx={{
-                mx: "auto",
+                mx: 'auto',
                 width: 200,
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                pl: "20px",
-                boxShadow: "8px 8px 24px -21px rgba(66, 68, 90, 1)",
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                pl: '20px',
+                boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
               }}
             >
-              <Box
-                display="flex"
-                flexDirection="row"
-                alignItems="center"
-                textAlign={"center"}
-              >
-                {"User ID"}
-                <Typography sx={{ pl: "30px", fontWeight: 500, minWidth: 300 }}>
-                  {"Username"}
-                </Typography>
-                <Typography sx={{ pl: "30px", fontWeight: 500 }}>
-                  {"Email address"}
-                </Typography>
+              <Box display="flex" flexDirection="row" alignItems="center" textAlign={'center'}>
+                {'User ID'}
+                <Typography sx={{ pl: '30px', fontWeight: 500, minWidth: 300 }}>{'Username'}</Typography>
+                <Typography sx={{ pl: '30px', fontWeight: 500 }}>{'Email address'}</Typography>
               </Box>
             </Grid2>
             {users.map((user, id) => (
@@ -202,33 +179,22 @@ function AdminAccordion() {
                 mobile={12}
                 desktop={6}
                 sx={{
-                  mx: "auto",
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  pl: "20px",
-                  boxShadow: "8px 8px 24px -21px rgba(66, 68, 90, 1)",
+                  mx: 'auto',
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  pl: '20px',
+                  boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
                 }}
               >
-                <Box
-                  display="flex"
-                  flexDirection="row"
-                  alignItems="center"
-                  textAlign={"center"}
-                >
+                <Box display="flex" flexDirection="row" alignItems="center" textAlign={'center'}>
                   {user.id}
-                  <Typography
-                    sx={{ pl: "30px", fontWeight: 500, minWidth: 300 }}
-                  >
-                    {user.username}
-                  </Typography>
-                  <Typography sx={{ pl: "30px", fontWeight: 500 }}>
-                    {user.email}
-                  </Typography>
+                  <Typography sx={{ pl: '30px', fontWeight: 500, minWidth: 300 }}>{user.username}</Typography>
+                  <Typography sx={{ pl: '30px', fontWeight: 500 }}>{user.email}</Typography>
                 </Box>
                 <IconButton
-                  sx={{ mr: "30px", fontSize: "12px" }}
+                  sx={{ mr: '30px', fontSize: '12px' }}
                   onClick={() => {
                     handleUserDelete(user.id);
                   }}
@@ -353,47 +319,35 @@ function AdminAccordion() {
               placeholder="Video link"
               variant="standard"
             />
-            <Button
-              type="submit"
-              size="large"
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
+            <Button type="submit" size="large" variant="contained" sx={{ mt: 3, mb: 2 }}>
               Confirm
             </Button>
           </Box>
         </Fade>
       </Modal>
       <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMore />}
-          aria-controls="panel1a-content"
-          id="panel1a-header"
-        >
+        <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1a-content" id="panel1a-header">
           <Typography>Manage Movies</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Grid2>
             <Grid2
-              key={"addnewvideo"}
+              key={'addnewvideo'}
               mobile={12}
               desktop={6}
               sx={{
-                mx: "auto",
+                mx: 'auto',
                 maxHeight: 150,
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                pl: "20px",
-                boxShadow: "8px 8px 24px -21px rgba(66, 68, 90, 1)",
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                pl: '20px',
+                boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
               }}
             >
               <Box display="flex" flexDirection="row" alignItems="center">
-                <IconButton
-                  sx={{ fontSize: "12px" }}
-                  onClick={() => handleOpenModal("film")}
-                >
+                <IconButton sx={{ fontSize: '12px' }} onClick={() => handleOpenModal('film')}>
                   <img
                     src="https://cdn0.iconfinder.com/data/icons/circles-2/100/sign-square-dashed-plus-512.png"
                     className="review-thumbnail"
@@ -403,45 +357,39 @@ function AdminAccordion() {
               </Box>
             </Grid2>
             {videos.map((video, id) =>
-              video.type === "film" ? (
+              video.type === 'film' ? (
                 <Grid2
                   key={video.title.toLowerCase() + id}
                   mobile={12}
                   desktop={6}
                   sx={{
-                    mx: "auto",
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    pl: "20px",
-                    boxShadow: "8px 8px 24px -21px rgba(66, 68, 90, 1)",
+                    mx: 'auto',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    pl: '20px',
+                    boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
                   }}
                 >
                   <Box display="flex" flexDirection="row" alignItems="center">
                     <img src={video.thumbnail} className="review-thumbnail" />
                     <Typography
                       sx={{
-                        pl: "30px",
-                        letterSpacing: "1px",
+                        pl: '30px',
+                        letterSpacing: '1px',
                         fontWeight: 700,
                       }}
                     >
                       {video.title}
                     </Typography>
                   </Box>
-                  <Box display="flex" flexDirection="row" sx={{ ml: "30px" }}>
+                  <Box display="flex" flexDirection="row" sx={{ ml: '30px' }}>
                     Average grade:
-                    <Rating
-                      name="read-only"
-                      value={video.grade / 2}
-                      precision={0.5}
-                      readOnly
-                      sx={{ pr: "15px" }}
-                    />
+                    <Rating name="read-only" value={video.grade / 2} precision={0.5} readOnly sx={{ pr: '15px' }} />
                     {video.grade}/10 ({video.reviews_count} reviews)
                     <IconButton
-                      sx={{ mr: "30px", fontSize: "12px" }}
+                      sx={{ mr: '30px', fontSize: '12px' }}
                       onClick={() => {
                         handleVideoDelete(video.title);
                       }}
@@ -457,34 +405,30 @@ function AdminAccordion() {
         </AccordionDetails>
       </Accordion>
       <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMore />}
-          aria-controls="panel1a-content"
-          id="panel1a-header"
-        >
+        <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1a-content" id="panel1a-header">
           <Typography>Manage Series</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Grid2
-            key={"addnewvideo"}
+            key={'addnewvideo'}
             mobile={12}
             desktop={6}
             sx={{
-              mx: "auto",
+              mx: 'auto',
               maxHeight: 150,
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              pl: "20px",
-              boxShadow: "8px 8px 24px -21px rgba(66, 68, 90, 1)",
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              pl: '20px',
+              boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
             }}
           >
             <Box display="flex" flexDirection="row" alignItems="center">
               <IconButton
-                sx={{ fontSize: "12px" }}
+                sx={{ fontSize: '12px' }}
                 onClick={() => {
-                  handleOpenModal("series");
+                  handleOpenModal('series');
                 }}
               >
                 <img
@@ -497,41 +441,31 @@ function AdminAccordion() {
           </Grid2>
           <Grid2>
             {videos.map((video, id) =>
-              video.type === "series" ? (
+              video.type === 'series' ? (
                 <Grid2
                   key={video.title.toLowerCase() + id}
                   mobile={12}
                   desktop={6}
                   sx={{
-                    mx: "auto",
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    pl: "20px",
-                    boxShadow: "8px 8px 24px -21px rgba(66, 68, 90, 1)",
+                    mx: 'auto',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    pl: '20px',
+                    boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
                   }}
                 >
                   <Box display="flex" flexDirection="row" alignItems="center">
                     <img src={video.thumbnail} className="review-thumbnail" />
-                    <Typography
-                      sx={{ pl: "30px", letterSpacing: "1px", fontWeight: 700 }}
-                    >
-                      {video.title}
-                    </Typography>
+                    <Typography sx={{ pl: '30px', letterSpacing: '1px', fontWeight: 700 }}>{video.title}</Typography>
                   </Box>
-                  <Box display="flex" flexDirection="row" sx={{ ml: "30px" }}>
+                  <Box display="flex" flexDirection="row" sx={{ ml: '30px' }}>
                     Average grade:
-                    <Rating
-                      name="read-only"
-                      value={video.grade / 2}
-                      precision={0.5}
-                      readOnly
-                      sx={{ pr: "15px" }}
-                    />
+                    <Rating name="read-only" value={video.grade / 2} precision={0.5} readOnly sx={{ pr: '15px' }} />
                     {video.grade}/10 ({video.reviews_count} reviews)
                     <IconButton
-                      sx={{ mr: "30px", fontSize: "12px" }}
+                      sx={{ mr: '30px', fontSize: '12px' }}
                       onClick={() => {
                         handleVideoDelete(video.title);
                       }}
