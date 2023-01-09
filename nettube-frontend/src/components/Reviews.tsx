@@ -1,14 +1,19 @@
-import { Stack, Rating, Typography, Avatar, Divider, Grid, Paper } from "@mui/material";
+import { Stack, Rating, Typography, Avatar, Divider, Grid, Paper, TextField } from "@mui/material";
+import React, { SyntheticEvent, useState } from "react";
+import useHttp from "../hooks/useHttp";
+import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
+import { fetchReviewsData } from "../store/reviews-actions";
 import type { Review } from "../store/reviews.types";
 
 type ReviewsProps = {
 	reviews: Review[];
+	showId: number;
 };
 
 type ReviewItemProps = {
 	comment: string;
 	grade: number;
-	user_id: number;
+	username: string;
 };
 
 /**
@@ -16,7 +21,8 @@ type ReviewItemProps = {
  * (dokładniej dłuższy tekst wychodzi poza paper) - BUG
  */
 
-function ReviewItem({ comment, grade, user_id }: ReviewItemProps) {
+function ReviewItem(props: ReviewItemProps) {
+	const { username, grade, comment } = props;
 	return (
 		<Paper style={{ padding: "40px 20px" }} elevation={4}>
 			<Grid container wrap="nowrap" spacing={2}>
@@ -26,21 +32,58 @@ function ReviewItem({ comment, grade, user_id }: ReviewItemProps) {
 				<Grid
 					sx={{
 						justifyContent: "left",
+						paddingLeft: "12px",
 					}}
 				>
-					<h4 style={{ margin: 0, textAlign: "left" }}>{user_id}</h4>
+					<Typography variant="h5" style={{ margin: 0, textAlign: "left" }}>
+						{username}
+					</Typography>
 					<Rating name="read-only" value={grade / 2} precision={0.5} readOnly />
-					<Typography sx={{ textAlign: "left" }}>{comment}</Typography>
+					<Typography sx={{ marginTop: "24px", textAlign: "left" }}>{comment}</Typography>
 				</Grid>
 			</Grid>
+
 			<Divider variant="fullWidth" style={{ margin: "30px 0" }} />
 		</Paper>
 	);
 }
 
 const Reviews = (props: ReviewsProps) => {
-	const { reviews } = props;
+	const { reviews, showId } = props;
 	const reviewsWithoutComments = reviews.filter((review) => review.grade !== null);
+	const [reviewValue, setReviewValue] = useState("");
+	const [rating, setRating] = useState(0);
+	const { sendRequest } = useHttp();
+	const currentUserName = useAppSelector((state) => state.user.username);
+	const dispatch = useAppDispatch();
+
+	const handleKeyDown = async (event: React.KeyboardEvent<HTMLInputElement>) => {
+		if (event.key === "Enter") {
+			const response = await sendRequest({
+				method: "POST",
+				endpoint: "/reviews/userReviews/addReview",
+				body: {
+					comment: reviewValue,
+					grade: rating * 2,
+					show_id: showId,
+					username: currentUserName,
+				},
+			});
+			if (response.result === "SUCCESS") {
+				dispatch(fetchReviewsData());
+				setReviewValue("");
+				setRating(0);
+			}
+		}
+	};
+
+	const handleReviewChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		setReviewValue(event.target.value);
+	};
+
+	const handleRatingChange = (event: SyntheticEvent<Element, Event>, value: number | null) => {
+		if (value !== null) setRating(value);
+	};
 
 	return (
 		<Stack
@@ -52,6 +95,38 @@ const Reviews = (props: ReviewsProps) => {
 				flexGrow: 1,
 			}}
 		>
+			<Paper style={{ padding: "40px 20px" }} elevation={4}>
+				<Grid container wrap="nowrap" spacing={2}>
+					<Grid item>
+						<Avatar src="assets/images/avatar.png" />
+					</Grid>
+					<Grid
+						sx={{
+							justifyContent: "left",
+							paddingLeft: "12px",
+						}}
+					>
+						<Typography variant="h5" style={{ margin: 0, textAlign: "left" }}>
+							You
+						</Typography>
+						<Rating precision={0.5} onChange={handleRatingChange} value={rating} />
+						<TextField
+							id="standard-basic"
+							label="Leave your review"
+							variant="standard"
+							fullWidth
+							onKeyDown={handleKeyDown}
+							onChange={handleReviewChange}
+							value={reviewValue}
+							sx={{
+								marginTop: "12px",
+							}}
+						/>
+					</Grid>
+				</Grid>
+				<Divider variant="fullWidth" style={{ margin: "30px 0" }} />
+			</Paper>
+
 			{reviewsWithoutComments.map((item) => (
 				<ReviewItem {...item} key={item.id} />
 			))}
