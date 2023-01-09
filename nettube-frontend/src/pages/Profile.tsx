@@ -13,7 +13,6 @@ function Profile() {
       navigate('/signin');
     }
   }, []);
-  console.log();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
   const { sendRequest } = useHttp();

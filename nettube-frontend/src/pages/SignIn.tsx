@@ -1,84 +1,61 @@
-import { useCallback, useState } from "react";
-import {
-  Link,
-  Box,
-  Typography,
-  Container,
-  TextField,
-  Button,
-  Snackbar,
-  Alert,
-} from "@mui/material";
-import { Stack } from "@mui/material";
-import { useAppDispatch } from "../hooks/useRedux";
-import { userLogin } from "../store/user-actions";
-import { UserCredentials } from "../store/user.types";
-import { useNavigate } from "react-router-dom";
-import { SnackbarType } from "./SignUp";
-import useHttp from "../hooks/useHttp";
-/**
- * TODO: Wywalenie Bad Request z logowania za pomocą błędnych danych
- */
+import { useEffect, useState } from 'react';
+import { Link, Box, Typography, Container, TextField, Button, Snackbar, Alert } from '@mui/material';
+import { Stack } from '@mui/material';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { userLogin } from '../store/user-actions';
+import { UserCredentials } from '../store/user.types';
+import { useNavigate } from 'react-router-dom';
+import { uiActions } from '../store/ui';
 
 function SignIn() {
-  const { sendRequest } = useHttp();
-  const sendUpdateLoginDateQuery = useCallback(async (username: string) => {
-    const response = await sendRequest({
-      method: "POST",
-      body: {
-        username: username,
-      },
-      endpoint: `/user/updateUserLoginDate`,
-    });
-  }, []);
-  const [snackbar, setSnackbar] = useState<SnackbarType>({
-    content: "",
-    isOpened: false,
-    severity: undefined,
-  });
-  const [isUser, setIsUser] = useState(true);
+  const isSigningIn = useAppSelector(state => state.user.isLoading);
+  const snackbar = useAppSelector(state => state.ui.snackbar);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const userCredentials: UserCredentials = {
-      username: data.get("username") as string,
-      password: data.get("password") as string,
+      username: data.get('username') as string,
+      password: data.get('password') as string,
     };
     dispatch(userLogin(userCredentials));
-    setTimeout(() => {
-      if (
-        localStorage.getItem("userToken") === null ||
-        localStorage.getItem("userToken") === "undefined"
-      ) {
-        setIsUser(false);
-        setSnackbar({
-          content: "Invalid credentials!",
-          isOpened: true,
-          severity: "error",
-        });
+  };
+
+  useEffect(() => {
+    if (!isSigningIn) {
+      if (localStorage.getItem('userToken') === null || localStorage.getItem('userToken') === 'undefined') {
+        dispatch(
+          uiActions.onShowSnackbar({
+            snackbar: {
+              content: 'Invalid credentials!',
+              severity: 'error',
+            },
+          })
+        );
         setTimeout(() => {
-          setSnackbar({ content: "", isOpened: false, severity: undefined });
+          dispatch(uiActions.onHideSnackbar());
         }, 3000);
       } else {
-        sendUpdateLoginDateQuery(userCredentials.username);
-        navigate("/");
+        navigate('/');
       }
-    }, 500);
-  };
+    }
+  }, [isSigningIn]);
+
   return (
     <Container component="main" maxWidth="desktop">
-      <Snackbar
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        open={snackbar.isOpened}
-      >
+      <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={snackbar.isOpened}>
         <Alert
           onClose={() => {
-            setSnackbar({ content: "", isOpened: false, severity: undefined });
+            uiActions.onShowSnackbar({
+              snackbar: {
+                content: 'Invalid credentials!',
+                severity: 'error',
+              },
+            });
           }}
           severity={snackbar.severity}
-          sx={{ width: "100%" }}
+          sx={{ width: '100%' }}
         >
           {snackbar.content}
         </Alert>
@@ -86,21 +63,16 @@ function SignIn() {
       <Box
         sx={{
           marginTop: 8,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}
       >
         <img alt="logo" src="logo.svg" width="150px" height="auto" />
         <Typography component="h1" variant="h5">
           Sign in
         </Typography>
-        <Box
-          component="form"
-          noValidate
-          onSubmit={handleSubmit}
-          sx={{ mt: 3, pb: 2 }}
-        >
+        <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3, pb: 2 }}>
           <Stack spacing={3}>
             <TextField
               aria-label="username-field"
@@ -121,12 +93,7 @@ function SignIn() {
               id="password"
               autoComplete="new-password"
             />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
               Sign In
             </Button>
             <Link href="/reset-password" variant="body1">

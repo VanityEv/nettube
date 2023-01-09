@@ -87,10 +87,6 @@ const App = () => {
     dispatch(fetchVideosData());
     dispatch(fetchReviewsData());
   }, [dispatch]);
-  useEffect(() => {
-    dispatch(fetchVideosData());
-    dispatch(fetchReviewsData());
-  }, [dispatch]);
 
   useEffect(() => {
     dispatch(uiActions.onChangeRoute({ route: location.pathname.slice(1) }));
@@ -106,22 +102,36 @@ const App = () => {
       dispatch(userLogin({ token, username }));
     }
   }, [dispatch, navigate]);
+
+  // useEffect(() => {
+  //   if (localStorage.getItem('username') === null || localStorage.getItem('username') === undefined) {
+  //     navigate('/signin');
+  //   }
+  // }, [location.pathname]);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AppBar />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/movies" element={<Movies />} />
-        <Route path="/series" element={<Series />} />
-        <Route path="/genres" element={<Genres />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/confirm-register" element={<ConfirmRegister />} />
+
+        <Route path="/movies" element={<Movies />} />
+
+        <Route path="/series" element={<Series />} />
+
+        <Route path="/genres" element={<Genres />} />
+
+        <Route path="/profile" element={<Profile />} />
+
+        <Route path="/dashboard" element={<Dashboard />} />
+
         <Route path="/signout" element={<Signout />} />
+
         <Route path="/watch" element={<Player />} />
       </Routes>
       <Divider sx={{ margin: '24px 0' }} />

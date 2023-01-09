@@ -1,23 +1,27 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { userLogin } from "./user-actions";
-import { UserType } from "./user.types";
+import { createSlice } from '@reduxjs/toolkit';
+import { userLogin } from './user-actions';
+import { UserType } from './user.types';
 
 const initialState: UserType = {
-  loading: false,
+  isLoading: false,
   userToken: null,
   error: null,
   success: false,
-  username: "",
+  username: '',
 };
 
 const userSlice = createSlice({
-  name: "user",
+  name: 'user',
   initialState,
   reducers: {
     //Sign in
     setUser(state, action) {
       state.username = action.payload.username;
       state.userToken = action.payload.token;
+      state.isLoading = false;
+    },
+    setIsSigning(state) {
+      state.isLoading = true;
     },
   },
 });

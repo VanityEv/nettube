@@ -113,13 +113,13 @@ export default function ProfileCard({
       setAlreadyExists(null);
     }
   }, [alreadyExists]);
-  const username = localStorage.getItem("username");
+  const username = localStorage.getItem('username');
   const avatarLetter = username?.charAt(0);
 
   return (
     <Card
       sx={{
-        maxWidth: 275,
+        maxWidth: isMobile ? '100%' : 275,
         flexGrow: 1,
         display: 'flex',
         alignItems: 'top',

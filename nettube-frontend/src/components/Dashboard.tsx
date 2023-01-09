@@ -1,45 +1,45 @@
-import { Box, useMediaQuery } from "@mui/material";
-import ProfileCard, { ProfileInfo } from "./ProfileCard";
-import useHttp from "../hooks/useHttp";
-import { useEffect, useState } from "react";
-import AdminAccordion from "./AdminAccordion";
-import theme from "../styles/theme";
+import { Box, useMediaQuery, useTheme } from '@mui/material';
+import ProfileCard, { ProfileInfo } from './ProfileCard';
+import useHttp from '../hooks/useHttp';
+import { useEffect, useState } from 'react';
+import AdminAccordion from './AdminAccordion';
 
 function Dashboard() {
-  const isMobile = useMediaQuery(theme.breakpoints.down("desktop"));
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
   const { sendRequest } = useHttp();
   const [userData, setData] = useState({
-    username: "",
-    fullname: "",
-    email: "",
-    birthdate: "",
+    username: '',
+    fullname: '',
+    email: '',
+    birthdate: '',
     subscription: 0,
   });
 
   const fetchUserProfileInfo = async () => {
     const response = await sendRequest({
-      method: "POST",
+      method: 'POST',
       body: {
-        username: localStorage.getItem("username"),
+        username: localStorage.getItem('username'),
       },
-      endpoint: "/user/getUserData",
+      endpoint: '/user/getUserData',
     });
-    if (response.result === "SUCCESS") {
+    if (response.result === 'SUCCESS') {
       setData(response);
     }
   };
 
   const sendUpdateQuery = async (param: string, value: string) => {
     const response = await sendRequest({
-      method: "POST",
+      method: 'POST',
       body: {
         param: param,
         value: value,
-        username: localStorage.getItem("username"),
+        username: localStorage.getItem('username'),
       },
-      endpoint: "/user/updateUser",
+      endpoint: '/user/updateUser',
     });
-    if (response === "SUCCESS") {
+    if (response.result === 'success') {
       fetchUserProfileInfo();
     }
   };
@@ -56,19 +56,16 @@ function Dashboard() {
     subscriptiontype: userData.subscription,
     confirmChange: sendUpdateQuery,
   };
+  const styleBox = {
+    display: 'flex',
+    flexDirection: isMobile ? 'column' : 'row',
+  };
   return (
     <>
-      {!isMobile ? (
-        <Box sx={{ display: "flex", flexDirection: "row" }}>
-          <ProfileCard {...userProfileInfo} />
-          <AdminAccordion />
-        </Box>
-      ) : (
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
-          <ProfileCard {...userProfileInfo} />
-          <AdminAccordion />
-        </Box>
-      )}
+      <Box sx={styleBox}>
+        <ProfileCard {...userProfileInfo} />
+        <AdminAccordion />
+      </Box>
     </>
   );
 }

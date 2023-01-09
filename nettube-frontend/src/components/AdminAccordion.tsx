@@ -2,7 +2,7 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
-import { ChangeCircle, Delete, ExpandMore, Gavel } from '@mui/icons-material';
+import { AddBox, ChangeCircle, Delete, ExpandMore, Gavel } from '@mui/icons-material';
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2';
 import {
   Alert,
@@ -22,9 +22,8 @@ import useHttp from '../hooks/useHttp';
 import { useCallback, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { Video } from '../store/videos.types';
-
+import { uiActions } from '../store/ui';
 import { fetchVideosData } from '../store/videos-actions';
-import { SnackbarType } from '../pages/SignUp';
 
 export type UserEntry = {
   id: number;
@@ -35,25 +34,14 @@ export type UserEntry = {
 
 //TODO: CSS - poprawki i layout
 function AdminAccordion() {
-  const [snackbar, setSnackbar] = useState<SnackbarType>({
-    content: '',
-    isOpened: false,
-    severity: undefined,
-  });
   const dispatch = useAppDispatch();
+  const snackbar = useAppSelector(state => state.ui.snackbar);
   const [newURL, setNewURL] = useState('');
   const [videoTitle, setVideoTitle] = useState('');
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setNewURL(event.target.value as string);
-  };
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenURLModal, setIsOpenURLModal] = useState(false);
   const handleIsOpen = () => setIsOpen(true);
   const handleClose = () => setIsOpen(false);
-  const handleIsOpenUrlModal = (title: string) => {
-    setVideoTitle(title);
-    setIsOpenURLModal(true);
-  };
   const handleCloseURLModal = () => setIsOpenURLModal(false);
   const [selectedType, setSelectedType] = useState<'film' | 'series'>('film');
   const { sendRequest } = useHttp();
@@ -73,7 +61,7 @@ function AdminAccordion() {
     boxShadow: 24,
     p: isMobile ? 2 : 12,
     objectFit: 'contain',
-    display: 'grid',
+    overflowY: 'scroll',
   };
   const styleChangeURLModal = {
     position: 'absolute',
@@ -110,13 +98,16 @@ function AdminAccordion() {
       endpoint: `/user/deleteUser`,
     });
     if (response.result === 'success') {
-      setSnackbar({
-        content: 'User is now banned!',
-        isOpened: true,
-        severity: 'success',
-      });
+      dispatch(
+        uiActions.onShowSnackbar({
+          snackbar: {
+            content: 'User has been banned!',
+            severity: 'success',
+          },
+        })
+      );
       setTimeout(() => {
-        setSnackbar({ content: '', isOpened: false, severity: undefined });
+        dispatch(uiActions.onHideSnackbar());
       }, 3000);
       sendFetchUsersQuery();
     }
@@ -143,13 +134,16 @@ function AdminAccordion() {
       endpoint: `/videos/addVideo`,
     });
     if (response.result === 'success') {
-      setSnackbar({
-        content: 'Video has been added!',
-        isOpened: true,
-        severity: 'success',
-      });
+      dispatch(
+        uiActions.onShowSnackbar({
+          snackbar: {
+            content: 'Video has been added!',
+            severity: 'success',
+          },
+        })
+      );
       setTimeout(() => {
-        setSnackbar({ content: '', isOpened: false, severity: undefined });
+        dispatch(uiActions.onHideSnackbar());
       }, 3000);
       dispatch(fetchVideosData());
       handleClose();
@@ -165,13 +159,16 @@ function AdminAccordion() {
       endpoint: `/videos/deleteVideo`,
     });
     if (response.result === 'success') {
-      setSnackbar({
-        content: 'Video has been deleted!',
-        isOpened: true,
-        severity: 'success',
-      });
+      dispatch(
+        uiActions.onShowSnackbar({
+          snackbar: {
+            content: 'Video has been deleted!',
+            severity: 'success',
+          },
+        })
+      );
       setTimeout(() => {
-        setSnackbar({ content: '', isOpened: false, severity: undefined });
+        dispatch(uiActions.onHideSnackbar());
       }, 3000);
       dispatch(fetchVideosData());
     }
@@ -187,19 +184,25 @@ function AdminAccordion() {
       endpoint: `/videos/changeURL`,
     });
     if (response.result === 'success') {
-      setSnackbar({
-        content: 'Video URL has been changed!',
-        isOpened: true,
-        severity: 'success',
-      });
+      dispatch(
+        uiActions.onShowSnackbar({
+          snackbar: {
+            content: 'Video URL has been added!',
+            severity: 'success',
+          },
+        })
+      );
       setTimeout(() => {
-        setSnackbar({ content: '', isOpened: false, severity: undefined });
+        dispatch(uiActions.onHideSnackbar());
       }, 3000);
     }
   }, []);
 
   const handleUserDelete = (id: number) => {
     sendUserDeleteQuery(id);
+  };
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNewURL(event.target.value);
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -239,6 +242,11 @@ function AdminAccordion() {
     setIsOpenURLModal(false);
   };
 
+  const handleIsOpenUrlModal = (title: string) => {
+    setVideoTitle(title);
+    setIsOpenURLModal(true);
+  };
+
   useEffect(() => {
     sendFetchUsersQuery();
   }, [sendFetchUsersQuery]);
@@ -247,7 +255,17 @@ function AdminAccordion() {
       <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={snackbar.isOpened}>
         <Alert
           onClose={() => {
-            setSnackbar({ content: '', isOpened: false, severity: undefined });
+            dispatch(
+              uiActions.onShowSnackbar({
+                snackbar: {
+                  content: 'Video has been added!',
+                  severity: 'success',
+                },
+              })
+            );
+            setTimeout(() => {
+              dispatch(uiActions.onHideSnackbar());
+            }, 3000);
           }}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
@@ -268,44 +286,49 @@ function AdminAccordion() {
               sx={{
                 mx: 'auto',
                 maxWidth: '100%',
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                display: 'grid',
                 pl: '20px',
                 boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
               }}
             >
-              <Box display="flex" flexDirection="row" alignItems="center" textAlign={'center'}>
-                {'User ID'}
-                <Typography sx={{ pl: '30px', fontWeight: 500, minWidth: 300 }}>{'Username'}</Typography>
-                <Typography sx={{ pl: '30px', fontWeight: 500 }}>{'Email address'}</Typography>
-                <Typography sx={{ pl: '30px', fontWeight: 500 }}>{'Last login date'}</Typography>
-              </Box>
+              {!isMobile && (
+                <Box display="flex" flexDirection="row" alignItems="center" textAlign={'left'} paddingBottom={1}>
+                  <Typography variant="overline" sx={{ width: '20%', wordWrap: 'wrap' }}>
+                    User ID
+                  </Typography>
+                  <Typography variant="overline" sx={{ width: '20%', wordWrap: 'wrap' }}>
+                    Username
+                  </Typography>
+                  <Typography variant="overline" sx={{ width: '20%', wordWrap: 'wrap' }}>
+                    Email address
+                  </Typography>
+                  <Typography variant="overline" sx={{ width: '20%', wordWrap: 'wrap' }}>
+                    Last login date
+                  </Typography>
+                </Box>
+              )}
             </Grid2>
             {users.map((user, id) => (
-              <Grid2
-                key={user.username.toLowerCase() + id}
-                mobile={12}
-                desktop={12}
-                sx={{
-                  mx: 'auto',
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  pl: '20px',
-                  boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
-                }}
+              <Box
+                display="flex"
+                flexDirection="row"
+                alignItems="center"
+                textAlign={'left'}
+                paddingBottom={1}
+                sx={{ overflowX: isMobile ? 'scroll' : 'default', boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)' }}
               >
-                <Box display="flex" flexDirection="row" alignItems="center" textAlign={'center'}>
-                  {user.id}
-                  <Typography sx={{ pl: '30px', fontWeight: 500, minWidth: 300 }}>{user.username}</Typography>
-                  <Typography sx={{ pl: '30px', fontWeight: 500 }}>{user.email}</Typography>
-                  <Typography sx={{ pl: '30px', fontWeight: 500 }}>{user.last_login.substring(0, 10)}</Typography>
-                </Box>
+                <Typography sx={{ width: '20%', minWidth: '120px', wordWrap: 'wrap' }}>{user.id}</Typography>
+                <Typography sx={{ fontWeight: 500, width: '20%', minWidth: '120px', wordWrap: 'wrap' }}>
+                  {user.username}
+                </Typography>
+                <Typography sx={{ fontWeight: 500, width: '20%', minWidth: '120px', wordWrap: 'wrap' }}>
+                  {user.email}
+                </Typography>
+                <Typography sx={{ fontWeight: 500, width: '20%', minWidth: '120px', wordWrap: 'wrap' }}>
+                  {user.last_login.substring(0, 10)}
+                </Typography>
                 <IconButton
-                  sx={{ mr: '30px', fontSize: '12px' }}
+                  sx={{ mr: '30px', fontSize: '12px', minWidth: '120px' }}
                   onClick={() => {
                     handleUserDelete(user.id);
                   }}
@@ -313,7 +336,7 @@ function AdminAccordion() {
                   <Gavel />
                   Ban
                 </IconButton>
-              </Grid2>
+              </Box>
             ))}
           </Grid2>
         </AccordionDetails>
@@ -321,115 +344,117 @@ function AdminAccordion() {
       <Modal open={isOpen} onClose={handleClose} closeAfterTransition>
         <Fade in={isOpen}>
           <Box component="form" onSubmit={handleSubmit} sx={style}>
-            Add New Video
-            <TextField
-              required
-              id="title"
-              label="title"
-              name="title"
-              defaultValue=""
-              placeholder="Title"
-              variant="standard"
-            />
-            <TextField
-              required
-              id="genres"
-              name="genres"
-              label="genres"
-              defaultValue=""
-              placeholder="Genres"
-              variant="standard"
-            />
-            <TextField
-              required
-              id="production_year"
-              name="production_year"
-              label="production_year"
-              defaultValue="1900"
-              placeholder="Production Year"
-              variant="standard"
-            />
-            <TextField
-              required
-              id="production_country"
-              name="production_country"
-              label="production_country"
-              defaultValue=""
-              placeholder="Production Country"
-              variant="standard"
-            />
-            <TextField
-              required
-              id="director"
-              name="director"
-              label="director"
-              defaultValue=""
-              placeholder="Director"
-              variant="standard"
-            />
-            <TextField
-              required
-              id="age_restriction"
-              name="age_restriction"
-              label="age_restriction"
-              defaultValue="0"
-              placeholder="Age Restrictions"
-              variant="standard"
-            />
-            <TextField
-              required
-              id="tags"
-              name="tags"
-              label="tags"
-              defaultValue=""
-              placeholder="Tags"
-              variant="standard"
-            />
-            <TextField
-              required
-              id="descr"
-              name="descr"
-              label="descr"
-              defaultValue=""
-              placeholder="Description"
-              variant="standard"
-            />
-            <TextField
-              required
-              id="thumbnail"
-              name="thumbnail"
-              label="thumbnail"
-              defaultValue=""
-              placeholder="Thumbnail URL"
-              variant="standard"
-            />
-            <TextField
-              required
-              id="alt"
-              name="alt"
-              label="alt"
-              defaultValue=""
-              placeholder="Alternate text"
-              variant="standard"
-            />
-            <TextField
-              required
-              id="subscription_tier"
-              name="subscription_tier"
-              label="subscription_tier"
-              defaultValue=""
-              placeholder="Subscription Tier"
-              variant="standard"
-            />
-            <TextField
-              required
-              id="link"
-              name="link"
-              label="link"
-              defaultValue=""
-              placeholder="Video link"
-              variant="standard"
-            />
+            <Typography variant="h5">Add New Video</Typography>
+            <Stack spacing={2}>
+              <TextField
+                required
+                id="title"
+                label="title"
+                name="title"
+                defaultValue=""
+                placeholder="Title"
+                variant="standard"
+              />
+              <TextField
+                required
+                id="genres"
+                name="genres"
+                label="genres"
+                defaultValue=""
+                placeholder="Genres"
+                variant="standard"
+              />
+              <TextField
+                required
+                id="production_year"
+                name="production_year"
+                label="production_year"
+                defaultValue="1900"
+                placeholder="Production Year"
+                variant="standard"
+              />
+              <TextField
+                required
+                id="production_country"
+                name="production_country"
+                label="production_country"
+                defaultValue=""
+                placeholder="Production Country"
+                variant="standard"
+              />
+              <TextField
+                required
+                id="director"
+                name="director"
+                label="director"
+                defaultValue=""
+                placeholder="Director"
+                variant="standard"
+              />
+              <TextField
+                required
+                id="age_restriction"
+                name="age_restriction"
+                label="age_restriction"
+                defaultValue="0"
+                placeholder="Age Restrictions"
+                variant="standard"
+              />
+              <TextField
+                required
+                id="tags"
+                name="tags"
+                label="tags"
+                defaultValue=""
+                placeholder="Tags"
+                variant="standard"
+              />
+              <TextField
+                required
+                id="descr"
+                name="descr"
+                label="descr"
+                defaultValue=""
+                placeholder="Description"
+                variant="standard"
+              />
+              <TextField
+                required
+                id="thumbnail"
+                name="thumbnail"
+                label="thumbnail"
+                defaultValue=""
+                placeholder="Thumbnail URL"
+                variant="standard"
+              />
+              <TextField
+                required
+                id="alt"
+                name="alt"
+                label="alt"
+                defaultValue=""
+                placeholder="Alternate text"
+                variant="standard"
+              />
+              <TextField
+                required
+                id="subscription_tier"
+                name="subscription_tier"
+                label="subscription_tier"
+                defaultValue=""
+                placeholder="Subscription Tier"
+                variant="standard"
+              />
+              <TextField
+                required
+                id="link"
+                name="link"
+                label="link"
+                defaultValue=""
+                placeholder="Video link"
+                variant="standard"
+              />
+            </Stack>
             <Button type="submit" size="large" variant="contained" sx={{ mt: 3, mb: 2 }}>
               Confirm
             </Button>
@@ -463,96 +488,83 @@ function AdminAccordion() {
           <Typography>Manage Movies</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Grid2>
-            <Grid2
-              key={'addnewvideo'}
-              mobile={12}
-              desktop={6}
-              sx={{
-                mx: 'auto',
-                maxHeight: 150,
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                pl: '20px',
-                boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
-              }}
-            >
-              <Box display="flex" flexDirection="row" alignItems="center">
-                <IconButton sx={{ fontSize: '12px' }} onClick={() => handleOpenModal('film')}>
-                  <img
-                    src="https://cdn0.iconfinder.com/data/icons/circles-2/100/sign-square-dashed-plus-512.png"
-                    className="review-thumbnail"
-                  />
-                  Add new Movie
-                </IconButton>
-              </Box>
-            </Grid2>
-            {videos.map((video, id) =>
-              video.type === 'film' ? (
-                <Grid2
-                  key={video.title.toLowerCase() + id}
-                  mobile={12}
-                  desktop={6}
-                  sx={{
-                    mx: 'auto',
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    pl: '20px',
-                    boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
-                  }}
-                >
-                  <Box display="flex" flexDirection="row" alignItems="center">
-                    <img src={video.thumbnail} className="review-thumbnail" />
-                    <Typography
-                      sx={{
-                        pl: '30px',
-                        letterSpacing: '1px',
-                        fontWeight: 700,
-                      }}
-                    >
-                      {video.title}
-                    </Typography>
-                  </Box>
-                  <Box display="flex" flexDirection="row" sx={{ ml: '30px' }}>
-                    Average grade:
-                    <Rating name="read-only" value={video.grade / 2} precision={0.5} readOnly sx={{ pr: '15px' }} />
-                    {video.grade}/10 ({video.reviews_count} reviews)
-                    <IconButton
-                      sx={{ mr: '30px', fontSize: '12px' }}
-                      onClick={() => {
-                        handleIsOpenUrlModal(video.title);
-                      }}
-                    >
-                      <ChangeCircle />
-                      Change video URL
-                    </IconButton>
-                    <IconButton
-                      sx={{ mr: '30px', fontSize: '12px' }}
-                      onClick={() => {
-                        handleIsOpenUrlModal(video.title);
-                      }}
-                    >
-                      <ChangeCircle />
-                      Change video URL
-                    </IconButton>
-                    <IconButton
-                      sx={{ mr: '30px', fontSize: '12px' }}
-                      onClick={() => {
-                        handleVideoDelete(video.title);
-                      }}
-                    >
-                      <Delete />
-                      Delete
-                    </IconButton>
-                  </Box>
-                </Grid2>
-              ) : null
-            )}
+          <Grid2
+            key={'addnewvideo'}
+            mobile={12}
+            desktop={6}
+            sx={{
+              maxHeight: 150,
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              pl: '20px',
+              boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
+            }}
+          >
+            <Box display="flex" flexDirection="row" alignItems="center">
+              <IconButton onClick={() => handleOpenModal('film')}>
+                <AddBox fontSize="large" />
+              </IconButton>
+            </Box>
           </Grid2>
+          {videos.map((video, id) =>
+            video.type === 'film' ? (
+              <Box
+                sx={{
+                  pl: '20px',
+                  boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
+                  overflowX: isMobile ? 'scroll' : 'default',
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <Box display="flex" flexDirection="row" alignItems="center" sx={{ width: '50%', minWidth: '300px' }}>
+                  <img src={video.thumbnail} className="review-thumbnail" />
+                  <Typography
+                    sx={{
+                      letterSpacing: '1px',
+                      fontWeight: 700,
+                      pl: '30px',
+                    }}
+                  >
+                    {video.title}
+                  </Typography>
+                </Box>
+                <Box
+                  display="flex"
+                  flexDirection="row"
+                  sx={{ ml: '30px', width: '50%', minWidth: '300px', alignItems: 'center' }}
+                >
+                  <Typography>Average grade:</Typography>
+                  <Rating name="read-only" value={video.grade / 2} precision={0.5} readOnly sx={{ pr: '15px' }} />
+                  <Typography>
+                    {video.grade}
+                    /10 ({video.reviews_count} reviews)
+                  </Typography>
+                  <IconButton
+                    sx={{ mr: '30px', fontSize: '12px' }}
+                    onClick={() => {
+                      handleIsOpenUrlModal(video.title);
+                    }}
+                  >
+                    <ChangeCircle />
+                    Change video URL
+                  </IconButton>
+                  <IconButton
+                    sx={{ fontSize: '12px' }}
+                    onClick={() => {
+                      handleVideoDelete(video.title);
+                    }}
+                  >
+                    <Delete />
+                    Delete
+                  </IconButton>
+                </Box>
+              </Box>
+            ) : null
+          )}
         </AccordionDetails>
       </Accordion>
       <Accordion>
@@ -560,10 +572,7 @@ function AdminAccordion() {
           <Typography>Manage Series</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Grid2
-            key={'addnewvideo'}
-            mobile={12}
-            desktop={6}
+          <Box
             sx={{
               mx: 'auto',
               maxHeight: 150,
@@ -582,71 +591,59 @@ function AdminAccordion() {
                   handleOpenModal('series');
                 }}
               >
-                <img
-                  src="https://cdn0.iconfinder.com/data/icons/circles-2/100/sign-square-dashed-plus-512.png"
-                  className="review-thumbnail"
-                />
-                Add new Series
+                <AddBox fontSize="large" />
               </IconButton>
             </Box>
-          </Grid2>
-          <Grid2>
-            {videos.map((video, id) =>
-              video.type === 'series' ? (
-                <Grid2
-                  key={video.title.toLowerCase() + id}
-                  mobile={12}
-                  desktop={6}
-                  sx={{
-                    mx: 'auto',
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    pl: '20px',
-                    boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
-                  }}
+          </Box>
+          {videos.map((video, id) =>
+            video.type === 'series' ? (
+              <Box
+                sx={{
+                  mx: 'auto',
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  pl: '20px',
+                  boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
+                }}
+              >
+                <Box display="flex" flexDirection="row" alignItems="center">
+                  <img src={video.thumbnail} className="review-thumbnail" />
+                  <Typography sx={{ pl: '30px', letterSpacing: '1px', fontWeight: 700 }}>{video.title}</Typography>
+                </Box>
+                <Box
+                  display="flex"
+                  flexDirection="row"
+                  sx={{ ml: '30px', width: '50%', minWidth: '300px', alignItems: 'center' }}
                 >
-                  <Box display="flex" flexDirection="row" alignItems="center">
-                    <img src={video.thumbnail} className="review-thumbnail" />
-                    <Typography sx={{ pl: '30px', letterSpacing: '1px', fontWeight: 700 }}>{video.title}</Typography>
-                  </Box>
-                  <Box display="flex" flexDirection="row" sx={{ ml: '30px' }}>
-                    Average grade:
-                    <Rating name="read-only" value={video.grade / 2} precision={0.5} readOnly sx={{ pr: '15px' }} />
+                  <Typography>Average grade:</Typography>
+                  <Rating name="read-only" value={video.grade / 2} precision={0.5} readOnly sx={{ pr: '15px' }} />
+                  <Typography>
                     {video.grade}/10 ({video.reviews_count} reviews)
-                    <IconButton
-                      sx={{ mr: '30px', fontSize: '12px' }}
-                      onClick={() => {
-                        handleIsOpenUrlModal(video.title);
-                      }}
-                    >
-                      <ChangeCircle />
-                      Change video URL
-                    </IconButton>
-                    <IconButton
-                      sx={{ mr: '30px', fontSize: '12px' }}
-                      onClick={() => {
-                        handleIsOpenUrlModal(video.title);
-                      }}
-                    >
-                      <ChangeCircle />
-                      Change video URL
-                    </IconButton>
-                    <IconButton
-                      sx={{ mr: '30px', fontSize: '12px' }}
-                      onClick={() => {
-                        handleVideoDelete(video.title);
-                      }}
-                    >
-                      <Delete />
-                      Delete
-                    </IconButton>
-                  </Box>
-                </Grid2>
-              ) : null
-            )}
-          </Grid2>
+                  </Typography>
+                  <IconButton
+                    sx={{ mr: '30px', fontSize: '12px' }}
+                    onClick={() => {
+                      handleIsOpenUrlModal(video.title);
+                    }}
+                  >
+                    <ChangeCircle />
+                    Change video URL
+                  </IconButton>
+                  <IconButton
+                    sx={{ mr: '30px', fontSize: '12px' }}
+                    onClick={() => {
+                      handleVideoDelete(video.title);
+                    }}
+                  >
+                    <Delete />
+                    Delete
+                  </IconButton>
+                </Box>
+              </Box>
+            ) : null
+          )}
         </AccordionDetails>
       </Accordion>
     </Box>

@@ -1,6 +1,6 @@
-import { useState } from "react";
-import dayjs, { Dayjs } from "dayjs";
-import { DesktopDatePicker, MobileDatePicker } from "@mui/x-date-pickers";
+import { useState } from 'react';
+import dayjs, { Dayjs } from 'dayjs';
+import { DesktopDatePicker, MobileDatePicker } from '@mui/x-date-pickers';
 import {
   Link,
   Box,
@@ -14,20 +14,15 @@ import {
   RadioGroup,
   Snackbar,
   Alert,
-  AlertColor,
-} from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import { Stack, useMediaQuery } from "@mui/material";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { EMAIL_REGEX, PASSWORD_REGEX } from "../constants";
-import useHttp from "../hooks/useHttp";
-
-export type SnackbarType = {
-  content: string;
-  isOpened: boolean;
-  severity: AlertColor | undefined;
-};
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { Stack, useMediaQuery } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { EMAIL_REGEX, PASSWORD_REGEX } from '../constants';
+import useHttp from '../hooks/useHttp';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { uiActions } from '../store/ui';
 
 function SignUp() {
   const [isError, setIsError] = useState({
@@ -36,18 +31,12 @@ function SignUp() {
     confirmpassword: false,
   });
 
-  const [snackbar, setSnackbar] = useState<SnackbarType>({
-    content: "",
-    isOpened: false,
-    severity: undefined,
-  });
-
   const todayDate = dayjs();
+  const snackbar = useAppSelector(state => state.ui.snackbar);
   const theme = useTheme();
-  const [value, setValue] = useState<Dayjs | null>(
-    dayjs("2000-01-01T00:00:00")
-  );
-  const isMobile = useMediaQuery(theme.breakpoints.down("desktop"));
+  const dispatch = useAppDispatch();
+  const [value, setValue] = useState<Dayjs | null>(dayjs('2000-01-01T00:00:00'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
   const { sendRequest } = useHttp();
 
   const handleChange = (newValue: Dayjs | null) => {
@@ -57,49 +46,53 @@ function SignUp() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    if (data.get("password") !== data.get("confirm-password")) {
-      setIsError((prevState) => ({ ...prevState, confirmpassword: true }));
+    if (data.get('password') !== data.get('confirm-password')) {
+      setIsError(prevState => ({ ...prevState, confirmpassword: true }));
     }
-    if (!PASSWORD_REGEX.test(data.get("password") as string)) {
-      setIsError((prevState) => ({ ...prevState, password: true }));
+    if (!PASSWORD_REGEX.test(data.get('password') as string)) {
+      setIsError(prevState => ({ ...prevState, password: true }));
     }
-    if (!EMAIL_REGEX.test(data.get("email") as string)) {
-      setIsError((prevState) => ({ ...prevState, email: true }));
+    if (!EMAIL_REGEX.test(data.get('email') as string)) {
+      setIsError(prevState => ({ ...prevState, email: true }));
     }
     if (!isError.confirmpassword && !isError.email && !isError.password) {
-      let birthdateFixed = data.get("birthdate") as string;
-      birthdateFixed = birthdateFixed.replace(/\//g, "-");
+      let birthdateFixed = data.get('birthdate') as string;
+      birthdateFixed = birthdateFixed.replace(/\//g, '-');
       const response = await sendRequest({
-        method: "POST",
+        method: 'POST',
         body: {
-          username: data.get("username") as string,
-          fullname: data.get("fullname") as string,
-          email: data.get("email") as string,
+          username: data.get('username') as string,
+          fullname: data.get('fullname') as string,
+          email: data.get('email') as string,
           birthdate: birthdateFixed,
-          password: data.get("password") as string,
-          subscription: data.get(
-            "radio-buttons-subscription-label"
-          ) as unknown as number,
+          password: data.get('password') as string,
+          subscription: data.get('radio-buttons-subscription-label') as unknown as number,
         },
-        endpoint: "/user/signup",
+        endpoint: '/user/signup',
       });
-      if (!response.error && response.result === "SUCCESS") {
-        setSnackbar({
-          content: "The account has been created!",
-          isOpened: true,
-          severity: "success",
-        });
+      if (!response.error && response.result === 'SUCCESS') {
+        dispatch(
+          uiActions.onShowSnackbar({
+            snackbar: {
+              content: 'The account has been created!',
+              severity: 'success',
+            },
+          })
+        );
         setTimeout(() => {
-          setSnackbar({ content: "", isOpened: false, severity: undefined });
+          dispatch(uiActions.onHideSnackbar());
         }, 3000);
       } else {
-        setSnackbar({
-          content: response.error,
-          isOpened: true,
-          severity: "error",
-        });
+        dispatch(
+          uiActions.onShowSnackbar({
+            snackbar: {
+              content: response.error,
+              severity: 'error',
+            },
+          })
+        );
         setTimeout(() => {
-          setSnackbar({ content: "", isOpened: false, severity: undefined });
+          dispatch(uiActions.onHideSnackbar());
         }, 3000);
       }
     }
@@ -109,16 +102,23 @@ function SignUp() {
   };
   return (
     <Container component="main" maxWidth="desktop">
-      <Snackbar
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        open={snackbar.isOpened}
-      >
+      <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={snackbar.isOpened}>
         <Alert
           onClose={() => {
-            setSnackbar({ content: "", isOpened: false, severity: undefined });
+            dispatch(
+              uiActions.onShowSnackbar({
+                snackbar: {
+                  content: 'Invalid credentials!',
+                  severity: 'error',
+                },
+              })
+            );
+            setTimeout(() => {
+              dispatch(uiActions.onHideSnackbar());
+            }, 3000);
           }}
           severity={snackbar.severity}
-          sx={{ width: "100%" }}
+          sx={{ width: '100%' }}
         >
           {snackbar.content}
         </Alert>
@@ -126,21 +126,16 @@ function SignUp() {
       <Box
         sx={{
           marginTop: 8,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}
       >
         <img alt="logo" src="logo.svg" width="150px" height="auto" />
         <Typography component="h1" variant="h5">
           Sign up
         </Typography>
-        <Box
-          component="form"
-          noValidate
-          onSubmit={handleSubmit}
-          sx={{ mt: 3, pb: 2 }}
-        >
+        <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3, pb: 2 }}>
           <Stack spacing={3}>
             <TextField
               aria-label="username-field"
@@ -165,7 +160,7 @@ function SignUp() {
               aria-label="email-field"
               required
               fullWidth
-              helperText={isError.email && "Email is incorrect!"}
+              helperText={isError.email && 'Email is incorrect!'}
               id="email"
               label="Email Address"
               name="email"
@@ -180,9 +175,7 @@ function SignUp() {
                   value={value}
                   onChange={handleChange}
                   maxDate={todayDate}
-                  renderInput={(params) => (
-                    <TextField name="birthdate" {...params} />
-                  )}
+                  renderInput={params => <TextField name="birthdate" {...params} />}
                 />
               ) : (
                 <MobileDatePicker
@@ -192,9 +185,7 @@ function SignUp() {
                   value={value}
                   onChange={handleChange}
                   maxDate={todayDate}
-                  renderInput={(params) => (
-                    <TextField name="birthdate" {...params} />
-                  )}
+                  renderInput={params => <TextField name="birthdate" {...params} />}
                 />
               )}
             </LocalizationProvider>
@@ -203,7 +194,7 @@ function SignUp() {
               aria-label="password-field"
               required
               fullWidth
-              helperText={isError.password && "Password is not strong enough!"}
+              helperText={isError.password && 'Password is not strong enough!'}
               name="password"
               label="Password"
               type="password"
@@ -212,7 +203,7 @@ function SignUp() {
             />
             <TextField
               error={isError.confirmpassword}
-              helperText={isError.confirmpassword && "Passwords do not match!"}
+              helperText={isError.confirmpassword && 'Passwords do not match!'}
               aria-label="password-field"
               required
               fullWidth
@@ -221,32 +212,17 @@ function SignUp() {
               type="password"
               id="confirm-password"
             />
-            <FormLabel id="radio-buttons-subscription-label">
-              Choose subscription type
-            </FormLabel>
+            <FormLabel id="radio-buttons-subscription-label">Choose subscription type</FormLabel>
             <RadioGroup
               aria-labelledby="radio-buttons-subscription-label"
               defaultValue="0"
               name="radio-buttons-subscription-label"
             >
-              <FormControlLabel
-                value={0}
-                control={<Radio />}
-                label="Standard"
-              />
+              <FormControlLabel value={0} control={<Radio />} label="Standard" />
               <FormControlLabel value={1} control={<Radio />} label="Premium" />
-              <FormControlLabel
-                value={2}
-                control={<Radio />}
-                label="Ultimate"
-              />
+              <FormControlLabel value={2} control={<Radio />} label="Ultimate" />
             </RadioGroup>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
               Sign Up
             </Button>
             <Link href="/signin" variant="body1">
