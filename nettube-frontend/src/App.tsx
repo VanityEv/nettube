@@ -21,6 +21,7 @@ import Signout from './pages/Signout';
 import { userLogin } from './store/user-actions';
 import Player from './pages/Player';
 import { createTheme, CssBaseline, Divider, Paper } from '@mui/material';
+import Dashboard from './components/Dashboard';
 
 /**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
  *   const navigate = useNavigate();
@@ -90,6 +91,9 @@ const App = () => {
   useEffect(() => {
     dispatch(uiActions.onChangeRoute({ route: location.pathname.slice(1) }));
   }, [dispatch, location]);
+  useEffect(() => {
+    dispatch(uiActions.onChangeRoute({ route: location.pathname.slice(1) }));
+  }, [dispatch, location]);
 
   useEffect(() => {
     const token = localStorage.getItem('userToken');
@@ -98,21 +102,36 @@ const App = () => {
       dispatch(userLogin({ token, username }));
     }
   }, [dispatch, navigate]);
+
+  // useEffect(() => {
+  //   if (localStorage.getItem('username') === null || localStorage.getItem('username') === undefined) {
+  //     navigate('/signin');
+  //   }
+  // }, [location.pathname]);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AppBar />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/movies" element={<Movies />} />
-        <Route path="/series" element={<Series />} />
-        <Route path="/genres" element={<Genres />} />
-        <Route path="/profile" element={<Profile />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/confirm-register" element={<ConfirmRegister />} />
+
+        <Route path="/movies" element={<Movies />} />
+
+        <Route path="/series" element={<Series />} />
+
+        <Route path="/genres" element={<Genres />} />
+
+        <Route path="/profile" element={<Profile />} />
+
+        <Route path="/dashboard" element={<Dashboard />} />
+
         <Route path="/signout" element={<Signout />} />
+
         <Route path="/watch" element={<Player />} />
       </Routes>
       <Divider sx={{ margin: '24px 0' }} />

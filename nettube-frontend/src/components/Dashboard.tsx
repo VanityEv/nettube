@@ -1,18 +1,10 @@
 import { Box, useMediaQuery, useTheme } from '@mui/material';
-import ProfileCard, { ProfileInfo } from '../components/ProfileCard';
-import UserProfileAccordion from '../components/UserProfileAccordion';
+import ProfileCard, { ProfileInfo } from './ProfileCard';
 import useHttp from '../hooks/useHttp';
 import { useEffect, useState } from 'react';
-import AdminAccordion from '../components/AdminAccordion';
-import { useNavigate } from 'react-router-dom';
+import AdminAccordion from './AdminAccordion';
 
-function Profile() {
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (localStorage.getItem('username') === null || localStorage.getItem('username') === undefined) {
-      navigate('/signin');
-    }
-  }, []);
+function Dashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
   const { sendRequest } = useHttp();
@@ -47,7 +39,7 @@ function Profile() {
       },
       endpoint: '/user/updateUser',
     });
-    if (response === 'SUCCESS') {
+    if (response.result === 'success') {
       fetchUserProfileInfo();
     }
   };
@@ -64,20 +56,17 @@ function Profile() {
     subscriptiontype: userData.subscription,
     confirmChange: sendUpdateQuery,
   };
+  const styleBox = {
+    display: 'flex',
+    flexDirection: isMobile ? 'column' : 'row',
+  };
   return (
     <>
-      {!isMobile ? (
-        <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-          <ProfileCard {...userProfileInfo} />
-          <UserProfileAccordion />
-        </Box>
-      ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <ProfileCard {...userProfileInfo} />
-          <UserProfileAccordion />
-        </Box>
-      )}
+      <Box sx={styleBox}>
+        <ProfileCard {...userProfileInfo} />
+        <AdminAccordion />
+      </Box>
     </>
   );
 }
-export default Profile;
+export default Dashboard;

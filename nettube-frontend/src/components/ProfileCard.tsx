@@ -113,11 +113,13 @@ export default function ProfileCard({
       setAlreadyExists(null);
     }
   }, [alreadyExists]);
+  const username = localStorage.getItem('username');
+  const avatarLetter = username?.charAt(0);
 
   return (
     <Card
       sx={{
-        maxWidth: 275,
+        maxWidth: isMobile ? '100%' : 275,
         flexGrow: 1,
         display: 'flex',
         alignItems: 'top',
@@ -134,7 +136,7 @@ export default function ProfileCard({
             textAlign: 'center',
           }}
         >
-          <Avatar src="/assets/images/avatar.png" />
+          <Avatar>{avatarLetter}</Avatar>
         </Box>
         <hr />
         <Typography sx={{ mb: 1 }} color="text.secondary">

@@ -13,18 +13,21 @@ import {
   MenuItem,
   Switch,
   FormControlLabel,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link } from 'react-router-dom';
 import SearchBar from './SearchBar';
-import { useTheme } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { uiActions } from '../store/ui';
 
 const pages = ['movies', 'series', 'genres'];
-const settings = ['profile', 'account', 'dashboard', 'logout'];
+const settings = ['profile', 'signout'];
 
 function ResponsiveAppBar() {
+  const username = localStorage.getItem('username');
+  const avatarLetter = username?.charAt(0);
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
   const theme = useTheme();
@@ -32,6 +35,7 @@ function ResponsiveAppBar() {
   const selectedTheme = useAppSelector(state => state.ui.theme);
   const checked = selectedTheme === 'dark';
   const dispatch = useAppDispatch();
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -81,16 +85,6 @@ function ResponsiveAppBar() {
             </Typography>
           </Link>
           <Box sx={{ flexGrow: 1, display: { mobile: 'flex', desktop: 'none' } }}>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleOpenNavMenu}
-              color="inherit"
-            >
-              <MenuIcon />
-            </IconButton>
             <Menu
               id="menu-appbar"
               anchorEl={anchorElNav}
@@ -118,24 +112,26 @@ function ResponsiveAppBar() {
               ))}
             </Menu>
           </Box>
-          <Typography
-            variant="h5"
-            noWrap
-            component="a"
-            href="/"
-            sx={{
-              mr: 2,
-              display: { mobile: 'flex', desktop: 'none' },
-              flexGrow: 1,
-              fontFamily: 'monospace',
-              fontWeight: 700,
-              letterSpacing: '.3rem',
-              color: 'inherit',
-              textDecoration: 'none',
-            }}
-          >
-            NetTube
-          </Typography>
+          {!isMobile && (
+            <Typography
+              variant="h5"
+              noWrap
+              component="a"
+              href="/"
+              sx={{
+                mr: 2,
+                display: { mobile: 'flex', desktop: 'none' },
+                flexGrow: 1,
+                fontFamily: 'monospace',
+                fontWeight: 700,
+                letterSpacing: '.3rem',
+                color: 'inherit',
+                textDecoration: 'none',
+              }}
+            >
+              NetTube
+            </Typography>
+          )}
 
           <Box sx={{ flexGrow: 1, display: { mobile: 'none', desktop: 'flex' } }}>
             {pages.map((page, key) => (
@@ -150,12 +146,12 @@ function ResponsiveAppBar() {
           <FormControlLabel
             sx={{ paddingLeft: '12px' }}
             control={<Switch checked={checked} onChange={handleSwitchClick} />}
-            label="dark"
+            label={isMobile ? '' : 'dark'}
           />
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar src="/assets/images/avatar.png" />
+                <Avatar>{avatarLetter} </Avatar>
               </IconButton>
             </Tooltip>
             <Menu
@@ -174,6 +170,13 @@ function ResponsiveAppBar() {
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
+              {localStorage.getItem('account_type') === '3' ? (
+                <MenuItem key={'dashboard'} onClick={handleCloseUserMenu}>
+                  <Link style={{ textDecoration: 'none', color: 'inherit' }} key={'dashboard'} to={'/dashboard'}>
+                    <Typography textAlign="center">Dashboard</Typography>
+                  </Link>
+                </MenuItem>
+              ) : null}
               {settings.map((setting, key) => (
                 <MenuItem key={key} onClick={handleCloseUserMenu}>
                   <Link style={{ textDecoration: 'none', color: 'inherit' }} key={key} to={'/' + setting}>
