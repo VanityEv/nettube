@@ -170,7 +170,7 @@ function SignUp() {
               {!isMobile ? (
                 <DesktopDatePicker
                   aria-label="birthdate-field"
-                  label="Date desktop"
+                  label="Date of birth"
                   inputFormat="YYYY/DD/MM"
                   value={value}
                   onChange={handleChange}
@@ -180,7 +180,7 @@ function SignUp() {
               ) : (
                 <MobileDatePicker
                   aria-label="birthdate-field"
-                  label="Date mobile"
+                  label="Date of birth"
                   inputFormat="YYYY/DD/MM"
                   value={value}
                   onChange={handleChange}
