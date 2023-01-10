@@ -16,11 +16,11 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
 import { Link } from 'react-router-dom';
 import SearchBar from './SearchBar';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { uiActions } from '../store/ui';
+import { NightsStay } from '@mui/icons-material';
 
 const pages = ['movies', 'series', 'genres'];
 const settings = ['profile', 'signout'];
@@ -146,7 +146,7 @@ function ResponsiveAppBar() {
           <FormControlLabel
             sx={{ paddingLeft: '12px' }}
             control={<Switch checked={checked} onChange={handleSwitchClick} />}
-            label={isMobile ? '' : 'dark'}
+            label={isMobile ? '' : <NightsStay />}
           />
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">

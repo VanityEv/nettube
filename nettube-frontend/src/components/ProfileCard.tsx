@@ -14,6 +14,12 @@ import {
   FormLabel,
   useMediaQuery,
   useTheme,
+  List,
+  ListSubheader,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Collapse,
 } from '@mui/material';
 import useModal from '../hooks/useModal';
 import FormModal from './FormModal';
@@ -23,6 +29,7 @@ import { DesktopDatePicker, LocalizationProvider, MobileDatePicker } from '@mui/
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { EMAIL_REGEX } from '../constants';
+import { ExpandLess, ExpandMore, PlayArrow } from '@mui/icons-material';
 
 //SET GLOBAL time_zone = '+0:00'; w bazie danych - fix do cofania birthdate o godzinę - z jakiegoś powodu React konwertuje to co dostaje z bazy na timezone 0:00
 
@@ -82,6 +89,12 @@ export default function ProfileCard({
   };
   const handleDateChange = (newDateValue: Dayjs | null) => {
     setDateValue(newDateValue);
+  };
+  const [open, setOpen] = useState({ basic: false, premium: false, ultimate: false });
+  const handleClick = (type: string) => {
+    if (type === 'basic') setOpen(prevState => ({ ...prevState, basic: !open.basic }));
+    if (type === 'premium') setOpen(prevState => ({ ...prevState, premium: !open.premium }));
+    if (type === 'ultimate') setOpen(prevState => ({ ...prevState, ultimate: !open.ultimate }));
   };
 
   const handleUserUpdate = () => {
@@ -227,10 +240,78 @@ export default function ProfileCard({
                 <FormControlLabel value="ultimate" control={<Radio />} label="Ultimate" />
               </RadioGroup>
             </FormControl>
-            <Typography sx={{ mb: 1 }} color="text.primary">
-              Basic subscription plan: - - - Premium subscription plan: - - - Ultimate subscription plan: - - -
-            </Typography>
-            <Button size="small">Confirm</Button>
+            <List
+              aria-labelledby="subscription-types"
+              subheader={
+                <ListSubheader component="div" id="subheader-subscription-types">
+                  Subscription plans
+                </ListSubheader>
+              }
+            >
+              <ListItemButton
+                onClick={() => {
+                  handleClick('basic');
+                }}
+              >
+                <ListItemIcon>
+                  <PlayArrow />
+                </ListItemIcon>
+                <ListItemText primary="Basic Plan" />
+                {open.basic ? <ExpandLess /> : <ExpandMore />}
+              </ListItemButton>
+              <Collapse in={open.basic} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  <ListItemButton sx={{ pl: 4, display: 'flex', flexDirection: 'column' }}>
+                    <ListItemText primary="Have access to all movies and series available for Basic Plan users" />
+                    <ListItemText primary="Have access to grading, commenting and reviewing all productions" />
+                    <ListItemText primary="Basic plan cost is 10.99$ / month" />
+                  </ListItemButton>
+                </List>
+              </Collapse>
+              <ListItemButton
+                onClick={() => {
+                  handleClick('premium');
+                }}
+              >
+                <ListItemIcon>
+                  <PlayArrow />
+                </ListItemIcon>
+                <ListItemText primary="Premium Plan" />
+                {open.premium ? <ExpandLess /> : <ExpandMore />}
+              </ListItemButton>
+              <Collapse in={open.premium} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  <ListItemButton sx={{ pl: 4, display: 'flex', flexDirection: 'column' }}>
+                    <ListItemText primary="Have access to all features included in Basic Plan" />
+                    <ListItemText primary="Have access to additional movies and series exclusive for Premium users" />
+                    <ListItemText primary="Premium plan cost is 19.99$ / month" />
+                  </ListItemButton>
+                </List>
+              </Collapse>
+              <ListItemButton
+                onClick={() => {
+                  handleClick('ultimate');
+                }}
+              >
+                <ListItemIcon>
+                  <PlayArrow />
+                </ListItemIcon>
+                <ListItemText primary="Ultimate Plan" />
+                {open.ultimate ? <ExpandLess /> : <ExpandMore />}
+              </ListItemButton>
+              <Collapse in={open.ultimate} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  <ListItemButton sx={{ pl: 4, display: 'flex', flexDirection: 'column' }}>
+                    <ListItemText primary="Have access to all features included in Basic & Premium Plan" />
+                    <ListItemText primary="Have access to additional movies and series exclusive for Ultimate userss" />
+                    <ListItemText primary="Ultimate plan cost is 29.99$ / month" />
+                  </ListItemButton>
+                </List>
+              </Collapse>
+            </List>
+            <Button size="small" variant="contained">
+              Confirm
+            </Button>
           </FormModal>
         )}
         <Typography sx={{ mb: 1 }} color="text.secondary">

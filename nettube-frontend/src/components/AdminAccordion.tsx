@@ -278,11 +278,8 @@ function AdminAccordion() {
           <Typography>Manage Users</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Grid2>
-            <Grid2
-              key="table-of-content"
-              mobile={12}
-              desktop={12}
+          <Box>
+            <Box
               sx={{
                 mx: 'auto',
                 maxWidth: '100%',
@@ -307,7 +304,7 @@ function AdminAccordion() {
                   </Typography>
                 </Box>
               )}
-            </Grid2>
+            </Box>
             {users.map((user, id) => (
               <Box
                 display="flex"
@@ -338,7 +335,7 @@ function AdminAccordion() {
                 </IconButton>
               </Box>
             ))}
-          </Grid2>
+          </Box>
         </AccordionDetails>
       </Accordion>
       <Modal open={isOpen} onClose={handleClose} closeAfterTransition>
@@ -488,10 +485,7 @@ function AdminAccordion() {
           <Typography>Manage Movies</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Grid2
-            key={'addnewvideo'}
-            mobile={12}
-            desktop={6}
+          <Box
             sx={{
               maxHeight: 150,
               display: 'flex',
@@ -507,7 +501,7 @@ function AdminAccordion() {
                 <AddBox fontSize="large" />
               </IconButton>
             </Box>
-          </Grid2>
+          </Box>
           {videos.map((video, id) =>
             video.type === 'film' ? (
               <Box
@@ -584,7 +578,7 @@ function AdminAccordion() {
               boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
             }}
           >
-            <Box display="flex" flexDirection="row" alignItems="center">
+            <Box display="flex" flexDirection="row" alignItems="center" sx={{ width: '50%', minWidth: '300px' }}>
               <IconButton
                 sx={{ fontSize: '12px' }}
                 onClick={() => {
@@ -599,16 +593,15 @@ function AdminAccordion() {
             video.type === 'series' ? (
               <Box
                 sx={{
-                  mx: 'auto',
+                  pl: '20px',
+                  boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
+                  overflowX: isMobile ? 'scroll' : 'default',
                   display: 'flex',
                   flexDirection: 'row',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  pl: '20px',
-                  boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
                 }}
               >
-                <Box display="flex" flexDirection="row" alignItems="center">
+                <Box display="flex" flexDirection="row" alignItems="center" sx={{ width: '50%', minWidth: '300px' }}>
                   <img src={video.thumbnail} className="review-thumbnail" />
                   <Typography sx={{ pl: '30px', letterSpacing: '1px', fontWeight: 700 }}>{video.title}</Typography>
                 </Box>
