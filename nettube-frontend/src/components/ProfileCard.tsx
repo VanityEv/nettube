@@ -100,11 +100,17 @@ export default function ProfileCard({
   const handleUserUpdate = () => {
     if (selectedModal === 'email') {
       occurencyCheck('email', updateValue);
+      setSelectedModal('');
+      toggle();
     } else if (selectedModal === 'birthdate') {
       let newBirthdate = dateValue?.format('YYYY-MM-DD');
       confirmChange(selectedModal, newBirthdate as string);
+      setSelectedModal('');
+      toggle();
     } else {
       confirmChange(selectedModal, updateValue);
+      setSelectedModal('');
+      toggle();
     }
   };
 
@@ -133,6 +139,7 @@ export default function ProfileCard({
     <Card
       sx={{
         maxWidth: isMobile ? '100%' : 275,
+        minWidth: 275,
         flexGrow: 1,
         display: 'flex',
         alignItems: 'top',
@@ -171,18 +178,20 @@ export default function ProfileCard({
         <hr />
         {selectedModal === 'fullname' && (
           <FormModal isOpen={isOpen} toggle={toggle}>
-            <TextField
-              required
-              id="standard-required"
-              label="Name"
-              defaultValue=""
-              placeholder="New name"
-              variant="standard"
-              onChange={handleChange}
-            />
-            <Button size="small" onClick={handleUserUpdate}>
-              Confirm
-            </Button>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <TextField
+                required
+                id="standard-required"
+                label="New name"
+                defaultValue=""
+                placeholder="New name"
+                variant="standard"
+                onChange={handleChange}
+              />
+              <Button size="small" onClick={handleUserUpdate}>
+                Confirm
+              </Button>
+            </Box>
           </FormModal>
         )}
 
@@ -198,22 +207,24 @@ export default function ProfileCard({
         <hr />
         {selectedModal === 'email' && (
           <FormModal isOpen={isOpen} toggle={toggle}>
-            <TextField
-              error={alreadyInUse.inUse || alreadyInUse.incorrect}
-              required
-              id="standard-required"
-              label="Email"
-              placeholder="New email"
-              variant="standard"
-              onChange={handleChange}
-              helperText={
-                (alreadyInUse.inUse && 'This email is already in use!') ||
-                (alreadyInUse.incorrect && 'This is not a valid email!')
-              }
-            />
-            <Button size="small" onClick={handleUserUpdate}>
-              Confirm
-            </Button>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <TextField
+                error={alreadyInUse.inUse || alreadyInUse.incorrect}
+                required
+                id="standard-required"
+                label="New Email"
+                placeholder="New email"
+                variant="standard"
+                onChange={handleChange}
+                helperText={
+                  (alreadyInUse.inUse && 'This email is already in use!') ||
+                  (alreadyInUse.incorrect && 'This is not a valid email!')
+                }
+              />
+              <Button size="small" onClick={handleUserUpdate}>
+                Confirm
+              </Button>
+            </Box>
           </FormModal>
         )}
         <Typography sx={{ mb: 1 }} color="text.secondary">
@@ -325,34 +336,36 @@ export default function ProfileCard({
         </Button>
         {selectedModal === 'birthdate' && (
           <FormModal isOpen={isOpen} toggle={toggle}>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              {!isMobile ? (
-                <DesktopDatePicker
-                  aria-label="birthdate-field"
-                  label="Choose new birthdate"
-                  inputFormat="YYYY/DD/MM"
-                  value={dateValue}
-                  maxDate={todayDate}
-                  onChange={handleDateChange}
-                  PopperProps={{ sx: { zIndex: 9999 } }}
-                  renderInput={params => <TextField name="birthdate" {...params} />}
-                />
-              ) : (
-                <MobileDatePicker
-                  aria-label="birthdate-field"
-                  label="Choose new birthdate"
-                  inputFormat="YYYY/DD/MM"
-                  value={dateValue}
-                  maxDate={todayDate}
-                  onChange={handleDateChange}
-                  DialogProps={{ sx: { zIndex: 9999 } }}
-                  renderInput={params => <TextField name="birthdate" {...params} />}
-                />
-              )}
-            </LocalizationProvider>
-            <Button size="small" onClick={handleUserUpdate}>
-              Confirm
-            </Button>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                {!isMobile ? (
+                  <DesktopDatePicker
+                    aria-label="birthdate-field"
+                    label="Choose new birthdate"
+                    inputFormat="YYYY/DD/MM"
+                    value={dateValue}
+                    maxDate={todayDate}
+                    onChange={handleDateChange}
+                    PopperProps={{ sx: { zIndex: 9999 } }}
+                    renderInput={params => <TextField name="birthdate" {...params} />}
+                  />
+                ) : (
+                  <MobileDatePicker
+                    aria-label="birthdate-field"
+                    label="Choose new birthdate"
+                    inputFormat="YYYY/DD/MM"
+                    value={dateValue}
+                    maxDate={todayDate}
+                    onChange={handleDateChange}
+                    DialogProps={{ sx: { zIndex: 9999 } }}
+                    renderInput={params => <TextField name="birthdate" {...params} />}
+                  />
+                )}
+              </LocalizationProvider>
+              <Button size="small" onClick={handleUserUpdate}>
+                Confirm
+              </Button>
+            </Box>
           </FormModal>
         )}
       </CardContent>

@@ -7,12 +7,6 @@ import AdminAccordion from '../components/AdminAccordion';
 import { useNavigate } from 'react-router-dom';
 
 function Profile() {
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (localStorage.getItem('username') === null || localStorage.getItem('username') === undefined) {
-      navigate('/signin');
-    }
-  }, []);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
   const { sendRequest } = useHttp();
