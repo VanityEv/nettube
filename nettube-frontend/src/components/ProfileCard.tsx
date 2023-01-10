@@ -228,9 +228,22 @@ export default function ProfileCard({
               </RadioGroup>
             </FormControl>
             <Typography sx={{ mb: 1 }} color="text.primary">
-              Basic subscription plan: - - - Premium subscription plan: - - - Ultimate subscription plan: - - -
+              <b>Basic subscription plan:</b> <br />
+              - Have access to all movies and series available for Basic Plan users <br />
+              - Have access to grading, commenting and reviewing all productions <br />- Basic plan cost is:{' '}
+              <b>10.99$ / month</b> <br />
+              <b>Premium subscription plan:</b> <br />
+              - Have access to all features included in Basic Plan <br />
+              - Have access to additional movies and series exclusive for Premium users <br />- Premium plan cost is:{' '}
+              <b>19.99$ / month</b> <br />
+              <b>Ultimate subscription plan: </b> <br />
+              - Have access to all features included in Basic & Premium Plan <br />
+              - Have access to additional movies and series exclusive for Ultimate users <br />- Ultimate plan cost is:{' '}
+              <b>29.99$ / month</b> <br />
             </Typography>
-            <Button size="small">Confirm</Button>
+            <Button size="small" variant="contained">
+              Confirm
+            </Button>
           </FormModal>
         )}
         <Typography sx={{ mb: 1 }} color="text.secondary">
