@@ -112,7 +112,7 @@ const Comments = (props: CommentsProps) => {
   return (
     <Box width="90%">
       <Typography variant="h4" paddingBottom={3}>
-        Komentarze
+        Comments
       </Typography>
 
       <Comment isBlocked={isBlocked} showId={showId} username="You" type="add" />
