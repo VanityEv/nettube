@@ -115,7 +115,7 @@ const Comments = (props: CommentsProps) => {
         Komentarze
       </Typography>
 
-      <Comment isBlocked showId={showId} username="You" type="add" />
+      <Comment isBlocked={isBlocked} showId={showId} username="You" type="add" />
 
       {comments.map(comment => (
         <Comment {...comment} type="read" />
