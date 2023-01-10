@@ -225,6 +225,7 @@ function AdminAccordion() {
       tier: data.get('subscription_tier') as string,
       reviews_count: 0,
       link: data.get('link') as string,
+      blocked_reviews: 0,
     };
     sendNewVideoQuery(newVideo);
   };

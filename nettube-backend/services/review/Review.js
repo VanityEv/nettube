@@ -47,6 +47,16 @@ const setShowLike = async (data, requestCallback) => {
   });
 };
 
+const getIsBlocked = async (data, requestCallback) => {
+  const dbQuery = `select blocked_reviews from videos where id=${data.id}`;
+  await query(dbQuery, requestCallback);
+};
+
+const setIsBlocked = async (data, requestCallback) => {
+  const dbQuery = `update videos set blocked_reviews=${data.is_blocked} where id=${data.id}`;
+  await query(dbQuery, requestCallback);
+};
+
 export {
   getAllReviews,
   getReviewByShow,
@@ -56,4 +66,6 @@ export {
   setShowLike,
   addReview,
   removeReview,
+  getIsBlocked,
+  setIsBlocked,
 };

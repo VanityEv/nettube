@@ -1,5 +1,16 @@
 import { RemoveCircleOutline } from '@mui/icons-material';
-import { Stack, Rating, Typography, Avatar, Divider, Grid, Paper, TextField, IconButton } from '@mui/material';
+import {
+  Stack,
+  Rating,
+  Typography,
+  Avatar,
+  Divider,
+  Grid,
+  Paper,
+  TextField,
+  IconButton,
+  useTheme,
+} from '@mui/material';
 import React, { SyntheticEvent, useState } from 'react';
 import useHttp from '../hooks/useHttp';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
@@ -60,10 +71,13 @@ const Reviews = (props: ReviewsProps) => {
   const { reviews, showId } = props;
   const reviewsWithoutComments = reviews.filter(review => review.grade !== null);
   const [reviewValue, setReviewValue] = useState('');
+  const videos = useAppSelector(state => state.videos.videos);
+  const isBlocked = videos.filter(video => video.id === showId)[0].blocked_reviews === 1;
   const [rating, setRating] = useState(0);
   const { sendRequest } = useHttp();
   const currentUserName = useAppSelector(state => state.user.username);
   const dispatch = useAppDispatch();
+  const theme = useTheme();
 
   const handleKeyDown = async (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -116,7 +130,13 @@ const Reviews = (props: ReviewsProps) => {
         flexGrow: 1,
       }}
     >
-      <Paper style={{ padding: '40px 20px' }} elevation={4}>
+      <Paper
+        style={{
+          padding: '40px 20px',
+          backgroundColor: isBlocked ? theme.palette.action.disabledBackground : theme.palette.background.paper,
+        }}
+        elevation={4}
+      >
         <Grid container wrap="nowrap" spacing={2}>
           <Grid item>
             <Avatar src="assets/images/avatar.png" />
@@ -130,7 +150,7 @@ const Reviews = (props: ReviewsProps) => {
             <Typography variant="h5" style={{ margin: 0, textAlign: 'left' }}>
               You
             </Typography>
-            <Rating precision={0.5} onChange={handleRatingChange} value={rating} />
+            <Rating precision={0.5} onChange={handleRatingChange} value={rating} readOnly={isBlocked} />
             <TextField
               id="standard-basic"
               label="Leave your review"
@@ -142,6 +162,7 @@ const Reviews = (props: ReviewsProps) => {
               sx={{
                 marginTop: '12px',
               }}
+              disabled={isBlocked}
             />
           </Grid>
         </Grid>

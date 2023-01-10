@@ -1,7 +1,7 @@
 export type Video = {
   id: number;
   title: string;
-  type: "film" | "series";
+  type: 'film' | 'series';
   genre: string;
   production_year: number;
   production_country: string;
@@ -15,6 +15,7 @@ export type Video = {
   tier: string;
   reviews_count: number;
   link: string;
+  blocked_reviews: number;
 };
 
 export type VideoState = {
