@@ -9,6 +9,8 @@ import {
   setShowLike,
   addReview,
   removeReview,
+  getIsBlocked,
+  setIsBlocked,
 } from './Review.js';
 
 const ReviewsRouter = Router(); // create router to create route bundle
@@ -108,6 +110,34 @@ ReviewsRouter.post('/userReviews/removeReview', async (req, res) => {
   };
   try {
     await removeReview(data, () => {
+      res.status(200).json({ result: 'SUCCESS' });
+    });
+  } catch (error) {
+    res.status(500).json({ result: 'error', error: error });
+  }
+});
+
+ReviewsRouter.get('/userReviews/getIsBlocked/:id', async (req, res) => {
+  const data = {
+    id: req.params.id,
+  };
+  try {
+    await getIsBlocked(data, isBlocked => {
+      res.status(200).json({ result: 'SUCCESS', data: isBlocked[0] });
+    });
+  } catch (error) {
+    res.status(500).json({ result: 'error', error: error });
+  }
+});
+
+ReviewsRouter.post('/userReviews/blockReviews', async (req, res) => {
+  const data = {
+    id: req.body.id,
+    is_blocked: req.body.isBlocked,
+  };
+  console.log(data);
+  try {
+    await setIsBlocked(data, () => {
       res.status(200).json({ result: 'SUCCESS' });
     });
   } catch (error) {
