@@ -10,7 +10,6 @@ import PlayCircleOutlineOutlinedIcon from '@mui/icons-material/PlayCircleOutline
 import Reviews from './Reviews';
 import { useNavigate } from 'react-router-dom';
 import useHttp from '../hooks/useHttp';
-import { fetchReviewsData } from '../store/reviews-actions';
 import { fetchVideosData } from '../store/videos-actions';
 
 export default function TransitionsModal({

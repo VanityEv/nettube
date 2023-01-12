@@ -3,8 +3,6 @@ import ProfileCard, { ProfileInfo } from '../components/ProfileCard';
 import UserProfileAccordion from '../components/UserProfileAccordion';
 import useHttp from '../hooks/useHttp';
 import { useEffect, useState } from 'react';
-import AdminAccordion from '../components/AdminAccordion';
-import { useNavigate } from 'react-router-dom';
 
 function Profile() {
   const theme = useTheme();

@@ -1,8 +1,6 @@
-import * as React from "react";
-import { Box, Typography, Container, TextField, Button } from "@mui/material";
-import { Stack } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import * as React from 'react';
+import { Box, Typography, Container, TextField, Button } from '@mui/material';
+import { Stack } from '@mui/material';
 
 /**
  * TODO: Forgotten password handler
@@ -18,21 +16,16 @@ function ResetPassword() {
       <Box
         sx={{
           marginTop: 8,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}
       >
         <img alt="logo" src="logo.svg" width="150px" height="auto" />
         <Typography component="h1" variant="h5">
           Password Rescue
         </Typography>
-        <Box
-          component="form"
-          noValidate
-          onSubmit={handleSubmit}
-          sx={{ mt: 3, pb: 2 }}
-        >
+        <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3, pb: 2 }}>
           <Stack spacing={3}>
             <TextField
               aria-label="email-field"
@@ -43,12 +36,7 @@ function ResetPassword() {
               id="email"
               autoComplete="email"
             />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
               Send password reset link
             </Button>
           </Stack>

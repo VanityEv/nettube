@@ -5,6 +5,7 @@ import { useMediaQuery } from '@mui/material';
 import { uiActions } from '../store/ui';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 
+//TODO: jest warning odnośnie isMobile - jeśli będziemy coś z tym kombinować to pasuje go wykorzystać, jeśli nie to do wywalenia
 const Search = styled('div')(({ theme }) => ({
   [theme.breakpoints.up('desktop')]: {
     marginLeft: theme.spacing(3),
@@ -50,11 +51,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-/**
- * TODO: Dodać warianty mobile i desktop - w mobile widoczna sama lupa, po której kliknięciu
- * pojawia się search na całym navbarze.
- * W desktop doszlifować wygląd - ustalić jakie radiusy chcemy
- */
 function SearchBar() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));

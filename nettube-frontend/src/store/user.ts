@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { userLogin } from './user-actions';
 import { UserType } from './user.types';
 
 const initialState: UserType = {

@@ -1,9 +1,9 @@
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/scrollbar";
-import { Navigation, Scrollbar, Autoplay } from "swiper";
-import { Swiper, SwiperSlide } from "swiper/react";
-import styled from "styled-components";
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/scrollbar';
+import { Navigation, Scrollbar, Autoplay } from 'swiper';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import styled from 'styled-components';
 
 type CarouselProps = {
   links: string[];
@@ -11,7 +11,7 @@ type CarouselProps = {
 /**
  * TODO: ustalić konwencję dodawania obrazków - rozdzielczość i obsługa rozmiarów obrazków w CSS
  */
-const SwiperImage = styled("img")`
+const SwiperImage = styled('img')`
   width: 100vw;
   height: 50vh;
   object-fit: cover;

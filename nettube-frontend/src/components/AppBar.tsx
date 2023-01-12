@@ -37,9 +37,6 @@ function ResponsiveAppBar() {
   const dispatch = useAppDispatch();
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
 
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget);
-  };
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     localStorage.removeItem('userToken');
     setAnchorElUser(event.currentTarget);

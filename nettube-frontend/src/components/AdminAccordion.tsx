@@ -3,7 +3,6 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import { AddBox, ChangeCircle, Delete, ExpandMore, Gavel } from '@mui/icons-material';
-import Grid2 from '@mui/material/Unstable_Grid2/Grid2';
 import {
   Alert,
   Box,
@@ -516,7 +515,7 @@ function AdminAccordion() {
                 }}
               >
                 <Box display="flex" flexDirection="row" alignItems="center" sx={{ width: '50%', minWidth: '300px' }}>
-                  <img src={video.thumbnail} className="review-thumbnail" />
+                  <img src={video.thumbnail} alt="video-thumbnail" className="review-thumbnail" />
                   <Typography
                     sx={{
                       letterSpacing: '1px',
@@ -603,7 +602,7 @@ function AdminAccordion() {
                 }}
               >
                 <Box display="flex" flexDirection="row" alignItems="center" sx={{ width: '50%', minWidth: '300px' }}>
-                  <img src={video.thumbnail} className="review-thumbnail" />
+                  <img src={video.thumbnail} alt="series-thumbnail" className="review-thumbnail" />
                   <Typography sx={{ pl: '30px', letterSpacing: '1px', fontWeight: 700 }}>{video.title}</Typography>
                 </Box>
                 <Box
