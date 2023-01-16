@@ -6,10 +6,12 @@ import { userLogin } from '../store/user-actions';
 import { UserCredentials } from '../store/user.types';
 import { useNavigate } from 'react-router-dom';
 import { uiActions } from '../store/ui';
+import useIsFirstRender from '../hooks/useIsFirstRender';
 
 function SignIn() {
-  const isSigningIn = useAppSelector(state => state.user.isLoading);
+  const isSigningIn = useAppSelector(state => state.user.isSigningIn);
   const snackbar = useAppSelector(state => state.ui.snackbar);
+  const isFirstRender = useIsFirstRender();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -23,19 +25,22 @@ function SignIn() {
   };
 
   useEffect(() => {
+    console.log(isSigningIn);
     if (!isSigningIn) {
       if (localStorage.getItem('userToken') === null || localStorage.getItem('userToken') === 'undefined') {
-        dispatch(
-          uiActions.onShowSnackbar({
-            snackbar: {
-              content: 'Invalid credentials!',
-              severity: 'error',
-            },
-          })
-        );
-        setTimeout(() => {
-          dispatch(uiActions.onHideSnackbar());
-        }, 3000);
+        if (!isFirstRender) {
+          dispatch(
+            uiActions.onShowSnackbar({
+              snackbar: {
+                content: 'Invalid credentials!',
+                severity: 'error',
+              },
+            })
+          );
+          setTimeout(() => {
+            dispatch(uiActions.onHideSnackbar());
+          }, 3000);
+        }
       } else {
         navigate('/');
       }

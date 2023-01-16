@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import { UserType } from './user.types';
 
 const initialState: UserType = {
-  isLoading: false,
+  isSigningIn: false,
   userToken: null,
   error: null,
   success: false,
@@ -17,10 +17,10 @@ const userSlice = createSlice({
     setUser(state, action) {
       state.username = action.payload.username;
       state.userToken = action.payload.token;
-      state.isLoading = false;
+      state.isSigningIn = false;
     },
     setIsSigning(state) {
-      state.isLoading = true;
+      state.isSigningIn = true;
     },
   },
 });

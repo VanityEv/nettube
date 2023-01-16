@@ -82,10 +82,10 @@ UserRouter.post('/signin', async (req, res) => {
               token,
             });
           } else {
-            res.status(400).json({ error: 'PASSWORD_MISMATCH' });
+            res.status(401).json({ error: 'PASSWORD_MISMATCH' });
           }
         } else {
-          res.status(400).json({ error: "User doesn't exist" });
+          res.status(401).json({ error: "User doesn't exist" });
         }
       });
     } catch (error) {
@@ -104,10 +104,10 @@ UserRouter.post('/signin', async (req, res) => {
               token: req.body.token,
             });
           } else {
-            res.status(400).json({ error: 'TOKEN_MISMATCH' });
+            res.status(401).json({ error: 'TOKEN_MISMATCH' });
           }
         } else {
-          res.status(400).json({ error: "User doesn't exist" });
+          res.status(401).json({ error: "User doesn't exist" });
         }
       });
     } catch (error) {
