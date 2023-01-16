@@ -20,8 +20,9 @@ import { uiActions } from './store/ui';
 import Signout from './pages/Signout';
 import { userLogin } from './store/user-actions';
 import Player from './pages/Player';
-import { createTheme, CssBaseline, Divider, Paper } from '@mui/material';
+import { createTheme, CssBaseline, Divider } from '@mui/material';
 import Dashboard from './components/Dashboard';
+import ProtectedRoute, { ProtectedRouteProps } from './ProtectedRoute';
 
 /**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
  *   const navigate = useNavigate();
@@ -103,36 +104,36 @@ const App = () => {
     }
   }, [dispatch, navigate]);
 
-  // useEffect(() => {
-  //   if (localStorage.getItem('username') === null || localStorage.getItem('username') === undefined) {
-  //     navigate('/signin');
-  //   }
-  // }, [location.pathname]);
+  const defaultProtectedRouteProps: Omit<ProtectedRouteProps, 'outlet'> = {
+    isAuthenticated: !!localStorage.getItem('username'),
+    authenticationPath: '/signin',
+  };
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AppBar />
       <Routes>
-        <Route path="/" element={<HomePage />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/confirm-register" element={<ConfirmRegister />} />
 
-        <Route path="/movies" element={<Movies />} />
+        <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<HomePage />} />} path="/" />
 
-        <Route path="/series" element={<Series />} />
+        <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Movies />} />} path="/movies" />
 
-        <Route path="/genres" element={<Genres />} />
+        <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Series />} />} path="/series" />
 
-        <Route path="/profile" element={<Profile />} />
+        <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Genres />} />} path="/genres" />
 
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Profile />} />} path="/profile" />
 
-        <Route path="/signout" element={<Signout />} />
+        <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Dashboard />} />} path="/dashboard" />
 
-        <Route path="/watch" element={<Player />} />
+        <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Signout />} />} path="/signout" />
+
+        <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Player />} />} path="/watch" />
       </Routes>
       <Divider sx={{ margin: '24px 0' }} />
       <Footer />
