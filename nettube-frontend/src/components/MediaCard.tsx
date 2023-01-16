@@ -74,7 +74,7 @@ export default function MediaCard({ liked, video }: MediaCardProps) {
         </Typography>
         {!isMobile && (
           <Typography variant="body2" color="text.secondary">
-            {video.descr}
+            {video.descr.length > 100 ? video.descr.slice(0, 97) + '...' : video.descr}
           </Typography>
         )}
       </CardContent>
