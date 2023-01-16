@@ -26,11 +26,6 @@ type ReviewItemProps = Review & {
   onRemove: (id: number) => void;
 };
 
-/**
- * TODO: poprawić css do bloku komentarza bo dla mobile nie clipuje się w modalu
- * (dokładniej dłuższy tekst wychodzi poza paper) - BUG
- */
-
 function ReviewItem(props: ReviewItemProps) {
   const { username, grade, comment, onRemove, id } = props;
   const currentAccType =

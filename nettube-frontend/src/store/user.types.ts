@@ -1,7 +1,7 @@
 export type UserType = {
   username: string;
   userToken: string | null;
-  isLoading: boolean;
+  isSigningIn: boolean;
   error: boolean | null;
   success: boolean;
 };

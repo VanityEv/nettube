@@ -305,36 +305,41 @@ function AdminAccordion() {
                 </Box>
               )}
             </Box>
-            {users.map((user, id) => (
-              <Box
-                display="flex"
-                flexDirection="row"
-                alignItems="center"
-                textAlign={'left'}
-                paddingBottom={1}
-                sx={{ overflowX: isMobile ? 'scroll' : 'default', boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)' }}
-              >
-                <Typography sx={{ width: '20%', minWidth: '120px', wordWrap: 'wrap' }}>{user.id}</Typography>
-                <Typography sx={{ fontWeight: 500, width: '20%', minWidth: '120px', wordWrap: 'wrap' }}>
-                  {user.username}
-                </Typography>
-                <Typography sx={{ fontWeight: 500, width: '20%', minWidth: '120px', wordWrap: 'wrap' }}>
-                  {user.email}
-                </Typography>
-                <Typography sx={{ fontWeight: 500, width: '20%', minWidth: '120px', wordWrap: 'wrap' }}>
-                  {user.last_login.substring(0, 10)}
-                </Typography>
-                <IconButton
-                  sx={{ mr: '30px', fontSize: '12px', minWidth: '120px' }}
-                  onClick={() => {
-                    handleUserDelete(user.id);
+            <Box sx={{ maxHeight: '300px', overflowY: users.length > 10 ? 'scroll' : 'default' }}>
+              {users.map((user, id) => (
+                <Box
+                  display="flex"
+                  flexDirection="row"
+                  alignItems="center"
+                  textAlign={'left'}
+                  paddingBottom={1}
+                  sx={{
+                    overflowX: isMobile ? 'scroll' : 'default',
+                    boxShadow: '8px 8px 24px -21px rgba(66, 68, 90, 1)',
                   }}
                 >
-                  <Gavel />
-                  Ban
-                </IconButton>
-              </Box>
-            ))}
+                  <Typography sx={{ width: '20%', minWidth: '120px', wordWrap: 'wrap' }}>{user.id}</Typography>
+                  <Typography sx={{ fontWeight: 500, width: '20%', minWidth: '120px', wordWrap: 'wrap' }}>
+                    {user.username}
+                  </Typography>
+                  <Typography sx={{ fontWeight: 500, width: '20%', minWidth: '120px', wordWrap: 'wrap' }}>
+                    {user.email}
+                  </Typography>
+                  <Typography sx={{ fontWeight: 500, width: '20%', minWidth: '120px', wordWrap: 'wrap' }}>
+                    {user.last_login.substring(0, 10)}
+                  </Typography>
+                  <IconButton
+                    sx={{ mr: '30px', fontSize: '12px', minWidth: '120px' }}
+                    onClick={() => {
+                      handleUserDelete(user.id);
+                    }}
+                  >
+                    <Gavel />
+                    Ban
+                  </IconButton>
+                </Box>
+              ))}
+            </Box>
           </Box>
         </AccordionDetails>
       </Accordion>

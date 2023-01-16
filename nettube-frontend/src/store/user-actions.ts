@@ -19,8 +19,14 @@ export const userLogin = (userCredentials: UserCredentials) => {
           ...userCredentials,
         }),
       });
-      if (response.ok) return await response.json();
-      else return Promise.reject(response);
+      if (response.status === 200) return await response.json();
+      else
+        dispatch(
+          userActions.setUser({
+            username: '',
+            userToken: null,
+          })
+        );
     };
     try {
       const response = await fetchUser();
@@ -38,14 +44,6 @@ export const userLogin = (userCredentials: UserCredentials) => {
           })
         );
       }
-    } catch (error) {
-      // dispatch(
-      // 	uiActions.showNotification({
-      // 		status: "error",
-      // 		title: "Error!",
-      // 		message: "Fetching cart data failed!",
-      // 	})
-      // );
-    }
+    } catch (error) {}
   };
 };

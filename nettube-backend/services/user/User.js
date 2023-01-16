@@ -1,23 +1,15 @@
-import query from "../db.js";
+import query from '../db.js';
 
 const createUser = async (
-  {
-    username,
-    fullname,
-    password,
-    birthdate,
-    email,
-    subscription,
-    registerToken,
-  },
+  { username, fullname, password, birthdate, email, subscription, registerToken },
   requestCallback
 ) => {
   const dbQuery = `INSERT INTO users (username, fullname, password, birthdate, subscription, confirmed, email, register_token, account_type, register_date, last_login)
                      VALUES ("${username}", "${fullname}", "${password}", "${birthdate}", ${subscription}, 0, "${email}", "${registerToken}", 1, NOW(), NOW());`;
   await query(dbQuery, requestCallback);
 };
-const getAllUsers = async (requestCallback) => {
-  const dbQuery = `SELECT * from users`;
+const getAllUsers = async requestCallback => {
+  const dbQuery = `SELECT * from users ORDER BY last_login DESC`;
   await query(dbQuery, requestCallback);
 };
 const findOneUser = async (username, requestCallback) => {

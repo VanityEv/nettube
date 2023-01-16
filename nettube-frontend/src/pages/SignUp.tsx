@@ -23,15 +23,17 @@ import { EMAIL_REGEX, PASSWORD_REGEX } from '../constants';
 import useHttp from '../hooks/useHttp';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { uiActions } from '../store/ui';
+import { useNavigate } from 'react-router-dom';
 
 function SignUp() {
   const [isError, setIsError] = useState({
     email: false,
     password: false,
-    confirmpassword: false,
+    confirm: false,
   });
 
   const todayDate = dayjs();
+  const navigate = useNavigate();
   const snackbar = useAppSelector(state => state.ui.snackbar);
   const theme = useTheme();
   const dispatch = useAppDispatch();
@@ -45,17 +47,19 @@ function SignUp() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const errorCheck = { password: true, confirm: true, email: true };
     const data = new FormData(event.currentTarget);
     if (data.get('password') !== data.get('confirm-password')) {
-      setIsError(prevState => ({ ...prevState, confirmpassword: true }));
+      errorCheck.confirm = false;
     }
     if (!PASSWORD_REGEX.test(data.get('password') as string)) {
-      setIsError(prevState => ({ ...prevState, password: true }));
+      errorCheck.password = false;
     }
     if (!EMAIL_REGEX.test(data.get('email') as string)) {
-      setIsError(prevState => ({ ...prevState, email: true }));
+      errorCheck.email = false;
     }
-    if (!isError.confirmpassword && !isError.email && !isError.password) {
+    if (errorCheck.confirm && errorCheck.email && errorCheck.password) {
+      setIsError({ confirm: false, email: false, password: false });
       let birthdateFixed = data.get('birthdate') as string;
       birthdateFixed = birthdateFixed.replace(/\//g, '-');
       const response = await sendRequest({
@@ -82,7 +86,9 @@ function SignUp() {
         setTimeout(() => {
           dispatch(uiActions.onHideSnackbar());
         }, 3000);
+        navigate('/signin');
       } else {
+        setIsError({ ...errorCheck });
         dispatch(
           uiActions.onShowSnackbar({
             snackbar: {
@@ -170,7 +176,7 @@ function SignUp() {
               {!isMobile ? (
                 <DesktopDatePicker
                   aria-label="birthdate-field"
-                  label="Date of birth"
+                  label="Birth date"
                   inputFormat="YYYY/DD/MM"
                   value={value}
                   onChange={handleChange}
@@ -180,7 +186,7 @@ function SignUp() {
               ) : (
                 <MobileDatePicker
                   aria-label="birthdate-field"
-                  label="Date of birth"
+                  label="Birthdate"
                   inputFormat="YYYY/DD/MM"
                   value={value}
                   onChange={handleChange}
@@ -202,8 +208,8 @@ function SignUp() {
               autoComplete="new-password"
             />
             <TextField
-              error={isError.confirmpassword}
-              helperText={isError.confirmpassword && 'Passwords do not match!'}
+              error={isError.confirm}
+              helperText={isError.confirm && 'Passwords do not match!'}
               aria-label="password-field"
               required
               fullWidth
