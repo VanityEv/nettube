@@ -30,7 +30,6 @@ ReviewsRouter.get('/all', async (req, res) => {
 
 ReviewsRouter.get('/:showId', async (req, res) => {
   const show_id = req.params.showId;
-  console.log(show_id);
   try {
     await getReviewByShow(show_id, reviews => {
       res.status(200).json({ result: 'success', reviews: [...reviews] });
@@ -135,7 +134,6 @@ ReviewsRouter.post('/userReviews/blockReviews', async (req, res) => {
     id: req.body.id,
     is_blocked: req.body.isBlocked,
   };
-  console.log(data);
   try {
     await setIsBlocked(data, () => {
       res.status(200).json({ result: 'SUCCESS' });

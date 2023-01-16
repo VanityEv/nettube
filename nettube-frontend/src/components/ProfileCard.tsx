@@ -82,7 +82,7 @@ export default function ProfileCard({
   const [selectedModal, setSelectedModal] = useState('');
 
   const [updateValue, setValue] = useState('');
-  const [dateValue, setDateValue] = useState<Dayjs | null>(dayjs('2000-01-01', 'Europe/Warsaw'));
+  const [dateValue, setDateValue] = useState<Dayjs | null>(dayjs('2000-01-01T00:00:00'));
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value as string);

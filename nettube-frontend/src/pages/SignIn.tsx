@@ -25,7 +25,6 @@ function SignIn() {
   };
 
   useEffect(() => {
-    console.log(isSigningIn);
     if (!isSigningIn) {
       if (localStorage.getItem('userToken') === null || localStorage.getItem('userToken') === 'undefined') {
         if (!isFirstRender) {

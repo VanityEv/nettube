@@ -39,7 +39,7 @@ function Profile() {
       },
       endpoint: '/user/updateUser',
     });
-    if (response === 'SUCCESS') {
+    if (response.result === 'SUCCESS') {
       fetchUserProfileInfo();
     }
   };

@@ -25,6 +25,11 @@ import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { uiActions } from '../store/ui';
 import { useNavigate } from 'react-router-dom';
 
+export const swapMonthDay = (date: string) => {
+  let [year, day, month] = date.split('-');
+  return year + '-' + month + '-' + day;
+};
+
 function SignUp() {
   const [isError, setIsError] = useState({
     email: false,
@@ -44,24 +49,27 @@ function SignUp() {
   const handleChange = (newValue: Dayjs | null) => {
     setValue(newValue);
   };
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const errorCheck = { password: true, confirm: true, email: true };
     const data = new FormData(event.currentTarget);
     if (data.get('password') !== data.get('confirm-password')) {
       errorCheck.confirm = false;
+      setIsError(prevState => ({ ...prevState, confirm: false }));
     }
     if (!PASSWORD_REGEX.test(data.get('password') as string)) {
       errorCheck.password = false;
+      setIsError(prevState => ({ ...prevState, password: true }));
     }
     if (!EMAIL_REGEX.test(data.get('email') as string)) {
       errorCheck.email = false;
+      setIsError(prevState => ({ ...prevState, email: true }));
     }
     if (errorCheck.confirm && errorCheck.email && errorCheck.password) {
       setIsError({ confirm: false, email: false, password: false });
       let birthdateFixed = data.get('birthdate') as string;
       birthdateFixed = birthdateFixed.replace(/\//g, '-');
+      birthdateFixed = swapMonthDay(birthdateFixed);
       const response = await sendRequest({
         method: 'POST',
         body: {
