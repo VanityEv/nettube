@@ -36,6 +36,7 @@ function ResponsiveAppBar() {
   const checked = selectedTheme === 'dark';
   const dispatch = useAppDispatch();
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
+  const isUserLoggedIn = Boolean(localStorage.getItem('username'))
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     localStorage.removeItem('userToken');
@@ -47,6 +48,7 @@ function ResponsiveAppBar() {
   };
 
   const handleCloseUserMenu = () => {
+    console.log(localStorage.getItem('account_type'))
     setAnchorElUser(null);
   };
 
@@ -60,26 +62,11 @@ function ResponsiveAppBar() {
    * <AdbIcon sx={{ display: { mobile: "none", desktop: "flex" }, mr: 1 }} />
    */
   return (
-    <AppBar position="sticky" color="primary">
-      <Container sx={{ padding: '12px 24px' }}>
-        <Toolbar disableGutters>
+    <AppBar position="fixed" color="primary" sx={{height:'4.5rem'}}>
+      <Container sx={{height:'100%', display:'flex', alignItems:'center'}}>
+        <Toolbar disableGutters sx={{width:'100%',justifyContent:'space-between'}}>
           <Link style={{ textDecoration: 'none' }} to={'/'}>
             <img alt="logo" src="logo.svg" width="70px" height="auto" />
-            <Typography
-              variant="h6"
-              noWrap
-              sx={{
-                mr: 2,
-                display: { mobile: 'none', desktop: 'flex' },
-                fontFamily: 'monospace',
-                fontWeight: 700,
-                letterSpacing: '.1rem',
-                color: theme.palette.common.white,
-                textDecoration: 'none',
-              }}
-            >
-              NetTube
-            </Typography>
           </Link>
           <Box sx={{ flexGrow: 1, display: { mobile: 'flex', desktop: 'none' } }}>
             <Menu
@@ -145,10 +132,11 @@ function ResponsiveAppBar() {
             control={<Switch checked={checked} onChange={handleSwitchClick} />}
             label={isMobile ? '' : selectedTheme === 'dark' ? <NightsStay /> : <LightMode />}
           />
+          {isUserLoggedIn && (
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar>{avatarLetter} </Avatar>
+                <Avatar sx={{backgroundColor: 'secondary.main', color: 'black'}}/>
               </IconButton>
             </Tooltip>
             <Menu
@@ -183,6 +171,7 @@ function ResponsiveAppBar() {
               ))}
             </Menu>
           </Box>
+          )}
         </Toolbar>
       </Container>
     </AppBar>

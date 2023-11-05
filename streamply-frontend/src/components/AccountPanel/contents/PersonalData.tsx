@@ -1,0 +1,51 @@
+import { Avatar, Box, Divider, Typography } from '@mui/material';
+import { useFetchUser } from '../../../hooks/useGetUserInfo';
+import { EditableInput } from '../../EditableInput/EditableInput';
+
+export const PersonalData = () => {
+  const { data, isLoading, isError, error } = useFetchUser();
+
+  if (isLoading) {
+    return <Typography>'Loading...'</Typography>;
+  }
+  if (isError) {
+    return <Typography>{error?.message}</Typography>;
+  }
+
+  return (
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+      <Box sx={{ width: '100%' }}>
+        <Typography variant="h6">Personal Information</Typography>
+        <Divider sx={{ my: 2 }} />
+        <Box>
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+            <Typography fontWeight={600}>Username:</Typography>
+            <EditableInput value={data?.username} />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+            <Typography fontWeight={600}>Birth date: </Typography>
+            <EditableInput value={data?.birthdate.substring(0, 10)} />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+            <Typography fontWeight={600}>Full name:</Typography>
+            <EditableInput value={data?.fullname} />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+            <Typography fontWeight={600}>Email: </Typography>
+            <EditableInput value={data?.email} />
+          </Box>
+        </Box>
+      </Box>
+      <Box sx={{ width: '100%' }}>
+        <Typography variant="h6">Avatar</Typography>
+        <Divider sx={{ my: 2 }} />
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center' }}>
+          <Avatar sx={{ width: '8rem', height: '8rem', backgroundColor: 'primary.200', color: 'secondary.300' }} />
+          <Typography sx={{ fontWeight: '600', width: '200px', textAlign: 'center' }}>
+            To change your photo drag & drop it on your current avatar
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+};

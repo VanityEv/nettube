@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Link, Box, Typography, Container, TextField, Button, Snackbar, Alert } from '@mui/material';
-import { Stack } from '@mui/material';
+import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { userLogin } from '../store/user-actions';
 import { UserCredentials } from '../store/user.types';
 import { useNavigate } from 'react-router-dom';
 import { uiActions } from '../store/ui';
 import useIsFirstRender from '../hooks/useIsFirstRender';
+import { Alert, Box, Container, Snackbar } from '@mui/material';
+import { SignInPanel } from '../components/SignInPanel';
 
 function SignIn() {
   const isSigningIn = useAppSelector(state => state.user.isSigningIn);
@@ -47,7 +47,7 @@ function SignIn() {
   }, [isSigningIn]);
 
   return (
-    <Container component="main" maxWidth="desktop">
+    <Container component="main" sx={{display: 'flex', height:'100%', flexDirection: 'row', p:0}}>
       <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={snackbar.isOpened}>
         <Alert
           onClose={() => {
@@ -64,51 +64,12 @@ function SignIn() {
           {snackbar.content}
         </Alert>
       </Snackbar>
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <img alt="logo" src="logo.svg" width="150px" height="auto" />
-        <Typography component="h1" variant="h5">
-          Sign in
-        </Typography>
-        <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3, pb: 2 }}>
-          <Stack spacing={3}>
-            <TextField
-              aria-label="username-field"
-              name="username"
-              required
-              fullWidth
-              id="username"
-              label="Username"
-              autoFocus
-            />
-            <TextField
-              aria-label="password-field"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="new-password"
-            />
-            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-              Sign In
-            </Button>
-            <Link href="/reset-password" variant="body1">
-              Forgot password?
-            </Link>
-            <Link href="/signup" variant="body1">
-              Not a member? Register now!
-            </Link>
-          </Stack>
-        </Box>
-      </Box>
+      <Box sx={{width:{mobile:'100%', desktop:'50%'}, height:'100%'}}>
+     <SignInPanel handleSubmit={handleSubmit}/>
+     </Box>
+     <Box sx={{display:{mobile:'none', desktop: 'flex'}, width:'50%', height:'100%'}}>
+     <img src='https://wallpapercave.com/wp/wp3982534.jpg' style={{objectFit:'cover', width:'100%', height:'100%'}}/>
+     </Box>
     </Container>
   );
 }
