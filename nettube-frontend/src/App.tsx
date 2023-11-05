@@ -6,8 +6,7 @@ import HomePage from './pages/HomePage';
 import Movies from './pages/Movies';
 import Series from './pages/Series';
 import Profile from './pages/Profile';
-import Footer from './components/Footer';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { fetchVideosData } from './store/videos-actions';
 import { useAppDispatch, useAppSelector } from './hooks/useRedux';
 import ResetPassword from './pages/ResetPassword';
@@ -20,7 +19,7 @@ import { uiActions } from './store/ui';
 import Signout from './pages/Signout';
 import { userLogin } from './store/user-actions';
 import Player from './pages/Player';
-import { createTheme, CssBaseline, Divider } from '@mui/material';
+import { Box, createTheme, CssBaseline, Divider } from '@mui/material';
 import Dashboard from './components/Dashboard';
 import ProtectedRoute, { ProtectedRouteProps } from './ProtectedRoute';
 
@@ -38,8 +37,9 @@ declare module '@mui/material/styles' {
     sm: false;
     md: false;
     lg: false;
-    xl: false;
+    xl: true;
     mobile: true;
+    tablet: true;
     desktop: true;
   }
   interface Theme {
@@ -66,11 +66,13 @@ const App = () => {
   const location = useLocation();
   const themeMode = useAppSelector(state => state.ui.theme);
 
-  const theme = createTheme({
+  const getDesignTokens = (themeMode: string) => ({
     breakpoints: {
       values: {
         mobile: 0,
+        tablet: 640,
         desktop: 1024,
+        xl: 1920,
       },
     },
     radius: {
@@ -80,9 +82,52 @@ const App = () => {
       circle: '50%',
     },
     palette: {
-      mode: themeMode,
+      themeMode,
+      ...(themeMode === 'light'
+        ? {
+          primary: {
+            main: '#190482',
+            light: '#8E8FFA',
+            dark: '#7752FE',
+          },
+          secondary: {
+            main: '#C2D9FF',
+          },
+          text: {
+            primary:'#000000',
+            secondary: '#ffffff',
+            disabled:'#bdbdbd',
+          },
+          grey: {
+            '300': '#f9fcfe' 
+          },
+          }
+        : {
+          primary: {
+            main: '#190482',
+            light: '#8E8FFA',
+            dark: '#7752FE',
+          },
+          secondary: {
+            main: '#C2D9FF',
+          },
+          text: {
+            primary:'#ffffff',
+            secondary: '#000000',
+          },
+          grey: {
+            '300': '#7d8081' 
+          },
+          background: {
+            default: "#1c1e21",
+            paper: "#1c1e21"
+          }
+          }),
     },
   });
+
+  const theme = useMemo(() => createTheme(getDesignTokens(themeMode)), [themeMode]);
+
 
   useEffect(() => {
     dispatch(fetchVideosData());
@@ -92,9 +137,7 @@ const App = () => {
   useEffect(() => {
     dispatch(uiActions.onChangeRoute({ route: location.pathname.slice(1) }));
   }, [dispatch, location]);
-  useEffect(() => {
-    dispatch(uiActions.onChangeRoute({ route: location.pathname.slice(1) }));
-  }, [dispatch, location]);
+
 
   useEffect(() => {
     const token = localStorage.getItem('userToken');
@@ -113,6 +156,7 @@ const App = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AppBar />
+      <Box sx={{height: 'calc(100vh - 4.5rem)', mt: '4.5rem'}}>
       <Routes>
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
@@ -135,8 +179,9 @@ const App = () => {
 
         <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Player />} />} path="/watch" />
       </Routes>
-      <Divider sx={{ margin: '24px 0' }} />
-      <Footer />
+      </Box>
+      {/* <Divider sx={{ margin: '24px 0' }} />
+      <Footer /> */}
     </ThemeProvider>
   );
 };

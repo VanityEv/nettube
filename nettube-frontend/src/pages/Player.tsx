@@ -81,6 +81,8 @@ const Player = (props: Props) => {
             allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           ></iframe>
         )}
+
+        
         {isLoading && <CircularProgress />}
         {error && <Typography>Something went wrong!</Typography>}
       </Box>

@@ -69,11 +69,11 @@ export default function MediaCard({ liked, video }: MediaCardProps) {
     >
       <CardMedia component="img" image={video.thumbnail} alt={video.alt} sx={{ objectFit: 'contain' }} />
       <CardContent>
-        <Typography gutterBottom variant="h5" textAlign="center">
+        <Typography gutterBottom variant="h5" textAlign="center" color='contrast'>
           {video.title}
         </Typography>
         {!isMobile && (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2">
             {video.descr.length > 100 ? video.descr.slice(0, 97) + '...' : video.descr}
           </Typography>
         )}
