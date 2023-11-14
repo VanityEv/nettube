@@ -17,7 +17,7 @@ function HomePage() {
         sx={{
           width: '100%',
           height: '100%',
-          backgroundColor: 'secondary.300',
+          backgroundColor: 'secondary.400',
           display: 'flex',
           flexDirection: 'column',
         }}

@@ -2,6 +2,7 @@ import { Box, Button, Typography } from '@mui/material';
 import { Video } from '../../store/videos.types';
 import { Bookmark, PlayArrow, PlayCircle } from '@mui/icons-material';
 import React from 'react';
+import { useGetMockData } from '../../hooks/useGetMockData';
 
 type CategoryPreviewProps = {
   name: string;
@@ -12,7 +13,8 @@ type CategoryPreviewProps = {
 };
 
 export const CategoryPreview = ({ name, title, description, background, videos }: CategoryPreviewProps) => {
-  const mockVideos = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  const { data } = useGetMockData();
+  console.log(data);
 
   return (
     <>
