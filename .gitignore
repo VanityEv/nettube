@@ -3,6 +3,9 @@
 # dependencies
 /nettube-frontend/node_modules
 /nettube-backend/node_modules
+/nettube-frontend/.yarn/
+/nettube-backend/.yarn/
+.yarn/
 /.pnp
 node_modules/
 .history/
