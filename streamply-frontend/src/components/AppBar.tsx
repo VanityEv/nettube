@@ -55,7 +55,15 @@ function ResponsiveAppBar() {
    * <AdbIcon sx={{ display: { mobile: "none", desktop: "flex" }, mr: 1 }} />
    */
   return (
-    <AppBar position="fixed" color="primary" sx={{ height: '4.5rem' }}>
+    <AppBar
+      position="fixed"
+      color="primary"
+      sx={{
+        height: '4.5rem',
+        backgroundImage: 'linear-gradient(to top, rgba(0, 0, 0, 0.20), rgba(11, 8, 21, 0.99))',
+        backgroundColor: 'primary.400',
+      }}
+    >
       <Container sx={{ height: '100%', display: 'flex', alignItems: 'center' }}>
         <Toolbar disableGutters sx={{ width: '100%', justifyContent: 'space-between' }}>
           <Link style={{ textDecoration: 'none', marginRight: '12px' }} to={'/'}>

@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { LikeEntry } from './UserProfileAccordion';
 import { Video } from '../store/videos.types';
 import { Box, Button, Divider } from '@mui/material';
+import { useVideosStore } from '../state/videosStore';
 
 type VideosListProps = {
   type: 'movies' | 'series' | 'genres' | 'all';
@@ -13,7 +14,11 @@ type VideosListProps = {
 
 const VideosList = (props: VideosListProps) => {
   const { type } = props;
-  const videos = useAppSelector(state => state.videos.videos);
+  const { videos, setVideos } = useVideosStore();
+
+  useEffect(() => {
+    setVideos();
+  }, []);
   const searchValue = useAppSelector(state => state.ui.searchValue);
   const [selectedGenres, setSelectedGenres] = useState<String[]>([]);
 
