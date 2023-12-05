@@ -26,6 +26,7 @@ import { TableConfig, VideoActionsConfigType, tableColumns } from './AdminPanel/
 import { TabPanel } from './TabPanel';
 import ProfileCard from './ProfileCard';
 import { AccountPanel } from './AccountPanel/AccountPanel';
+import { useVideosStore } from '../state/videosStore';
 
 export type UserEntry = {
   id: number;
@@ -39,7 +40,7 @@ function AdminAccordion() {
   const dispatch = useAppDispatch();
   const snackbar = useAppSelector(state => state.ui.snackbar);
   const [newURL, setNewURL] = useState('');
-  const videos = useAppSelector(state => state.videos.videos);
+  const { videos } = useVideosStore();
   const [videoTitle, setVideoTitle] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenURLModal, setIsOpenURLModal] = useState(false);
