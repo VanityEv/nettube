@@ -1,6 +1,7 @@
-import { Box, Rating, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { Video } from '../../store/videos.types';
 import { Favorite } from '@mui/icons-material';
+import { getRatingColor } from '../../helpers/getRatingColors';
 
 export const SingleVideo = ({ video }: { video: Video }) => {
   return (
@@ -30,13 +31,13 @@ export const SingleVideo = ({ video }: { video: Video }) => {
           </Typography>
           <Typography
             variant="body1"
-            color="white"
+            color={getRatingColor(video.grade)}
             sx={{
               fontSize: '12px',
               textTransform: 'capitalize',
             }}
           >
-            Rating: {video.grade} / 10
+            Rating: {video.grade}
           </Typography>
         </Box>
         <Favorite color="error" sx={{ mr: '2rem' }} />

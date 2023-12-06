@@ -19,7 +19,7 @@ const initialState: VideoState = {
   genres: [],
 };
 
-const fetchVideos = async () => {
+const getVideos = async () => {
   try {
     const response = await axios.get<Video[]>(SERVER_ADDR + ':' + SERVER_PORT + '/videos/all');
     if (response.status === 200) {
@@ -39,7 +39,7 @@ export const useVideosStore = create<VideoState & VideoActions>()(
       },
       setVideos: async () => {
         try {
-          const videosData = await fetchVideos();
+          const videosData = await getVideos();
           const uniqueGenres = new Set(videosData?.map(video => video.genre));
           set(() => ({
             videos: videosData,
