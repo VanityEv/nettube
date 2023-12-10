@@ -154,7 +154,7 @@ UserRouter.get('/userLikes/:username', async (req, res) => {
   try {
     const username = req.params.username;
     await userLikes(username, userLikes => {
-      res.status(200).json({ result: 'SUCCESS', data: userLikes });
+      res.status(200).json( userLikes );
     });
   } catch (error) {
     res.status(400).json({ error });
