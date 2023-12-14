@@ -3,6 +3,7 @@ import { TopMovies } from '../components/MainImage/TopMovies';
 import { Video } from '../store/videos.types';
 import { MoviesCarousel } from '../components/MainImage/MoviesCarousel';
 import { GenreBrowser } from '../components/GenreBrowser/GenreBrowser';
+import { useVideosStore } from '../state/videosStore';
 
 const posters = [
   'https://m.media-amazon.com/images/M/MV5BN2Y0NGI2NjktNWI0Yy00OTAwLWI4MTAtNjY1NDBlN2IxZTEwXkEyXkFqcGdeQXVyMTI0NTE1Njg4._V1_.jpg',
@@ -13,6 +14,7 @@ const posters = [
 ];
 
 function HomePage() {
+  const { popularMovies, popularSeries } = useVideosStore();
   const testVideo: Pick<Video, 'id' | 'title' | 'descr'> = {
     id: 1,
     title: 'Test title',
@@ -35,24 +37,21 @@ function HomePage() {
         }}
       >
         <MoviesCarousel
-          movies={posters}
-          titles={titles}
+          movies={popularMovies}
           withNavigation
           posterVariant="overlay"
           carouselTitle="Most Popular Movies"
           carouselTitleTextVariant="h4"
         />
         <MoviesCarousel
-          movies={posters}
-          titles={titles}
+          movies={popularSeries}
           withNavigation
           posterVariant="overlay"
           carouselTitle="Top Watched Series"
           carouselTitleTextVariant="h4"
         />
         <MoviesCarousel
-          movies={posters}
-          titles={titles}
+          movies={popularSeries.slice(0, 10)}
           withNavigation
           posterVariant="overlay"
           carouselTitle="Your Watchlist"

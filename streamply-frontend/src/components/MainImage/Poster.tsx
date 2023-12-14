@@ -1,27 +1,27 @@
 import { Box, ButtonBase, Divider, Stack, Typography, Zoom } from '@mui/material';
 
 type PosterProps = {
-  movie: string;
+  posterURL: string;
   title: string;
   variant: 'overlay' | 'caption';
   active: boolean;
   setActive: (title: string) => void;
 };
 
-export const Poster = ({ movie, title, variant, active, setActive }: PosterProps) => {
+export const Poster = ({ posterURL, title, variant, active, setActive }: PosterProps) => {
   return (
     <ButtonBase
       sx={{ height: '100%' }}
       onClick={() => {
         sessionStorage.setItem('selectedMovie', title);
-        sessionStorage.setItem('selectedMovieBackground', movie);
+        sessionStorage.setItem('selectedMovieBackground', posterURL);
         setActive(title);
       }}
     >
       {variant === 'caption' ? (
         <Stack sx={{ alignItems: 'center' }}>
           <img
-            src={movie}
+            src={posterURL}
             style={{
               aspectRatio: '2 / 3',
               width: '90%',
@@ -31,7 +31,7 @@ export const Poster = ({ movie, title, variant, active, setActive }: PosterProps
           <Typography
             variant="body1"
             color="white"
-            sx={{ fontSize: '20px', fontWeight: '700', my: '.5rem', letterSpacing: '.1rem' }}
+            sx={{ fontSize: '16px', fontWeight: '700', my: '.5rem', letterSpacing: '.1rem' }}
           >
             {title}
           </Typography>
@@ -49,7 +49,7 @@ export const Poster = ({ movie, title, variant, active, setActive }: PosterProps
       ) : (
         <Box
           sx={{
-            backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(0, 0, 0, 0.99)), url(${movie})`,
+            backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(0, 0, 0, 0.99)), url(${posterURL})`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             height: '400px',
@@ -63,10 +63,11 @@ export const Poster = ({ movie, title, variant, active, setActive }: PosterProps
             variant="body1"
             color="white"
             sx={{
-              ml: '2rem',
-              mb: '2rem',
+              ml: '1rem',
+              mb: '1rem',
               fontSize: '20px',
-              textTransform: 'uppercase',
+              textTransform: 'capitalize',
+              textAlign: 'start',
             }}
           >
             {title}

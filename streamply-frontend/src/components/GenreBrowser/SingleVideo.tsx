@@ -1,9 +1,11 @@
 import { Box, Typography } from '@mui/material';
 import { Video } from '../../store/videos.types';
-import { Favorite } from '@mui/icons-material';
+import { Favorite, FavoriteBorder } from '@mui/icons-material';
 import { getRatingColor } from '../../helpers/getRatingColors';
+import { useUserStore } from '../../state/userStore';
 
 export const SingleVideo = ({ video }: { video: Video }) => {
+  const { likes } = useUserStore();
   return (
     <Box
       sx={{
@@ -17,14 +19,22 @@ export const SingleVideo = ({ video }: { video: Video }) => {
         alignItems: 'end',
       }}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'end',
+          width: '100%',
+        }}
+      >
         <Box sx={{ display: 'flex', flexDirection: 'column', ml: '2rem', mb: '1rem' }}>
           <Typography
             variant="body1"
             color="white"
             sx={{
-              fontSize: '12px',
-              textTransform: 'uppercase',
+              fontSize: '14px',
+              textTransform: 'capitalize',
             }}
           >
             {video.title}
@@ -40,7 +50,11 @@ export const SingleVideo = ({ video }: { video: Video }) => {
             Rating: {video.grade}
           </Typography>
         </Box>
-        <Favorite color="error" sx={{ mr: '2rem' }} />
+        {likes.includes(video.id) ? (
+          <Favorite color="error" sx={{ mr: '2rem', mb: '1rem' }} />
+        ) : (
+          <FavoriteBorder color="error" sx={{ mr: '2rem', mb: '1rem' }} />
+        )}
       </Box>
     </Box>
   );

@@ -18,10 +18,10 @@ export const TrailerBackground = styled('div')`
 `;
 
 export const TopMovies = ({ mainMovie, topMovies, autoplayTrailer }: TopMoviesProps) => {
-  const {videos} = useVideosStore();
-  const displayVideos = videos.slice(0,10)
-  const titles = videos.map((video) => video.title).slice(0,10)
-  const posters = videos.map((video) => video.thumbnail).slice(0,10)
+  const { videos } = useVideosStore();
+  const displayVideos = videos.slice(0, 10);
+  const titles = videos.map(video => video.title).slice(0, 10);
+  const posters = videos.map(video => video.thumbnail).slice(0, 10);
   // const movie = [
   //   'https://wallpapercave.com/wp/wp3982534.jpg',
   //   'https://s.studiobinder.com/wp-content/uploads/2018/02/Ultimate-Guide-To-Camera-Shots-Single-Shot.jpeg?resolution=2560,2',
@@ -45,17 +45,16 @@ export const TopMovies = ({ mainMovie, topMovies, autoplayTrailer }: TopMoviesPr
           <Grid item sx={{ width: '40%' }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', ml: '4rem', gap: '3rem' }}>
               <Typography variant="h3" color="white">
-                {mainMovie.title}
+                {videos[1].title}
               </Typography>
-              <Typography variant="body1" sx={{ fontSize: '1.5rem' }} color="white">
-                {mainMovie.descr}
+              <Typography variant="body1" sx={{ fontSize: '1rem', width: '75%' }} color="white">
+                {videos[1].descr}
               </Typography>
             </Box>
           </Grid>
           <Grid item sx={{ width: '60%', height: '100%' }}>
             <MoviesCarousel
-              movies={posters}
-              titles={titles}
+              movies={videos.slice(0, 10)}
               selectedMovie={titles[0]}
               carouselTitle="Hot Movies"
               carouselTitleTextVariant="h4"

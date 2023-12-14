@@ -23,6 +23,7 @@
     "moment": "^2.29.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.49.2",
     "react-indiana-drag-scroll": "^3.0.3-alpha",
     "react-redux": "^8.0.5",
     "react-router-dom": "^6.4.3",
@@ -30,6 +31,7 @@
     "styled-components": "^5.3.6",
     "swiper": "^8.4.5",
     "typescript": "^4.9.3",
+    "typescript-cookie": "^1.0.6",
     "zod": "^3.22.4",
     "zustand": "^4.4.7"
   },

@@ -23,6 +23,7 @@ import { Box, createTheme, CssBaseline, Divider } from '@mui/material';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute, { ProtectedRouteProps } from './ProtectedRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { getCookie } from 'typescript-cookie';
 
 /**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
  *   const navigate = useNavigate();
@@ -85,7 +86,7 @@ const App = () => {
         },
         palette: {
           primary: {
-            main: '#190482',
+            main: '#FFFFFF',
             '600': '#e51445',
             '500': '#271389',
             '400': '#423098',
@@ -177,7 +178,7 @@ const App = () => {
   }, [dispatch, navigate]);
 
   const defaultProtectedRouteProps: Omit<ProtectedRouteProps, 'outlet'> = {
-    isAuthenticated: !!localStorage.getItem('username'),
+    isAuthenticated: !!getCookie('userToken'),
     authenticationPath: '/signin',
   };
 
@@ -189,8 +190,10 @@ const App = () => {
         <Box
           sx={{
             mt: '4.5rem',
-            backgroundColor: 'secondary.200',
-            maxHeight: 'calc(100vh - 4.5rem)',
+            backgroundColor: 'secondary.400',
+            minHeight: 'calc(100vh - 4.5rem)',
+            height: 'calc(100vh - 4.5rem)',
+            width: '100vw',
             overflowY: 'scroll',
           }}
         >

@@ -6,10 +6,10 @@ import { Navigation, Scrollbar, Autoplay } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Poster } from './Poster';
 import { useState } from 'react';
+import { Video } from '../../store/videos.types';
 
 type MoviesCarouselProps = {
-  movies: string[];
-  titles: string[];
+  movies: Video[];
   selectedMovie?: string;
   withNavigation?: boolean;
   slidesPerView?: number;
@@ -20,7 +20,6 @@ type MoviesCarouselProps = {
 
 export const MoviesCarousel = ({
   movies,
-  titles,
   selectedMovie,
   withNavigation,
   slidesPerView = 5.5,
@@ -63,12 +62,12 @@ export const MoviesCarousel = ({
           style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}
         >
           {movies.map((movie, index) => (
-            <SwiperSlide key={`hot-movie-${titles[index]}`}>
+            <SwiperSlide key={`hot-movie-${movie.title}`}>
               <Poster
-                movie={movie}
-                title={titles[index]}
+                posterURL={movie.thumbnail}
+                title={movie.title}
                 variant={posterVariant}
-                active={isActive === titles[index]}
+                active={isActive === movie.title}
                 setActive={handleActiveChange}
               />
             </SwiperSlide>

@@ -1,5 +1,4 @@
-import { Box, Typography } from '@mui/material';
-import loginImage from '../../public/assets/images/login-image.jpg';
+import { Box } from '@mui/material';
 
 export const LoginImage = () => (
   <Box
@@ -8,6 +7,7 @@ export const LoginImage = () => (
       width: '100%',
       height: '100%',
       backgroundSize: 'cover',
+      backgroundPosition: 'center',
       display: 'flex',
       justifyContent: 'center',
       borderBottomLeftRadius: '25%',
