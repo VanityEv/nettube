@@ -95,7 +95,7 @@ const App = () => {
             '100': '#c9c4e2',
           },
           secondary: {
-            main: '#000000',
+            main: '#e51445',
             '500': '#0f0f0f',
             '400': '#0b0815',
             '300': '#2d2d2d',
@@ -122,6 +122,13 @@ const App = () => {
                 textTransform: 'capitalize',
                 fontWeight: '600',
                 '&:hover': { borderColor: '#e51445', backgroundColor: '#e51445' },
+              },
+            },
+          },
+          MuiDivider: {
+            styleOverrides: {
+              root: {
+                borderColor: '#423098',
               },
             },
           },

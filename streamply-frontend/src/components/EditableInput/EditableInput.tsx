@@ -8,17 +8,37 @@ export const EditableInput = ({ value, type }: { value?: string | number; type?:
   return (
     <>
       {editMode ? (
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-          <TextField type={type ? type : 'string'} value={value} />
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center', justifyContent: 'center' }}>
+          <TextField
+            sx={{
+              input: { color: 'white', px: 2, py: 1 },
+              width: {
+                mobile: '75%',
+                desktop: '80%',
+                '& .MuiOutlinedInput-root:hover': {
+                  '& > fieldset': {
+                    borderColor: 'white',
+                  },
+                },
+                '& .MuiOutlinedInput-root': {
+                  '& > fieldset': {
+                    borderColor: '#e51445',
+                  },
+                },
+              },
+            }}
+            type={type ? type : 'string'}
+            value={value}
+          />
           <IconButton onClick={() => setEditMode(prev => !prev)}>
-            <Edit />
+            <Edit sx={{ color: 'primary.300' }} />
           </IconButton>
         </Box>
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center', justifyContent: 'center' }}>
           <Typography>{value}</Typography>
           <IconButton onClick={() => setEditMode(prev => !prev)}>
-            <Edit />
+            <Edit sx={{ color: 'primary.300' }} />
           </IconButton>
         </Box>
       )}

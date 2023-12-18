@@ -1,5 +1,6 @@
 import { HighlightOff, Search, VideoStable } from '@mui/icons-material';
 import {
+  Box,
   IconButton,
   InputAdornment,
   InputBase,
@@ -15,10 +16,6 @@ import {
 import { useState } from 'react';
 import { filterDataFromKeys } from '../../../helpers/filterDataFromKeys';
 import { Video } from '../../../store/videos.types';
-
-type TableRecord = {
-  id: string;
-};
 
 type VideoTableProps = {
   columnNames: string[];
@@ -53,7 +50,15 @@ export const VideosTable = ({ columnNames, data, actions }: VideoTableProps) => 
     <TableContainer component={'div'}>
       <InputBase
         placeholder="Search videos..."
-        sx={{ backgroundColor: 'white', borderRadius: '60px', py: 1, pl: '12px', m: 2, border: 1 }}
+        sx={{
+          py: 1,
+          pl: '12px',
+          m: 2,
+          backgroundColor: 'transparent',
+          borderRadius: '60px',
+          color: 'white',
+          border: '1px solid #e51445',
+        }}
         startAdornment={
           <InputAdornment position="start">
             <Search color="primary" />
@@ -64,7 +69,7 @@ export const VideosTable = ({ columnNames, data, actions }: VideoTableProps) => 
       />
       <Table aria-label="videos-table">
         <TableHead>
-          <TableRow sx={{ backgroundColor: 'grey.100' }}>
+          <TableRow sx={{ backgroundColor: 'primary.400', '&>th': { color: 'white' } }}>
             {columnNames.map(columnName => (
               <TableCell key={`video-column-${columnName}`} sx={{ fontWeight: 'bold', position: 'sticky' }}>
                 {columnName}
@@ -74,7 +79,7 @@ export const VideosTable = ({ columnNames, data, actions }: VideoTableProps) => 
         </TableHead>
         <TableBody sx={{ borderBottom: 0 }}>
           {pagedData.map(video => (
-            <TableRow key={video.id}>
+            <TableRow key={video.id} sx={{ '&>th,td': { color: 'white' } }}>
               <TableCell component="th" scope="row">
                 <img src={video.thumbnail} style={{ height: 'auto', width: 'auto', maxHeight: '100px' }} />
               </TableCell>
@@ -100,8 +105,14 @@ export const VideosTable = ({ columnNames, data, actions }: VideoTableProps) => 
             </TableRow>
           ))}
         </TableBody>
-        <Typography sx={{ my: 1, ml: 1 }}>Page:</Typography>
-        <Pagination count={getPageCount()} page={currentPage} onChange={handleChangePage} />
+        <Typography sx={{ my: 1, ml: 1, color: 'white' }}>Page:</Typography>
+        <Pagination
+          sx={{ '&>ul>li>button': { color: 'white' } }}
+          color="secondary"
+          count={getPageCount()}
+          page={currentPage}
+          onChange={handleChangePage}
+        />
       </Table>
     </TableContainer>
   );

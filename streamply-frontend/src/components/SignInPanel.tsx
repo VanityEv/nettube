@@ -7,6 +7,7 @@ import { SERVER_ADDR, SERVER_PORT } from '../constants';
 import { useUserStore } from '../state/userStore';
 import { setCookie } from 'typescript-cookie';
 import { useNavigate } from 'react-router-dom';
+import { useVideosStore } from '../state/videosStore';
 
 type LoginResponse = {
   username: string;
@@ -16,6 +17,7 @@ type LoginResponse = {
 
 export const SignInPanel = () => {
   const { setUserData } = useUserStore();
+  const { setVideos } = useVideosStore();
   const navigate = useNavigate();
   const FormSchema = z.object({
     username: z.string().min(2, {
@@ -40,9 +42,11 @@ export const SignInPanel = () => {
       const loginResponse = await axios.post<LoginResponse>(SERVER_ADDR + ':' + SERVER_PORT + '/user/signin', {
         ...data,
       });
+      await setVideos();
       if (loginResponse.status === 200) {
-        setUserData(loginResponse.data.username);
+        await setUserData(loginResponse.data.username);
         setCookie('userToken', loginResponse.data.token);
+        setCookie('userAccountType', loginResponse.data.account_type);
         navigate('/');
       }
     } catch (error) {

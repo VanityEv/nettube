@@ -3,10 +3,10 @@ import { ProfileInfo } from '../components/ProfileCard';
 import { SERVER_ADDR, SERVER_PORT } from '../constants';
 import { useQuery } from '@tanstack/react-query';
 
-const fetchUser = async () => {
+const fetchUser = async (username: string) => {
   try {
     const response = await axios.post<ProfileInfo>(`${SERVER_ADDR}:${SERVER_PORT}/user/getUserData`, {
-      username: localStorage.getItem('username'),
+      username: username,
     });
 
     if (response.status === 200) {
@@ -20,10 +20,10 @@ const fetchUser = async () => {
   }
 };
 
-export const useFetchUser = () => {
+export const useFetchUser = (username: string) => {
   const { data, isLoading, isError, isFetching, error, refetch } = useQuery<ProfileInfo, Error>({
     queryKey: ['userInfo'],
-    queryFn: () => fetchUser(),
+    queryFn: () => fetchUser(username),
     refetchOnWindowFocus: false,
   });
   return {

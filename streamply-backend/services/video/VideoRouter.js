@@ -1,6 +1,15 @@
 //require("dotenv").config(); // load .env variables
 import { Router } from 'express'; // import router from express
-import { getAllVideos, getOneVideo, getVideosByGenre, deleteVideo, addVideo, changeVideoURL } from './Video.js';
+import {
+  getAllVideos,
+  getOneVideo,
+  getVideosByGenre,
+  deleteVideo,
+  addVideo,
+  changeVideoURL,
+  getPopularMovies,
+  getPopularSeries,
+} from './Video.js';
 
 const VideosRouter = Router(); // create router to create route bundle
 
@@ -65,6 +74,26 @@ VideosRouter.post('/changeURL', async (req, res) => {
     await changeVideoURL(req.body.title, req.body.url, async response => {
       const status = response.changedRows === 1;
       status ? res.status(200).json({ result: 'success' }) : res.status(500).json({ error: 'error' });
+    });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+});
+
+VideosRouter.get('/top-movies', async (req, res) => {
+  try {
+    await getPopularMovies(videos => {
+      res.status(200).json(videos);
+    });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+});
+
+VideosRouter.get('/top-series', async (req, res) => {
+  try {
+    await getPopularSeries(videos => {
+      res.status(200).json(videos);
     });
   } catch (error) {
     res.status(400).json({ error });

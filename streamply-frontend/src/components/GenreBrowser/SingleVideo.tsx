@@ -1,11 +1,39 @@
-import { Box, Typography } from '@mui/material';
+import { Box, IconButton, Typography } from '@mui/material';
 import { Video } from '../../store/videos.types';
 import { Favorite, FavoriteBorder } from '@mui/icons-material';
 import { getRatingColor } from '../../helpers/getRatingColors';
 import { useUserStore } from '../../state/userStore';
+import axios from 'axios';
+import { SERVER_ADDR, SERVER_PORT } from '../../constants';
+import { useState } from 'react';
+
+type UpdateResponse = { result: string };
 
 export const SingleVideo = ({ video }: { video: Video }) => {
-  const { likes } = useUserStore();
+  const { likes, username, setLikes } = useUserStore();
+  const [liked, setLiked] = useState(likes.includes(video.id));
+
+  const updateUserLike = async (id: number, mode: 'add' | 'delete') => {
+    const endpointPath = mode === 'add' ? '/user/addLike' : '/user/deleteLike';
+    const response = await axios.post<UpdateResponse>(SERVER_ADDR + ':' + SERVER_PORT + endpointPath, {
+      username: username,
+      show_id: id,
+    });
+    return response.data.result;
+  };
+
+  const handleLikeChange = async (id: number, mode: 'add' | 'delete') => {
+    try {
+      const result = await updateUserLike(id, mode);
+      if (result === 'SUCCESS') {
+        setLiked(prevLiked => !prevLiked);
+        await setLikes(username);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -37,7 +65,7 @@ export const SingleVideo = ({ video }: { video: Video }) => {
               textTransform: 'capitalize',
             }}
           >
-            {video.title}
+            {`${video.title}`}
           </Typography>
           <Typography
             variant="body1"
@@ -50,10 +78,14 @@ export const SingleVideo = ({ video }: { video: Video }) => {
             Rating: {video.grade}
           </Typography>
         </Box>
-        {likes.includes(video.id) ? (
-          <Favorite color="error" sx={{ mr: '2rem', mb: '1rem' }} />
+        {liked ? (
+          <IconButton onClick={() => handleLikeChange(video.id, 'delete')}>
+            <Favorite color="error" sx={{ mr: '2rem', mb: '1rem' }} />
+          </IconButton>
         ) : (
-          <FavoriteBorder color="error" sx={{ mr: '2rem', mb: '1rem' }} />
+          <IconButton onClick={() => handleLikeChange(video.id, 'add')}>
+            <FavoriteBorder color="error" sx={{ mr: '2rem', mb: '1rem' }} />
+          </IconButton>
         )}
       </Box>
     </Box>

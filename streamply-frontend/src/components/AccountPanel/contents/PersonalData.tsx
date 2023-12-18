@@ -1,9 +1,11 @@
 import { Avatar, Box, Divider, Typography } from '@mui/material';
 import { useFetchUser } from '../../../hooks/useGetUserInfo';
 import { EditableInput } from '../../EditableInput/EditableInput';
+import { useUserStore } from '../../../state/userStore';
 
 export const PersonalData = () => {
-  const { data, isLoading, isError, error } = useFetchUser();
+  const { username } = useUserStore();
+  const { data, isLoading, isError, error } = useFetchUser(username);
 
   if (isLoading) {
     return <Typography>'Loading...'</Typography>;
@@ -13,25 +15,49 @@ export const PersonalData = () => {
   }
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        backgroundColor: 'secondary.400',
+        color: 'white',
+        gap: 2,
+      }}
+    >
       <Box sx={{ width: '100%' }}>
         <Typography variant="h6">Personal Information</Typography>
         <Divider sx={{ my: 2 }} />
-        <Box>
-          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-            <Typography fontWeight={600}>Username:</Typography>
+        <Box sx={{ '&>div': { my: 1 } }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: 2,
+              alignItems: 'center',
+              width: '100%',
+            }}
+          >
+            <Typography sx={{ width: '20%' }} fontWeight={600}>
+              Username:
+            </Typography>
             <EditableInput value={data?.username} />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-            <Typography fontWeight={600}>Birth date: </Typography>
+            <Typography sx={{ width: '20%' }} fontWeight={600}>
+              Birth date:{' '}
+            </Typography>
             <EditableInput value={data?.birthdate.substring(0, 10)} />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-            <Typography fontWeight={600}>Full name:</Typography>
+            <Typography sx={{ width: '20%' }} fontWeight={600}>
+              Full name:
+            </Typography>
             <EditableInput value={data?.fullname} />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-            <Typography fontWeight={600}>Email: </Typography>
+            <Typography sx={{ width: '20%' }} fontWeight={600}>
+              Email:{' '}
+            </Typography>
             <EditableInput value={data?.email} />
           </Box>
         </Box>

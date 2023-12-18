@@ -11,28 +11,28 @@ import {
   Button,
   Tooltip,
   MenuItem,
-  useTheme,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import SearchBar from './SearchBar';
-import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
-import { uiActions } from '../store/ui';
+import { useUserStore } from '../state/userStore';
+import { useState } from 'react';
+import { SearchModal } from './SearchModal/SearchModal';
+import { getCookie } from 'typescript-cookie';
 
 const pages = ['movies', 'series', 'genres'];
 const settings = ['profile', 'signout'];
 
 function ResponsiveAppBar() {
-  const username = localStorage.getItem('username');
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
-  const theme = useTheme();
-  const isSearchShown = useAppSelector(state => state.ui.isSearchShown);
-  const selectedTheme = useAppSelector(state => state.ui.theme);
-  const dispatch = useAppDispatch();
-  const isUserLoggedIn = Boolean(localStorage.getItem('username'));
+  const { username } = useUserStore();
+  const [searchModalOpen, setSeachModalOpen] = useState(false);
+  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+  const isUserLoggedIn = Boolean(username);
+
+  const handleSearchModalChange = () => {
+    setSeachModalOpen(prev => !prev);
+  };
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-    localStorage.removeItem('userToken');
     setAnchorElUser(event.currentTarget);
   };
 
@@ -41,26 +41,16 @@ function ResponsiveAppBar() {
   };
 
   const handleCloseUserMenu = () => {
-    console.log(localStorage.getItem('account_type'));
     setAnchorElUser(null);
   };
 
-  const handleSwitchClick = () => {
-    dispatch(uiActions.onChangeTheme());
-  };
-
-  /**
-   * TODO: zachowanie SearchBar - w widoku mobile powinna być lupa, po kliknięciu której rozwija się search.
-   * Obecnie lupa nakłada się na Open settings - bug
-   * <AdbIcon sx={{ display: { mobile: "none", desktop: "flex" }, mr: 1 }} />
-   */
   return (
     <AppBar
       position="fixed"
       color="primary"
       sx={{
         height: '4.5rem',
-        backgroundImage: 'linear-gradient(to top, rgba(0, 0, 0, 0.20), rgba(11, 8, 21, 0.99))',
+        backgroundImage: 'linear-gradient(to right, rgba(0, 0, 0, 0.05), rgba(11, 8, 21, 0.75))',
         backgroundColor: 'primary.400',
       }}
     >
@@ -110,7 +100,7 @@ function ResponsiveAppBar() {
               </Link>
             ))}
           </Box>
-          {isSearchShown && <SearchBar />}
+          <SearchModal open={searchModalOpen} onClose={handleSearchModalChange} />
           {isUserLoggedIn && (
             <Box sx={{ flexGrow: 0 }}>
               <Tooltip title="Open settings">
@@ -134,13 +124,13 @@ function ResponsiveAppBar() {
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseUserMenu}
               >
-                {localStorage.getItem('account_type') === '3' ? (
+                {getCookie('userAccountType') === '3' && (
                   <MenuItem key={'dashboard'} onClick={handleCloseUserMenu}>
                     <Link style={{ textDecoration: 'none', color: 'inherit' }} key={'dashboard'} to={'/dashboard'}>
                       <Typography textAlign="center">Dashboard</Typography>
                     </Link>
                   </MenuItem>
-                ) : null}
+                )}
                 {settings.map((setting, key) => (
                   <MenuItem key={key} onClick={handleCloseUserMenu}>
                     <Link style={{ textDecoration: 'none', color: 'inherit' }} key={key} to={'/' + setting}>

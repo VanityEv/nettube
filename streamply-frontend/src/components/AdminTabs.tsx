@@ -1,10 +1,4 @@
-import {
-  CameraRoll,
-  HighlightOff,
-  LocalMovies,
-  People,
-  Person,
-} from '@mui/icons-material';
+import { CameraRoll, HighlightOff, LocalMovies, People, Person } from '@mui/icons-material';
 import { Alert, Box, Snackbar, Tab, Tabs } from '@mui/material';
 import useHttp from '../hooks/useHttp';
 import { useCallback, useEffect, useState } from 'react';
@@ -16,6 +10,7 @@ import VideosTable from './AdminPanel/tables/VideosTable';
 import { TableConfig, VideoActionsConfigType, tableColumns } from './AdminPanel/tables/VideoTableConfig';
 import { TabPanel } from './TabPanel';
 import { AccountPanel } from './AccountPanel/AccountPanel';
+import { useVideosStore } from '../state/videosStore';
 
 export type UserEntry = {
   id: number;
@@ -28,7 +23,7 @@ export type UserEntry = {
 function AdminTabs() {
   const dispatch = useAppDispatch();
   const snackbar = useAppSelector(state => state.ui.snackbar);
-  const videos = useAppSelector(state => state.videos.videos);
+  const { videos } = useVideosStore();
   const [tabValue, setTabValue] = useState(0);
 
   const { sendRequest } = useHttp();
@@ -94,8 +89,8 @@ function AdminTabs() {
   }, []);
 
   const handleUserDelete = (id: number) => {
-    sendUserDeleteQuery(id)
-  }
+    sendUserDeleteQuery(id);
+  };
 
   //handler to pass to config
   const handleVideoDelete = (title: string) => {
@@ -154,15 +149,17 @@ function AdminTabs() {
         value={tabValue}
         onChange={(event, newValue: number) => setTabValue(newValue)}
         variant="fullWidth"
+        indicatorColor="secondary"
+        textColor="secondary"
         sx={{
           p: 3,
           '&>div>div': { gap: 2 },
         }}
       >
-        <Tab icon={<People />} iconPosition="start" label="Users" value={0} sx={{ color: 'primary.300' }} />
-        <Tab icon={<LocalMovies />} iconPosition="start" label="Movies" value={1} sx={{ color: 'primary.300' }} />
-        <Tab icon={<CameraRoll />} iconPosition="start" label="Series" value={2} sx={{ color: 'primary.300' }} />
-        <Tab icon={<Person />} iconPosition="start" label="Account" value={3} sx={{ color: 'primary.300' }} />
+        <Tab icon={<People />} iconPosition="start" label="Users" value={0} />
+        <Tab icon={<LocalMovies />} iconPosition="start" label="Movies" value={1} />
+        <Tab icon={<CameraRoll />} iconPosition="start" label="Series" value={2} />
+        <Tab icon={<Person />} iconPosition="start" label="Account" value={3} />
       </Tabs>
       <TabPanel index={0} value={tabValue}>
         <UsersTable users={users} onDelete={handleUserDelete} />

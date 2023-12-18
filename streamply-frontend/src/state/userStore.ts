@@ -11,7 +11,8 @@ export type UserState = {
 };
 
 type UserActions = {
-  setUserData: (username: string) => void;
+  setUserData: (username: string) => Promise<void>;
+  setLikes: (username: string) => Promise<void>;
   reset: () => void;
 };
 
@@ -42,6 +43,16 @@ export const useUserStore = create<UserState & UserActions>()(
       },
       setUserData: async (username: string) => {
         set(() => ({ username: username }));
+        try {
+          const userLikes = await getUserLikes(username);
+          set(() => ({
+            likes: userLikes,
+          }));
+        } catch (error) {
+          console.error(error);
+        }
+      },
+      setLikes: async (username: string) => {
         try {
           const userLikes = await getUserLikes(username);
           set(() => ({

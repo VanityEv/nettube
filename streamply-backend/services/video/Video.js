@@ -1,16 +1,16 @@
-import query from "../db.js";
+import query from '../db.js';
 
 const getOneVideo = async (title, requestCallback) => {
   const dbQuery = `SELECT * from videos where title = "${title}"`;
   await query(dbQuery, requestCallback);
 };
 
-const getVideosByGenre = async (genre) => {
+const getVideosByGenre = async genre => {
   const dbQuery = `SELECT * from videos where genre = ${genre}`;
   await query(dbQuery);
 };
 
-const getAllVideos = async (requestCallback) => {
+const getAllVideos = async requestCallback => {
   const dbQuery = `SELECT * from videos`;
   await query(dbQuery, requestCallback);
 };
@@ -30,6 +30,16 @@ const changeVideoURL = async (title, newURL, requestCallback) => {
   await query(dbQuery, requestCallback);
 };
 
+const getPopularMovies = async requestCallback => {
+  const dbQuery = `SELECT * FROM videos WHERE views > 10000 AND type = 'film' ORDER BY production_year DESC, views DESC LIMIT 15`;
+  await query(dbQuery, requestCallback);
+};
+
+const getPopularSeries = async requestCallback => {
+  const dbQuery = `SELECT * FROM videos WHERE views > 10000 AND type = 'series' ORDER BY production_year DESC, views DESC LIMIT 15`;
+  await query(dbQuery, requestCallback);
+};
+
 export {
   getOneVideo,
   getVideosByGenre,
@@ -37,4 +47,6 @@ export {
   deleteVideo,
   addVideo,
   changeVideoURL,
+  getPopularMovies,
+  getPopularSeries,
 };

@@ -16,9 +16,6 @@ const VideosList = (props: VideosListProps) => {
   const { type } = props;
   const { videos, setVideos } = useVideosStore();
 
-  useEffect(() => {
-    setVideos();
-  }, []);
   const searchValue = useAppSelector(state => state.ui.searchValue);
   const [selectedGenres, setSelectedGenres] = useState<String[]>([]);
 

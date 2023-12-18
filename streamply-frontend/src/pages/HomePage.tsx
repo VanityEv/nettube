@@ -1,9 +1,9 @@
 import { Box } from '@mui/material';
 import { TopMovies } from '../components/MainImage/TopMovies';
-import { Video } from '../store/videos.types';
 import { MoviesCarousel } from '../components/MainImage/MoviesCarousel';
 import { GenreBrowser } from '../components/GenreBrowser/GenreBrowser';
 import { useVideosStore } from '../state/videosStore';
+import { useUserStore } from '../state/userStore';
 
 const posters = [
   'https://m.media-amazon.com/images/M/MV5BN2Y0NGI2NjktNWI0Yy00OTAwLWI4MTAtNjY1NDBlN2IxZTEwXkEyXkFqcGdeQXVyMTI0NTE1Njg4._V1_.jpg',
@@ -14,17 +14,13 @@ const posters = [
 ];
 
 function HomePage() {
-  const { popularMovies, popularSeries } = useVideosStore();
-  const testVideo: Pick<Video, 'id' | 'title' | 'descr'> = {
-    id: 1,
-    title: 'Test title',
-    descr: 'test test test',
-  };
-  const titles = ['Test1', 'Test2', 'Test3', 'Test4', 'Test5'];
+  const { popularMovies, popularSeries, videos } = useVideosStore();
+  const { likes } = useUserStore();
+  const watchlist = videos.filter(video => likes.includes(video.id));
 
   return (
     <>
-      <TopMovies mainMovie={testVideo} topMovies={posters} />
+      <TopMovies />
       <Box
         sx={{
           width: '100%',
@@ -39,19 +35,22 @@ function HomePage() {
         <MoviesCarousel
           movies={popularMovies}
           withNavigation
+          slidesPerView={7.5}
           posterVariant="overlay"
           carouselTitle="Most Popular Movies"
           carouselTitleTextVariant="h4"
         />
         <MoviesCarousel
           movies={popularSeries}
+          slidesPerView={7.5}
           withNavigation
           posterVariant="overlay"
           carouselTitle="Top Watched Series"
           carouselTitleTextVariant="h4"
         />
         <MoviesCarousel
-          movies={popularSeries.slice(0, 10)}
+          movies={watchlist}
+          slidesPerView={8}
           withNavigation
           posterVariant="overlay"
           carouselTitle="Your Watchlist"

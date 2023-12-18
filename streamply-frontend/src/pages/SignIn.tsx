@@ -1,33 +1,11 @@
-import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
-import { userLogin } from '../store/user-actions';
-import { UserCredentials } from '../store/user.types';
-import { useNavigate } from 'react-router-dom';
+import { useAppSelector } from '../hooks/useRedux';
 import { uiActions } from '../store/ui';
-import useIsFirstRender from '../hooks/useIsFirstRender';
 import { Alert, Box, Container, Snackbar } from '@mui/material';
 import { SignInPanel } from '../components/SignInPanel';
 import { LoginImage } from '../components/LoginImage';
-import { useVideosStore } from '../state/videosStore';
-import { useUserStore } from '../state/userStore';
 
 function SignIn() {
-  const { setVideos } = useVideosStore();
-  const { setUserData } = useUserStore();
-  const isSigningIn = useAppSelector(state => state.user.isSigningIn);
   const snackbar = useAppSelector(state => state.ui.snackbar);
-  const isFirstRender = useIsFirstRender();
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const userCredentials: UserCredentials = {
-      username: data.get('username') as string,
-      password: data.get('password') as string,
-    };
-    dispatch(userLogin(userCredentials));
-  };
 
   return (
     <Container

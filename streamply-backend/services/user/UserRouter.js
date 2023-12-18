@@ -154,7 +154,7 @@ UserRouter.get('/userLikes/:username', async (req, res) => {
   try {
     const username = req.params.username;
     await userLikes(username, userLikes => {
-      res.status(200).json( userLikes );
+      res.status(200).json(userLikes);
     });
   } catch (error) {
     res.status(400).json({ error });
@@ -186,7 +186,7 @@ UserRouter.post('/checkOccurency', async (req, res) => {
 
 UserRouter.post('/deleteLike', async (req, res) => {
   try {
-    await deleteLike(req.body.username, req.body.show_title, async response => {
+    await deleteLike(req.body.username, req.body.show_id, async response => {
       const status = response.affectedRows === 1 ? 'SUCCESS' : 'ERROR';
       if (status === 'SUCCESS') res.status(200).json({ result: 'SUCCESS' });
       if (status === 'ERROR') res.status(500).json({ error: 'ERROR' });
@@ -198,7 +198,7 @@ UserRouter.post('/deleteLike', async (req, res) => {
 
 UserRouter.post('/addLike', async (req, res) => {
   try {
-    await addLike(req.body.username, req.body.show_title, async response => {
+    await addLike(req.body.username, req.body.show_id, async response => {
       const status = response.affectedRows === 1 ? 'SUCCESS' : 'ERROR';
       if (status === 'SUCCESS') res.status(200).json({ result: 'SUCCESS' });
       if (status === 'ERROR') res.status(500).json({ error: 'ERROR' });

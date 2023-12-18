@@ -17,7 +17,7 @@ export const GenreGrid = ({ videos }: { videos: Video[] }) => {
       }}
     >
       {videos.map(video => (
-        <SingleVideo video={video} />
+        <SingleVideo video={video} key={`video-${video.id}`} />
       ))}
     </Box>
   );

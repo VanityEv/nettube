@@ -43,7 +43,15 @@ export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: 
     <TableContainer component={'div'}>
       <InputBase
         placeholder="Search users..."
-        sx={{ backgroundColor: 'white', borderRadius: '60px', py: 1, pl: '12px', m: 2, border: 1 }}
+        sx={{
+          backgroundColor: 'transparent',
+          borderRadius: '60px',
+          color: 'white',
+          border: '1px solid #e51445',
+          py: 1,
+          pl: '12px',
+          m: 2,
+        }}
         startAdornment={
           <InputAdornment position="start">
             <Search color="primary" />
@@ -54,7 +62,7 @@ export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: 
       />
       <Table aria-label="users-table">
         <TableHead>
-          <TableRow sx={{ backgroundColor: 'grey.100' }}>
+          <TableRow sx={{ backgroundColor: 'primary.400', '&>th': { color: 'white' } }}>
             <TableCell sx={{ fontWeight: 'bold', position: 'sticky' }}>Username</TableCell>
             <TableCell align="left" sx={{ fontWeight: 'bold', position: 'sticky' }}>
               Email
@@ -69,7 +77,7 @@ export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: 
         </TableHead>
         <TableBody sx={{ borderBottom: 0 }}>
           {pagedData.map(user => (
-            <TableRow key={user.id}>
+            <TableRow key={user.id} sx={{ '&>th,td': { color: 'white' } }}>
               <TableCell component="th" scope="row">
                 {user.username}
               </TableCell>
@@ -90,8 +98,14 @@ export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: 
             </TableRow>
           ))}
         </TableBody>
-        <Typography sx={{ my: 1, ml: 1 }}>Page:</Typography>
-        <Pagination count={getPageCount()} page={currentPage} onChange={handleChangePage} />
+        <Typography sx={{ my: 1, ml: 1, color: 'white' }}>Page:</Typography>
+        <Pagination
+          count={getPageCount()}
+          page={currentPage}
+          onChange={handleChangePage}
+          sx={{ '&>ul>li>button': { color: 'white' } }}
+          color="secondary"
+        />
       </Table>
     </TableContainer>
   );

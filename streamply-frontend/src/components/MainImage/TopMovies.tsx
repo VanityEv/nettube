@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Video } from '../../store/videos.types';
 import styled from 'styled-components';
 import { Box, Grid, Typography } from '@mui/material';
@@ -17,16 +16,11 @@ export const TrailerBackground = styled('div')`
   background-size: cover;
 `;
 
-export const TopMovies = ({ mainMovie, topMovies, autoplayTrailer }: TopMoviesProps) => {
+export const TopMovies = () => {
   const { videos } = useVideosStore();
   const displayVideos = videos.slice(0, 10);
   const titles = videos.map(video => video.title).slice(0, 10);
   const posters = videos.map(video => video.thumbnail).slice(0, 10);
-  // const movie = [
-  //   'https://wallpapercave.com/wp/wp3982534.jpg',
-  //   'https://s.studiobinder.com/wp-content/uploads/2018/02/Ultimate-Guide-To-Camera-Shots-Single-Shot.jpeg?resolution=2560,2',
-  //   'https://www.careersinfilm.com/wp-content/uploads/2019/05/wide-shot-days-of-heaven.jpg',
-  // ];
 
   return (
     <Box sx={{ height: 'calc(100vh - 4.5rem)' }}>
@@ -54,7 +48,7 @@ export const TopMovies = ({ mainMovie, topMovies, autoplayTrailer }: TopMoviesPr
           </Grid>
           <Grid item sx={{ width: '60%', height: '100%' }}>
             <MoviesCarousel
-              movies={videos.slice(0, 10)}
+              movies={displayVideos}
               selectedMovie={titles[0]}
               carouselTitle="Hot Movies"
               carouselTitleTextVariant="h4"

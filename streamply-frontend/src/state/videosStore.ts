@@ -12,7 +12,7 @@ export type VideoState = {
 };
 
 type VideoActions = {
-  setVideos: () => void;
+  setVideos: () => Promise<void>;
   reset: () => void;
 };
 

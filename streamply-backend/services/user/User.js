@@ -38,13 +38,13 @@ const checkOccurency = async (param, value, requestCallback) => {
   await query(dbQuery, requestCallback);
 };
 
-const deleteLike = async (username, show_title, requestCallback) => {
-  const dbQuery = `DELETE FROM user_likes WHERE user_id = (SELECT id from users where username = "${username}") AND video_id = (SELECT id from videos WHERE title = "${show_title}")`;
+const deleteLike = async (username, show_id, requestCallback) => {
+  const dbQuery = `DELETE FROM user_likes WHERE user_id = (SELECT id from users where username = "${username}") AND video_id = ${show_id}`;
   await query(dbQuery, requestCallback);
 };
 
-const addLike = async (username, show_title, requestCallback) => {
-  const dbQuery = `INSERT INTO user_likes(video_id,user_id) VALUES((SELECT id FROM videos WHERE title="${show_title}"), (SELECT id FROM users WHERE username="${username}"))`;
+const addLike = async (username, show_id, requestCallback) => {
+  const dbQuery = `INSERT INTO user_likes(video_id,user_id) VALUES(${show_id}, (SELECT id FROM users WHERE username="${username}"))`;
   await query(dbQuery, requestCallback);
 };
 
