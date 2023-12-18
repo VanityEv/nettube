@@ -38,7 +38,6 @@ UserRouter.post('/signup', async (req, res) => {
           password: hashedPassword,
           birthdate: req.body.birthdate,
           email: req.body.email,
-          subscription: req.body.subscription,
           registerToken: registerToken,
         };
 
@@ -47,11 +46,11 @@ UserRouter.post('/signup', async (req, res) => {
             sendConfirmationEmail(userToRegister.email, registerToken);
             res.status(200).json({ result: 'SUCCESS' });
           } else {
-            res.status(400).json({ error: 'INTERNAL_ERROR' });
+            res.status(400).json({ result: 'INTERNAL_ERROR' });
           }
         });
       } else {
-        res.json({ error: 'ALREADY_SIGNED' });
+        res.json({ result: 'ALREADY_SIGNED' });
       }
     });
   } catch (error) {
@@ -73,7 +72,7 @@ UserRouter.post('/signin', async (req, res) => {
           if (result) {
             await updateUserLoginDate(req.body.username, () => {});
             // sign token and send it in response
-            const token = await jwt.sign({ username: userToLogin.username }, SECRET);
+            const token = jwt.sign({ username: userToLogin.username }, SECRET);
 
             res.status(200).json({
               result: 'SUCCESS',

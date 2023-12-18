@@ -342,23 +342,17 @@ export default function ProfileCard({
                   <DesktopDatePicker
                     aria-label="birthdate-field"
                     label="Choose new birthdate"
-                    inputFormat="YYYY/DD/MM"
                     value={dateValue}
                     maxDate={todayDate}
                     onChange={handleDateChange}
-                    PopperProps={{ sx: { zIndex: 9999 } }}
-                    renderInput={params => <TextField name="birthdate" {...params} />}
                   />
                 ) : (
                   <MobileDatePicker
                     aria-label="birthdate-field"
                     label="Choose new birthdate"
-                    inputFormat="YYYY/DD/MM"
                     value={dateValue}
                     maxDate={todayDate}
                     onChange={handleDateChange}
-                    DialogProps={{ sx: { zIndex: 9999 } }}
-                    renderInput={params => <TextField name="birthdate" {...params} />}
                   />
                 )}
               </LocalizationProvider>
