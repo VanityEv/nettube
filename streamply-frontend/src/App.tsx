@@ -132,6 +132,13 @@ const App = () => {
               },
             },
           },
+          MuiPaper: {
+            styleOverrides: {
+              root: {
+                backgroundColor: '#0b0815',
+              },
+            },
+          },
           MuiCssBaseline: {
             styleOverrides: {
               body: {
