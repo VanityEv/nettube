@@ -4,8 +4,8 @@ const createUser = async (
   { username, fullname, password, birthdate, email, subscription, registerToken },
   requestCallback
 ) => {
-  const dbQuery = `INSERT INTO users (username, fullname, password, birthdate, subscription, confirmed, email, register_token, account_type, register_date, last_login)
-                     VALUES ("${username}", "${fullname}", "${password}", "${birthdate}", ${subscription}, 0, "${email}", "${registerToken}", 1, NOW(), NOW());`;
+  const dbQuery = `INSERT INTO users (username, fullname, password, birthdate, confirmed, email, register_token, account_type, register_date, last_login)
+                     VALUES ("${username}", "${fullname}", "${password}", "${birthdate}", 0, "${email}", "${registerToken}", 1, NOW(), NOW());`;
   await query(dbQuery, requestCallback);
 };
 const getAllUsers = async requestCallback => {
