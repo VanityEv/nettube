@@ -19,6 +19,7 @@ export const PersonalData = () => {
       sx={{
         display: 'flex',
         justifyContent: 'space-between',
+        flexDirection: { mobile: 'column', desktop: 'row' },
         backgroundColor: 'secondary.400',
         color: 'white',
         gap: 2,
@@ -27,7 +28,7 @@ export const PersonalData = () => {
       <Box sx={{ width: '100%' }}>
         <Typography variant="h6">Personal Information</Typography>
         <Divider sx={{ my: 2 }} />
-        <Box sx={{ '&>div': { my: 1 } }}>
+        <Box sx={{ '&>div': { my: 1 }, '&>div>p': { width: { mobile: '35%', desktop: '20%' } } }}>
           <Box
             sx={{
               display: 'flex',
@@ -37,27 +38,19 @@ export const PersonalData = () => {
               width: '100%',
             }}
           >
-            <Typography sx={{ width: '20%' }} fontWeight={600}>
-              Username:
-            </Typography>
+            <Typography fontWeight={600}>Username:</Typography>
             <EditableInput value={data?.username} />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-            <Typography sx={{ width: '20%' }} fontWeight={600}>
-              Birth date:{' '}
-            </Typography>
+            <Typography fontWeight={600}>Birth date: </Typography>
             <EditableInput value={data?.birthdate.substring(0, 10)} />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-            <Typography sx={{ width: '20%' }} fontWeight={600}>
-              Full name:
-            </Typography>
+            <Typography fontWeight={600}>Full name:</Typography>
             <EditableInput value={data?.fullname} />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-            <Typography sx={{ width: '20%' }} fontWeight={600}>
-              Email:{' '}
-            </Typography>
+            <Typography fontWeight={600}>Email: </Typography>
             <EditableInput value={data?.email} />
           </Box>
         </Box>

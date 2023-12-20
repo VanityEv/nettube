@@ -24,10 +24,12 @@ function Signout() {
     <>
       <Container component="main" maxWidth="desktop" sx={{ display: 'flex', flexDirection: 'column', mt: 15, mb: 15 }}>
         <Stack spacing={3}>
-          <Typography sx={{ textAlign: 'center', fontSize: '16px' }}>You were succesfully logged out.</Typography>
+          <Typography sx={{ textAlign: 'center', fontSize: '16px', color: 'white' }}>
+            You were succesfully logged out.
+          </Typography>
           <Button
-            size="large"
-            variant="contained"
+            size="medium"
+            variant="outlined"
             onClick={() => {
               returnToSignIn();
             }}

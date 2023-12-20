@@ -127,14 +127,18 @@ function ResponsiveAppBar() {
                 {getCookie('userAccountType') === '3' && (
                   <MenuItem key={'dashboard'} onClick={handleCloseUserMenu}>
                     <Link style={{ textDecoration: 'none', color: 'inherit' }} key={'dashboard'} to={'/dashboard'}>
-                      <Typography textAlign="center">Dashboard</Typography>
+                      <Typography textAlign="center" sx={{ color: 'white', '&:hover': { color: 'primary.600' } }}>
+                        Dashboard
+                      </Typography>
                     </Link>
                   </MenuItem>
                 )}
                 {settings.map((setting, key) => (
                   <MenuItem key={key} onClick={handleCloseUserMenu}>
                     <Link style={{ textDecoration: 'none', color: 'inherit' }} key={key} to={'/' + setting}>
-                      <Typography textAlign="center">{setting[0].toUpperCase() + setting.slice(1)}</Typography>
+                      <Typography textAlign="center" sx={{ color: 'white', '&:hover': { color: 'primary.600' } }}>
+                        {setting[0].toUpperCase() + setting.slice(1)}
+                      </Typography>
                     </Link>
                   </MenuItem>
                 ))}

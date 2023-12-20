@@ -105,15 +105,15 @@ export const VideosTable = ({ columnNames, data, actions }: VideoTableProps) => 
             </TableRow>
           ))}
         </TableBody>
-        <Typography sx={{ my: 1, ml: 1, color: 'white' }}>Page:</Typography>
-        <Pagination
-          sx={{ '&>ul>li>button': { color: 'white' } }}
-          color="secondary"
-          count={getPageCount()}
-          page={currentPage}
-          onChange={handleChangePage}
-        />
       </Table>
+      <Typography sx={{ my: 1, ml: 1, color: 'white' }}>Page:</Typography>
+      <Pagination
+        sx={{ '&>ul>li>button': { color: 'white' } }}
+        color="secondary"
+        count={getPageCount()}
+        page={currentPage}
+        onChange={handleChangePage}
+      />
     </TableContainer>
   );
 };

@@ -98,15 +98,15 @@ export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: 
             </TableRow>
           ))}
         </TableBody>
-        <Typography sx={{ my: 1, ml: 1, color: 'white' }}>Page:</Typography>
-        <Pagination
-          count={getPageCount()}
-          page={currentPage}
-          onChange={handleChangePage}
-          sx={{ '&>ul>li>button': { color: 'white' } }}
-          color="secondary"
-        />
       </Table>
+      <Typography sx={{ my: 1, ml: 1, color: 'white' }}>Page:</Typography>
+      <Pagination
+        count={getPageCount()}
+        page={currentPage}
+        onChange={handleChangePage}
+        sx={{ '&>ul>li>button': { color: 'white' } }}
+        color="secondary"
+      />
     </TableContainer>
   );
 };

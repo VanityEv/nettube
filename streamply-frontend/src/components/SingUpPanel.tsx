@@ -63,7 +63,7 @@ export const SignUpPanel = () => {
         birthdate: birthdateAsDate,
       });
       if (signUpResponse.status === 200) {
-        navigate('/singin');
+        navigate('/signin');
       }
     } catch (error) {
       console.error(error);
@@ -197,6 +197,8 @@ export const SignUpPanel = () => {
                   views={['year', 'month', 'day']}
                   format="YYYY-MM-DD"
                   inputRef={ref}
+                  maxDate={dayjs()}
+                  minDate={dayjs('1900-01-01')}
                   {...field}
                   sx={{
                     width: {
@@ -210,6 +212,13 @@ export const SignUpPanel = () => {
                     },
                   }}
                   slotProps={{
+                    inputAdornment: {
+                      sx: {
+                        '.MuiSvgIcon-root': {
+                          color: 'white',
+                        },
+                      },
+                    },
                     layout: {
                       sx: {
                         '.MuiDateCalendar-root': {
@@ -221,10 +230,16 @@ export const SignUpPanel = () => {
                         '.MuiPickersDay-root': {
                           color: 'white',
                         },
+                        '.MuiPickersDay-root:focus': {
+                          backgroundColor: '#e51445',
+                        },
                         '.MuiPickersLayout-root': {
                           p: 2,
                         },
                         '.Mui-selected:hover': {
+                          backgroundColor: '#e51445',
+                        },
+                        '.Mui-selected': {
                           backgroundColor: '#e51445',
                         },
                         '.MuiSvgIcon-root': {
