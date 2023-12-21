@@ -1,6 +1,6 @@
 import { Box, Typography, Stack, TextField, Button, Link } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
-import { ZodError, z } from 'zod';
+import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 import { SERVER_ADDR, SERVER_PORT } from '../constants';

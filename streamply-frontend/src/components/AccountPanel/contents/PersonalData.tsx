@@ -5,7 +5,7 @@ import { useUserStore } from '../../../state/userStore';
 
 export const PersonalData = () => {
   const { username } = useUserStore();
-  const { data, isLoading, isError, error } = useFetchUser(username);
+  const { data, isLoading, isError, error, refetch } = useFetchUser(username);
 
   if (isLoading) {
     return <Typography>'Loading...'</Typography>;
@@ -28,7 +28,12 @@ export const PersonalData = () => {
       <Box sx={{ width: '100%' }}>
         <Typography variant="h6">Personal Information</Typography>
         <Divider sx={{ my: 2 }} />
-        <Box sx={{ '&>div': { my: 1 }, '&>div>p': { width: { mobile: '35%', desktop: '20%' } } }}>
+        <Box
+          sx={{
+            '&>div': { my: 1 },
+            '&>div>p': { width: { mobile: '35%', desktop: '20%' } },
+          }}
+        >
           <Box
             sx={{
               display: 'flex',
@@ -39,19 +44,19 @@ export const PersonalData = () => {
             }}
           >
             <Typography fontWeight={600}>Username:</Typography>
-            <EditableInput value={data?.username} />
+            <EditableInput param="username" value={data?.username} onSuccess={refetch} />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
             <Typography fontWeight={600}>Birth date: </Typography>
-            <EditableInput value={data?.birthdate.substring(0, 10)} />
+            <EditableInput param="birthdate" type="date" value={data?.birthdate.substring(0, 10)} onSuccess={refetch} />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
             <Typography fontWeight={600}>Full name:</Typography>
-            <EditableInput value={data?.fullname} />
+            <EditableInput param="fullname" value={data?.fullname} onSuccess={refetch} />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
             <Typography fontWeight={600}>Email: </Typography>
-            <EditableInput value={data?.email} />
+            <EditableInput param="email" value={data?.email} onSuccess={refetch} />
           </Box>
         </Box>
       </Box>

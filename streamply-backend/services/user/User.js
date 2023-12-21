@@ -53,6 +53,11 @@ const deleteUser = async (id, requestCallback) => {
   await query(dbQuery, requestCallback);
 };
 
+const changePassword = async (username, password, requestCallback) => {
+  const dbQuery = `UPDATE users SET password = '${password}' WHERE username = '${username}'`;
+  await query(dbQuery, requestCallback);
+};
+
 const updateUserLoginDate = async (username, requestCallback) => {
   const dbQuery = `UPDATE users SET last_login = NOW() WHERE username = '${username}'`;
   await query(dbQuery, requestCallback);
@@ -70,5 +75,6 @@ export {
   deleteLike,
   addLike,
   deleteUser,
+  changePassword,
   updateUserLoginDate,
 };

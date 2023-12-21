@@ -16,6 +16,7 @@ import {
   addLike,
   deleteUser,
   updateUserLoginDate,
+  changePassword,
 } from './User.js';
 import { sendConfirmationEmail } from '../mail/Mail.js';
 
@@ -115,6 +116,41 @@ UserRouter.post('/signin', async (req, res) => {
   }
 });
 
+UserRouter.post('/changePassword', async (req, res) => {
+  try {
+    //find user to update
+    await findOneUser(req.body.username, async user => {
+      const userToConfirm = user[0];
+      //user found
+      if (userToConfirm) {
+        //check JWT token compatibility
+        if (jwt.decode(req.body.token).username === userToConfirm.username) {
+          //check if oldPassword matches one in database
+          bcrypt.compare(req.body.oldPassword, userToConfirm.password, async (err, response) => {
+            if (err) {
+              res.json({ result: 'ERR_PASSWORD_MISMATCH' });
+            }
+            if (response) {
+              //change user password
+              const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
+              await changePassword(userToConfirm.username, hashedPassword, () => {});
+              res.status(200).json({ result: 'SUCCESS' });
+            } else {
+              res.status(401).json({ result: 'ERR_PASSWORD_MISMATCH' });
+            }
+          });
+        } else {
+          res.status(401).json({ result: 'ERR_JWT_MISMATCH' });
+        }
+      } else {
+        res.status(401).json({ result: 'ERR_INVALID_USERNAME' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ result: 'INTERNAL SERVER ERROR' });
+  }
+});
+
 UserRouter.post('/confirmRegister', async (req, res) => {
   try {
     await confirmUser(req.body.token, async response => {
@@ -175,7 +211,7 @@ UserRouter.post('/updateUser', async (req, res) => {
 UserRouter.post('/checkOccurency', async (req, res) => {
   try {
     await checkOccurency(req.body.param, req.body.value, async response => {
-      const status = response[0].exists === 0 ? 'NOT EXISTS' : 'ALREADY EXISTS';
+      const status = response[0].exists === 0 ? 'NOT_EXISTS' : 'ALREADY_EXISTS';
       res.status(200).json({ result: status });
     });
   } catch (error) {

@@ -1,9 +1,9 @@
 const config = {
   db: {
     host: 'localhost',
-    user: 'nettubeuser',
+    user: 'streamply_client',
     password: '4VFzEiO9AJHCILV',
-    database: 'nettube',
+    database: 'streamply',
   },
   server: {
     port: 3001,
