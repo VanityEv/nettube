@@ -1,6 +1,6 @@
 import { Box, IconButton, InputAdornment, InputBase, Modal, Zoom } from '@mui/material';
 import { useVideosStore } from '../../state/videosStore';
-import { SingleVideo } from '../GenreBrowser/SingleVideo';
+import { SingleVideo } from '../VideoViews/SingleVideo';
 import { useState } from 'react';
 import { Close, Search, SearchOutlined } from '@mui/icons-material';
 

@@ -3,6 +3,8 @@ import { Box, Tab, Tabs } from '@mui/material';
 import { useState } from 'react';
 import { TabPanel } from './TabPanel';
 import { AccountPanel } from './AccountPanel/AccountPanel';
+import { Watchlist } from './AccountPanel/contents/Watchlist';
+import { UserReviews } from './AccountPanel/contents/UserReviews';
 
 export type UserEntry = {
   id: number;
@@ -36,10 +38,10 @@ function UserTabs() {
         <AccountPanel />
       </TabPanel>
       <TabPanel index={1} value={tabValue}>
-        <></>
+        <Watchlist />
       </TabPanel>
       <TabPanel index={2} value={tabValue}>
-        <></>
+        <UserReviews />
       </TabPanel>
     </Box>
   );

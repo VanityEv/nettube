@@ -24,6 +24,7 @@ import Dashboard from './pages/Dashboard';
 import ProtectedRoute, { ProtectedRouteProps } from './ProtectedRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getCookie } from 'typescript-cookie';
+import { VideoPage } from './components/VideoPage/VideoPage';
 
 /**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
  *   const navigate = useNavigate();
@@ -219,10 +220,6 @@ const App = () => {
 
             <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<HomePage />} />} path="/" />
 
-            <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Movies />} />} path="/movies" />
-
-            <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Series />} />} path="/series" />
-
             <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Genres />} />} path="/genres" />
 
             <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Profile />} />} path="/profile" />
@@ -230,6 +227,20 @@ const App = () => {
             <Route
               element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Dashboard />} />}
               path="/dashboard"
+            />
+            <Route
+              element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
+              path="/series/:title"
+            />
+
+            <Route
+              element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
+              path="/movies/:title"
+            />
+
+            <Route
+              element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
+              path="/video/:id"
             />
 
             <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Signout />} />} path="/signout" />

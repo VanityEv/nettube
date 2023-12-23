@@ -51,7 +51,7 @@ export const ChangePasswordModal = () => {
         newPassword: data.newPassword,
       });
       if (response.status === 200) {
-        console.log('Jestem bogiem kurwa');
+        //TODO: PASSWORD CHANGE SNACKBAR
       }
     } catch (error) {
       console.error(error);

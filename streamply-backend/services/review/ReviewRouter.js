@@ -43,7 +43,7 @@ ReviewsRouter.get('/userReviews/:username', async (req, res) => {
   try {
     const username = req.params.username;
     await getReviewsByUser(username, userReviews => {
-      res.status(200).json({ result: 'SUCCESS', data: userReviews });
+      res.status(200).json({ result: 'SUCCESS', reviews: userReviews });
     });
   } catch (error) {
     res.status(400).json({ error });
