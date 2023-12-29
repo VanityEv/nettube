@@ -12,28 +12,29 @@
     "@mui/lab": "^5.0.0-alpha.156",
     "@mui/material": "^5.15.0",
     "@mui/x-date-pickers": "^6.18.5",
-    "@reduxjs/toolkit": "^1.9.1",
     "@tanstack/react-query": "^5.8.3",
     "@types/node": "^16.18.3",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
+    "@types/video.js": "^7.3.56",
     "all": "^0.0.0",
     "axios": "^1.6.1",
     "css-loader": "^6.7.2",
     "date-fns": "^3.0.0",
     "dayjs": "^1.11.6",
     "moment": "^2.29.4",
+    "mux.js": "^6.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.49.2",
     "react-indiana-drag-scroll": "^3.0.3-alpha",
-    "react-redux": "^8.0.5",
     "react-router-dom": "^6.4.3",
     "react-scripts": "5.0.1",
     "styled-components": "^5.3.6",
     "swiper": "^8.4.5",
     "typescript": "^4.9.3",
     "typescript-cookie": "^1.0.6",
+    "video.js": "^8.6.1",
     "zod": "^3.22.4",
     "zustand": "^4.4.7"
   },
@@ -44,11 +45,22 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
-    "extends": ["react-app", "react-app/jest"]
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
   },
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
-    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
   "devDependencies": {
     "@types/styled-components": "^5.1.26"

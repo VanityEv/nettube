@@ -1,14 +1,13 @@
-import { uiActions } from '../store/ui';
-import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { InputAdornment, InputBase, TextField } from '@mui/material';
 import { Search } from '@mui/icons-material';
+import { useState } from 'react';
 
 function SearchBar() {
-  const dispatch = useAppDispatch();
-  const searchValue = useAppSelector(state => state.ui.searchValue);
+  const [searchValue, setSearchValue] = useState('');
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(uiActions.onChangeSearchValue(event.target.value));
+    const newValue = event.target.value;
+    setSearchValue(newValue);
   };
 
   return (

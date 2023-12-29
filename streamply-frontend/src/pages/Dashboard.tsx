@@ -1,4 +1,4 @@
-import AdminAccordion from '../components/AdminAccordion';
+import AdminTabs from '../components/AdminTabs';
 
 function Dashboard() {
   // const sendUpdateQuery = async (param: string, value: string) => {
@@ -18,8 +18,7 @@ function Dashboard() {
 
   return (
     <>
-      {/* <ProfileCard {...userProfileInfo} /> */}
-      <AdminAccordion />
+      <AdminTabs />
     </>
   );
 }

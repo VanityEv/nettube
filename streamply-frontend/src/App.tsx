@@ -1,24 +1,16 @@
 import { ThemeProvider } from '@mui/system';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
-import Genres from './pages/Genres';
 import HomePage from './pages/HomePage';
-import Movies from './pages/Movies';
-import Series from './pages/Series';
 import Profile from './pages/Profile';
-import { useEffect, useMemo } from 'react';
-import { fetchVideosData } from './store/videos-actions';
-import { useAppDispatch, useAppSelector } from './hooks/useRedux';
+import { useMemo } from 'react';
 import ResetPassword from './pages/ResetPassword';
-import { fetchReviewsData } from './store/reviews-actions';
 import ConfirmRegister from './pages/ConfirmRegister';
 import AppBar from './components/AppBar';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
-import { uiActions } from './store/ui';
 import Signout from './pages/Signout';
-import { userLogin } from './store/user-actions';
-import Player from './pages/Player';
+import { VideoPlayer } from './pages/Player';
 import { Box, createTheme, CssBaseline, Divider } from '@mui/material';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute, { ProtectedRouteProps } from './ProtectedRoute';
@@ -64,7 +56,6 @@ declare module '@mui/material/styles' {
 }
 
 const App = () => {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -175,23 +166,6 @@ const App = () => {
 
   const queryClient = new QueryClient();
 
-  useEffect(() => {
-    dispatch(fetchVideosData());
-    dispatch(fetchReviewsData());
-  }, [dispatch]);
-
-  useEffect(() => {
-    dispatch(uiActions.onChangeRoute({ route: location.pathname.slice(1) }));
-  }, [dispatch, location]);
-
-  useEffect(() => {
-    const token = localStorage.getItem('userToken');
-    const username = localStorage.getItem('username');
-    if (token && username) {
-      dispatch(userLogin({ token, username }));
-    }
-  }, [dispatch, navigate]);
-
   const defaultProtectedRouteProps: Omit<ProtectedRouteProps, 'outlet'> = {
     isAuthenticated: !!getCookie('userToken'),
     authenticationPath: '/signin',
@@ -220,8 +194,6 @@ const App = () => {
 
             <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<HomePage />} />} path="/" />
 
-            <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Genres />} />} path="/genres" />
-
             <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Profile />} />} path="/profile" />
 
             <Route
@@ -238,14 +210,17 @@ const App = () => {
               path="/movies/:title"
             />
 
-            <Route
+            {/* <Route
               element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
               path="/video/:id"
-            />
+            /> */}
 
             <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Signout />} />} path="/signout" />
 
-            <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Player />} />} path="/watch" />
+            <Route
+              element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPlayer />} />}
+              path="/video/:id"
+            />
           </Routes>
         </Box>
         {/* <Divider sx={{ margin: '24px 0' }} />

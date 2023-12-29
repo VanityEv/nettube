@@ -1,11 +1,5 @@
-import VideosList from '../components/VideosList';
-
 function Movies() {
-  return (
-    <>
-      <VideosList type="movies" />
-    </>
-  );
+  return <></>;
 }
 
 export default Movies;

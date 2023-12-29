@@ -39,6 +39,7 @@ function HomePage() {
           posterVariant="overlay"
           carouselTitle="Most Popular Movies"
           carouselTitleTextVariant="h4"
+          withLink
         />
         <MoviesCarousel
           movies={popularSeries}
@@ -47,6 +48,7 @@ function HomePage() {
           posterVariant="overlay"
           carouselTitle="Top Watched Series"
           carouselTitleTextVariant="h4"
+          withLink
         />
         <MoviesCarousel
           movies={watchlist}
@@ -55,6 +57,7 @@ function HomePage() {
           posterVariant="overlay"
           carouselTitle="Your Watchlist"
           carouselTitleTextVariant="h4"
+          withLink
         />
         <GenreBrowser />
       </Box>

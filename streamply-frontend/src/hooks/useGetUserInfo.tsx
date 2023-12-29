@@ -1,7 +1,21 @@
 import axios from 'axios';
-import { ProfileInfo } from '../components/ProfileCard';
 import { SERVER_ADDR, SERVER_PORT } from '../constants';
 import { useQuery } from '@tanstack/react-query';
+
+type ProfileInfo = {
+  fullname: string;
+  email: string;
+  birthdate: string;
+};
+
+type AvatarResponse = {
+  result: string;
+};
+
+type UserData = {
+  user: ProfileInfo;
+  avatarUrl: string; // Change the type here
+};
 
 const fetchUser = async (username: string) => {
   try {
@@ -20,14 +34,44 @@ const fetchUser = async (username: string) => {
   }
 };
 
+const fetchAvatar = async (username: string) => {
+  try {
+    const response = await axios.get<AvatarResponse>(`${SERVER_ADDR}:${SERVER_PORT}/user/getAvatar/${username}`);
+
+    if (response.status === 200) {
+      return response.data.result;
+    } else {
+      return '';
+    }
+  } catch (error) {
+    console.error('Error fetching avatar:', error);
+    throw error;
+  }
+};
+
 export const useFetchUser = (username: string) => {
-  const { data, isLoading, isError, isFetching, error, refetch } = useQuery<ProfileInfo, Error>({
+  const {
+    data: userData,
+    isLoading,
+    isError,
+    isFetching,
+    error,
+    refetch,
+  } = useQuery<UserData, Error>({
     queryKey: ['userInfo'],
-    queryFn: () => fetchUser(username),
+    queryFn: async () => {
+      const userPromise = fetchUser(username);
+      const avatarPromise = fetchAvatar(username);
+
+      const [user, avatarUrl] = await Promise.all([userPromise, avatarPromise]);
+
+      return { user, avatarUrl };
+    },
     refetchOnWindowFocus: false,
   });
+
   return {
-    data,
+    userData,
     isLoading,
     isError,
     error,

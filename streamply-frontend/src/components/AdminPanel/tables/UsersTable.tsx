@@ -12,9 +12,15 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { UserEntry } from '../../AdminAccordion';
 import { useState } from 'react';
 import { filterDataFromKeys } from '../../../helpers/filterDataFromKeys';
+
+type UserEntry = {
+  id: number;
+  username: string;
+  last_login: string;
+  email: string;
+};
 
 export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: (id: number) => void }) => {
   const [currentPage, setCurrentPage] = useState(1);

@@ -2,9 +2,6 @@ import { CameraRoll, HighlightOff, LocalMovies, People, Person } from '@mui/icon
 import { Alert, Box, Snackbar, Tab, Tabs } from '@mui/material';
 import useHttp from '../hooks/useHttp';
 import { useCallback, useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
-import { uiActions } from '../store/ui';
-import { fetchVideosData } from '../store/videos-actions';
 import { UsersTable } from './AdminPanel/tables/UsersTable';
 import VideosTable from './AdminPanel/tables/VideosTable';
 import { TableConfig, VideoActionsConfigType, tableColumns } from './AdminPanel/tables/VideoTableConfig';
@@ -21,8 +18,6 @@ export type UserEntry = {
 
 //TODO: CSS - poprawki i layout
 function AdminTabs() {
-  const dispatch = useAppDispatch();
-  const snackbar = useAppSelector(state => state.ui.snackbar);
   const { videos } = useVideosStore();
   const [tabValue, setTabValue] = useState(0);
 
@@ -48,17 +43,7 @@ function AdminTabs() {
       endpoint: `/user/deleteUser`,
     });
     if (response.result === 'success') {
-      dispatch(
-        uiActions.onShowSnackbar({
-          snackbar: {
-            content: 'User has been banned!',
-            severity: 'success',
-          },
-        })
-      );
-      setTimeout(() => {
-        dispatch(uiActions.onHideSnackbar());
-      }, 3000);
+      //TODO: Handle
       sendFetchUsersQuery();
     }
   }, []);
@@ -73,18 +58,7 @@ function AdminTabs() {
       endpoint: `/videos/deleteVideo`,
     });
     if (response.result === 'success') {
-      dispatch(
-        uiActions.onShowSnackbar({
-          snackbar: {
-            content: 'Video has been deleted!',
-            severity: 'success',
-          },
-        })
-      );
-      setTimeout(() => {
-        dispatch(uiActions.onHideSnackbar());
-      }, 3000);
-      dispatch(fetchVideosData());
+      //TODO: Handle
     }
   }, []);
 
@@ -124,27 +98,6 @@ function AdminTabs() {
 
   return (
     <Box sx={{ flexGrow: 3, pb: 3 }}>
-      <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'center' }} open={snackbar.isOpened}>
-        <Alert
-          onClose={() => {
-            dispatch(
-              uiActions.onShowSnackbar({
-                snackbar: {
-                  content: 'Video has been added!',
-                  severity: 'success',
-                },
-              })
-            );
-            setTimeout(() => {
-              dispatch(uiActions.onHideSnackbar());
-            }, 3000);
-          }}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.content}
-        </Alert>
-      </Snackbar>
       <Tabs
         value={tabValue}
         onChange={(event, newValue: number) => setTabValue(newValue)}

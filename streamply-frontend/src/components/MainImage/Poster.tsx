@@ -1,23 +1,15 @@
-import { Box, ButtonBase, Divider, Stack, Typography, Zoom } from '@mui/material';
+import { Box, Divider, Stack, Typography, Zoom } from '@mui/material';
 
 type PosterProps = {
   posterURL: string;
   title: string;
   variant: 'overlay' | 'caption';
-  active: boolean;
-  setActive: (title: string) => void;
+  active?: boolean;
 };
 
-export const Poster = ({ posterURL, title, variant, active, setActive }: PosterProps) => {
+export const Poster = ({ posterURL, title, variant, active }: PosterProps) => {
   return (
-    <ButtonBase
-      sx={{ height: '100%' }}
-      onClick={() => {
-        sessionStorage.setItem('selectedMovie', title);
-        sessionStorage.setItem('selectedMovieBackground', posterURL);
-        setActive(title);
-      }}
-    >
+    <>
       {variant === 'caption' ? (
         <Stack sx={{ alignItems: 'center' }}>
           <img
@@ -74,6 +66,6 @@ export const Poster = ({ posterURL, title, variant, active, setActive }: PosterP
           </Typography>
         </Box>
       )}
-    </ButtonBase>
+    </>
   );
 };

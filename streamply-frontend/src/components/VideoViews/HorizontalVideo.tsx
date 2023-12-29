@@ -12,7 +12,7 @@ export const HorizontalVideo = ({ video }: { video: Video }) => {
     video.type === 'film' ? `/movies/${toKebabCase(video.title)}` : `/series/${toKebabCase(video.title)}`;
 
   return (
-    <Link to={destinationRoute}>
+    <Link style={{ textDecoration: 'none' }} to={destinationRoute}>
       <Box
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}

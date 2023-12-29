@@ -1,17 +1,20 @@
-import { Box, IconButton, Typography } from '@mui/material';
+import { Box, Button, IconButton, Typography } from '@mui/material';
 import { Video } from '../../store/videos.types';
-import { Favorite, FavoriteBorder } from '@mui/icons-material';
+import { Bookmark, BookmarkBorder, PlayCircleOutline } from '@mui/icons-material';
 import { getRatingColor } from '../../helpers/getRatingColors';
 import { useUserStore } from '../../state/userStore';
 import axios from 'axios';
 import { SERVER_ADDR, SERVER_PORT } from '../../constants';
 import { useState } from 'react';
+import { toKebabCase } from '../../helpers/convertToKebabCase';
 
 type UpdateResponse = { result: string };
 
 export const SingleVideo = ({ video }: { video: Video }) => {
   const { likes, username, setLikes } = useUserStore();
   const [liked, setLiked] = useState(likes.includes(video.id));
+  const destinationRoute =
+    video.type === 'film' ? `/movies/${toKebabCase(video.title)}` : `/series/${toKebabCase(video.title)}`;
 
   const updateUserLike = async (id: number, mode: 'add' | 'delete') => {
     const endpointPath = mode === 'add' ? '/user/addLike' : '/user/deleteLike';
@@ -78,15 +81,20 @@ export const SingleVideo = ({ video }: { video: Video }) => {
             Rating: {video.grade}
           </Typography>
         </Box>
-        {liked ? (
-          <IconButton onClick={() => handleLikeChange(video.id, 'delete')}>
-            <Favorite color="error" sx={{ mr: '2rem', mb: '1rem' }} />
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', mb: '1rem', mr: '0.5rem' }}>
+          {liked ? (
+            <IconButton onClick={() => handleLikeChange(video.id, 'delete')}>
+              <Bookmark color="error" />
+            </IconButton>
+          ) : (
+            <IconButton onClick={() => handleLikeChange(video.id, 'add')}>
+              <BookmarkBorder color="error" />
+            </IconButton>
+          )}
+          <IconButton href={destinationRoute} sx={{ color: 'white' }}>
+            <PlayCircleOutline />
           </IconButton>
-        ) : (
-          <IconButton onClick={() => handleLikeChange(video.id, 'add')}>
-            <FavoriteBorder color="error" sx={{ mr: '2rem', mb: '1rem' }} />
-          </IconButton>
-        )}
+        </Box>
       </Box>
     </Box>
   );

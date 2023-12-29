@@ -1,5 +1,8 @@
 //require("dotenv").config(); // load .env variables
 import { Router } from 'express'; // import router from express
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import {
   getAllVideos,
   getOneVideo,
@@ -12,6 +15,9 @@ import {
 } from './Video.js';
 
 const VideosRouter = Router(); // create router to create route bundle
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 //DESTRUCTURE ENV VARIABLES WITH DEFAULTS
 // const { SECRET = "secret" } = process.env;

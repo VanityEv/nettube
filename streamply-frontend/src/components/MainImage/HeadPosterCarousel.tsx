@@ -1,47 +1,28 @@
-import { Box, Button, ButtonBase, Stack, Typography, TypographyVariant } from '@mui/material';
+import { Box, Typography, TypographyVariant } from '@mui/material';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/scrollbar';
 import { Navigation, Scrollbar, Autoplay } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Poster } from './Poster';
-import { Fragment, ReactNode, cloneElement, useState } from 'react';
 import { Video } from '../../store/videos.types';
-import { ConditionalWrapper } from '../ConditionalWrapper';
-import { Link } from 'react-router-dom';
-import { toKebabCase } from '../../helpers/convertToKebabCase';
-import { LinkedSlide } from '../LinkedSlide';
 import { StatefulSlide } from '../StatefulSlide';
 
 type MoviesCarouselProps = {
   movies: Video[];
-  selectedMovie?: string;
-  withNavigation?: boolean;
-  slidesPerView?: number;
-  posterVariant?: 'caption' | 'overlay';
+  selectedMovie: Video;
+  setSelectedMovie: (video: Video) => void;
   carouselTitle?: string;
   carouselTitleTextVariant?: TypographyVariant;
   withLink?: boolean;
 };
 
-export const MoviesCarousel = ({
+export const HeadPosterCarousel = ({
   movies,
-  selectedMovie,
-  withNavigation,
-  slidesPerView = 5.5,
   carouselTitle,
-  carouselTitleTextVariant = 'h2',
-  withLink = false,
+  carouselTitleTextVariant = 'h4',
+  selectedMovie,
+  setSelectedMovie,
 }: MoviesCarouselProps) => {
-  const [isActive, setActive] = useState(selectedMovie);
-
-  const handleActiveChange = (title: string) => {
-    setActive(title);
-    if (selectedMovie) {
-      sessionStorage.setItem('selectedMovie', title);
-      sessionStorage.setItem('selectedMovieBackground', selectedMovie);
-    }
-  };
   return (
     <Box
       sx={{
@@ -61,19 +42,19 @@ export const MoviesCarousel = ({
       <Box sx={{ width: '100%' }}>
         <Swiper
           modules={[Navigation, Scrollbar, Autoplay]}
-          slidesPerView={slidesPerView}
+          slidesPerView={5.5}
           loop
           draggable
-          navigation={withNavigation}
+          navigation={false}
           style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}
         >
           {movies.map((movie, idx) => (
             <SwiperSlide key={`movie-${movie.title}-${movie.id}-${idx}`}>
-              {withLink ? (
-                <LinkedSlide movie={movie} />
-              ) : (
-                <StatefulSlide movie={movie} isActive={isActive === movie.title} setActive={handleActiveChange} />
-              )}
+              <StatefulSlide
+                movie={movie}
+                isActive={selectedMovie.title === movie.title}
+                setActive={() => setSelectedMovie(movie)}
+              />
             </SwiperSlide>
           ))}
         </Swiper>

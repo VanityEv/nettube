@@ -5,13 +5,14 @@ import { Security } from './contents/Security';
 
 export const AccountPanel = () => {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, p: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, p: 3 }}>
       <Box
         component={Paper}
         elevation={4}
         sx={{
           border: 2,
-          borderRadius: '10px',
+          borderRadius: '40px',
+          width: { desktop: '60%', mobile: '100%' },
           p: 2,
           borderColor: 'primary.600',
           backgroundColor: 'transparent',
@@ -27,7 +28,8 @@ export const AccountPanel = () => {
         elevation={4}
         sx={{
           border: 2,
-          borderRadius: '10px',
+          borderRadius: '40px',
+          width: { desktop: '60%', mobile: '100%' },
           p: 2,
           borderColor: 'primary.600',
           backgroundColor: 'transparent',

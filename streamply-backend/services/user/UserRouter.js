@@ -19,11 +19,89 @@ import {
   changePassword,
 } from './User.js';
 import { sendConfirmationEmail } from '../mail/Mail.js';
+import multer from 'multer';
+import path from 'path';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const UserRouter = Router();
 
 //DESTRUCTURE ENV VARIABLES WITH DEFAULTS
 const { SECRET = 'secret' } = process.env;
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const userFolderPath = path.join(__dirname, '../..', 'images', 'avatars');
+    cb(null, userFolderPath);
+  },
+  filename: function (req, file, cb) {
+    const username = req.params.username;
+    const fileExtension = path.extname(file.originalname).toLowerCase();
+    cb(null, `${username}${fileExtension}`);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  const allowedFileTypes = ['.jpeg', '.jpg', '.png'];
+  const fileExtension = path.extname(file.originalname).toLowerCase();
+  if (allowedFileTypes.includes(fileExtension)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only JPEG, JPG, and PNG files are allowed.'));
+  }
+};
+
+const upload = multer({ storage: storage, fileFilter: fileFilter });
+
+UserRouter.get('/getAvatar/:username', async (req, res) => {
+  try {
+    const username = req.params.username;
+    const avatarFormats = ['.jpeg', '.jpg', '.png'];
+    const avatarPath = avatarFormats
+      .map(format => path.join(__dirname, '../..', 'images', 'avatars', `${username}${format}`))
+      .find(path => fs.existsSync(path));
+
+    if (avatarPath) {
+      const fileExtension = path.extname(avatarPath).toLowerCase();
+      const resultPath = `/images/avatars/${username}${fileExtension}`;
+      res.status(200).json({ result: resultPath });
+    } else {
+      res.status(404).json({ result: 'AVATAR_NOT_FOUND' });
+    }
+  } catch (error) {
+    console.error('Error fetching avatar:', error);
+    res.status(500).json({ error: 'INTERNAL_SERVER_ERROR', details: error.message });
+  }
+});
+
+UserRouter.post('/uploadAvatar/:username', upload.single('avatar'), async (req, res) => {
+  try {
+    res.status(200).json({ result: 'SUCCESS' });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+});
+
+UserRouter.post('/getAvatars', async (req, res) => {
+  try {
+    const usernames = req.body.usernames; // Assuming client sends an array of usernames
+    const avatarFormats = ['.jpeg', '.jpg', '.png']; // Add more formats if needed
+
+    const avatarPaths = usernames.map(username =>
+      avatarFormats
+        .map(format => path.join(__dirname, '../..', 'images', 'avatars', `${username}${format}`))
+        .find(path => fs.existsSync(path))
+    );
+
+    res.status(200).json({ result: 'SUCCESS', avatars: avatarPaths });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+});
 
 // Signup route to create a new user
 UserRouter.post('/signup', async (req, res) => {
