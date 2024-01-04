@@ -10,7 +10,6 @@ export const PersonalData = () => {
   const { username } = useUserStore();
   const { userData, isLoading, isError, error, refetch } = useFetchUser(username);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  console.log(userData?.avatarUrl);
 
   if (isLoading) {
     return <Typography>'Loading...'</Typography>;

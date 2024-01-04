@@ -20,9 +20,6 @@ export const MoreInformation = ({ video }: { video: Video }) => {
         <Typography>Genre: {video.genre}</Typography>
       </Grid>
       <Grid item desktop={6} mobile={6}>
-        <Typography>Suggested age: {video.age_restriction} +</Typography>
-      </Grid>
-      <Grid item desktop={6} mobile={6}>
         <Typography>Average grade: {video.grade}</Typography>
       </Grid>
       <Grid item desktop={6} mobile={6}>

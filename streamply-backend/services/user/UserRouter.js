@@ -70,7 +70,7 @@ UserRouter.get('/getAvatar/:username', async (req, res) => {
       const resultPath = `/images/avatars/${username}${fileExtension}`;
       res.status(200).json({ result: resultPath });
     } else {
-      res.status(404).json({ result: 'AVATAR_NOT_FOUND' });
+      res.status(200).json({ result: 'AVATAR_NOT_FOUND' });
     }
   } catch (error) {
     console.error('Error fetching avatar:', error);
@@ -80,6 +80,17 @@ UserRouter.get('/getAvatar/:username', async (req, res) => {
 
 UserRouter.post('/uploadAvatar/:username', upload.single('avatar'), async (req, res) => {
   try {
+    //Delete previous avatar file
+    const username = req.params.username;
+    const otherAvatarFormats = ['.jpeg', '.jpg', '.png'].filter(
+      format => path.extname(req.file.originalname).toLowerCase() !== format
+    );
+    otherAvatarFormats.forEach(extension => {
+      const filename = path.join(__dirname, '../..', 'images', 'avatars', `${username}${extension}`);
+      if (fs.existsSync(filename)) {
+        fs.unlinkSync(filename);
+      }
+    });
     res.status(200).json({ result: 'SUCCESS' });
   } catch (error) {
     res.status(400).json({ error });
@@ -88,8 +99,8 @@ UserRouter.post('/uploadAvatar/:username', upload.single('avatar'), async (req, 
 
 UserRouter.post('/getAvatars', async (req, res) => {
   try {
-    const usernames = req.body.usernames; // Assuming client sends an array of usernames
-    const avatarFormats = ['.jpeg', '.jpg', '.png']; // Add more formats if needed
+    const usernames = req.body.usernames;
+    const avatarFormats = ['.jpeg', '.jpg', '.png'];
 
     const avatarPaths = usernames.map(username =>
       avatarFormats

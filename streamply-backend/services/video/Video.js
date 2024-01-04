@@ -1,4 +1,5 @@
 import query from '../db.js';
+import { toKebabCase } from '../../helpers/toKebabCase.js';
 
 const getOneVideo = async (title, requestCallback) => {
   const dbQuery = `SELECT * from videos where title = "${title}"`;
@@ -21,7 +22,18 @@ const deleteVideo = async (title, requestCallback) => {
 };
 
 const addVideo = async (video, resultCallback) => {
-  const dbQuery = `INSERT INTO videos(title, type, genre, production_year, production_country, director, age_restriction, tags, descr, thumbnail, alt, grade, tier, reviews_count,link) VALUES("${video.title}",'${video.type}',"${video.genre}",${video.production_year},"${video.production_country}","${video.director}",${video.age_restriction},'${video.tags}',"${video.descr}",'${video.thumbnail}','${video.alt}',0,${video.tier},0,'${video.link}')`;
+  const dbQuery = `INSERT INTO videos(title, type, genre, production_year, production_country, director, tags, descr, thumbnail, alt, grade, reviews_count,link) VALUES("${
+    video.title
+  }",'${video.type}',"${video.genre}",${video.productionYear},"${video.productionCountry}","${video.director}",'${
+    video.tags
+  }',"${video.description}",'${toKebabCase(video.title)}','${video.alternativeTitle}',0,0,'${toKebabCase(
+    video.title
+  )}/${toKebabCase(video.title)}.m3u8')`;
+  await query(dbQuery, resultCallback);
+};
+
+const addEpisode = async (episode, resultCallback) => {
+  const dbQuery = `INSERT INTO series_episodes(show_id, season, episode, episode_name, description) VALUES(${episode.show}, ${episode.season}, ${episode.episode}, "${episode.title}", "${episode.description}")`;
   await query(dbQuery, resultCallback);
 };
 
@@ -46,6 +58,7 @@ export {
   getAllVideos,
   deleteVideo,
   addVideo,
+  addEpisode,
   changeVideoURL,
   getPopularMovies,
   getPopularSeries,

@@ -6,7 +6,6 @@ export type Video = {
   production_year: number;
   production_country: string;
   director: string;
-  age_restriction: number;
   tags: string;
   descr: string;
   thumbnail: string;

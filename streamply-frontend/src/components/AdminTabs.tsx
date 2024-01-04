@@ -1,13 +1,15 @@
-import { CameraRoll, HighlightOff, LocalMovies, People, Person } from '@mui/icons-material';
-import { Alert, Box, Snackbar, Tab, Tabs } from '@mui/material';
+import { Add, CameraRoll, HighlightOff, LocalMovies, People } from '@mui/icons-material';
+import { Box, Tab, Tabs } from '@mui/material';
 import useHttp from '../hooks/useHttp';
 import { useCallback, useEffect, useState } from 'react';
 import { UsersTable } from './AdminPanel/tables/UsersTable';
 import VideosTable from './AdminPanel/tables/VideosTable';
 import { TableConfig, VideoActionsConfigType, tableColumns } from './AdminPanel/tables/VideoTableConfig';
 import { TabPanel } from './TabPanel';
-import { AccountPanel } from './AccountPanel/AccountPanel';
 import { useVideosStore } from '../state/videosStore';
+import { UploadVideoForm } from './UploadVideoForm/UploadVideoForm';
+import { UploadEpisodeForm } from './UploadVideoForm/UploadEpisodeForm';
+import { AddVideoForms } from './AdminPanel/AddVIdeoForms';
 
 export type UserEntry = {
   id: number;
@@ -112,7 +114,7 @@ function AdminTabs() {
         <Tab icon={<People />} iconPosition="start" label="Users" value={0} />
         <Tab icon={<LocalMovies />} iconPosition="start" label="Movies" value={1} />
         <Tab icon={<CameraRoll />} iconPosition="start" label="Series" value={2} />
-        <Tab icon={<Person />} iconPosition="start" label="Account" value={3} />
+        <Tab icon={<Add />} iconPosition="start" label="Add Video" value={3} />
       </Tabs>
       <TabPanel index={0} value={tabValue}>
         <UsersTable users={users} onDelete={handleUserDelete} />
@@ -124,7 +126,7 @@ function AdminTabs() {
         <VideosTable {...SeriesTableConfig} />
       </TabPanel>
       <TabPanel index={3} value={tabValue}>
-        <AccountPanel />
+        <AddVideoForms />
       </TabPanel>
     </Box>
   );

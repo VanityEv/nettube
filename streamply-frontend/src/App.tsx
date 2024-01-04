@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
 import HomePage from './pages/HomePage';
 import Profile from './pages/Profile';
-import { useMemo } from 'react';
+import { createContext, useMemo } from 'react';
 import ResetPassword from './pages/ResetPassword';
 import ConfirmRegister from './pages/ConfirmRegister';
 import AppBar from './components/AppBar';
@@ -17,6 +17,8 @@ import ProtectedRoute, { ProtectedRouteProps } from './ProtectedRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getCookie } from 'typescript-cookie';
 import { VideoPage } from './components/VideoPage/VideoPage';
+import { useSnackbar } from './hooks/useSnackbar';
+import { Snackbar } from './components/Snackbar';
 
 /**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
  *   const navigate = useNavigate();
@@ -55,10 +57,15 @@ declare module '@mui/material/styles' {
   }
 }
 
-const App = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+type SnackbarContextType = {
+  showSnackbar: (message: string, severity: 'success' | 'error' | 'info') => void;
+};
 
+export const SnackbarContext = createContext<SnackbarContextType>({
+  showSnackbar: () => {},
+});
+
+const App = () => {
   const theme = useMemo(
     () =>
       createTheme({
@@ -131,6 +138,13 @@ const App = () => {
               },
             },
           },
+          MuiOutlinedInput: {
+            styleOverrides: {
+              input: {
+                color: 'white',
+              },
+            },
+          },
           MuiCssBaseline: {
             styleOverrides: {
               body: {
@@ -171,60 +185,78 @@ const App = () => {
     authenticationPath: '/signin',
   };
 
+  const [snackbarState, showSnackbar, hideSnackbar] = useSnackbar();
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <AppBar />
-        <Box
-          sx={{
-            mt: '4.5rem',
-            backgroundColor: 'secondary.400',
-            minHeight: 'calc(100vh - 4.5rem)',
-            height: 'calc(100vh - 4.5rem)',
-            width: '100vw',
-            overflowY: 'scroll',
-          }}
-        >
-          <Routes>
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/confirm-register" element={<ConfirmRegister />} />
+        <SnackbarContext.Provider value={{ showSnackbar }}>
+          <CssBaseline />
+          <AppBar />
+          <Box
+            sx={{
+              mt: '4.5rem',
+              backgroundColor: 'secondary.400',
+              minHeight: 'calc(100vh - 4.5rem)',
+              height: 'calc(100vh - 4.5rem)',
+              width: '100vw',
+              overflowY: 'scroll',
+            }}
+          >
+            {snackbarState !== null && (
+              <Snackbar
+                isOpen={true}
+                message={snackbarState.message}
+                severity={snackbarState.severity}
+                onClose={hideSnackbar}
+              />
+            )}
+            <Routes>
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/confirm-register" element={<ConfirmRegister />} />
 
-            <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<HomePage />} />} path="/" />
+              <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<HomePage />} />} path="/" />
 
-            <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Profile />} />} path="/profile" />
+              <Route
+                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Profile />} />}
+                path="/profile"
+              />
 
-            <Route
-              element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Dashboard />} />}
-              path="/dashboard"
-            />
-            <Route
-              element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
-              path="/series/:title"
-            />
+              <Route
+                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Dashboard />} />}
+                path="/dashboard"
+              />
+              <Route
+                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
+                path="/series/:title"
+              />
 
-            <Route
-              element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
-              path="/movies/:title"
-            />
+              <Route
+                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
+                path="/movies/:title"
+              />
 
-            {/* <Route
+              {/* <Route
               element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
               path="/video/:id"
             /> */}
 
-            <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Signout />} />} path="/signout" />
+              <Route
+                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Signout />} />}
+                path="/signout"
+              />
 
-            <Route
-              element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPlayer />} />}
-              path="/video/:id"
-            />
-          </Routes>
-        </Box>
-        {/* <Divider sx={{ margin: '24px 0' }} />
+              <Route
+                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPlayer />} />}
+                path="/video/:id"
+              />
+            </Routes>
+          </Box>
+          {/* <Divider sx={{ margin: '24px 0' }} />
       <Footer /> */}
+        </SnackbarContext.Provider>
       </ThemeProvider>
     </QueryClientProvider>
   );

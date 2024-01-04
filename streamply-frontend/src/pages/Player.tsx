@@ -11,7 +11,7 @@ export const VideoPlayer = () => {
     responsive: true,
     sources: [
       {
-        src: 'http://localhost:3001/movies/teya_dora.m3u8',
+        src: 'http://localhost:3001/movies/family-guy/season-1/family-guy-s1e1.m3u8',
         type: 'application/x-mpegURL',
       },
     ],
