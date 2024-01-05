@@ -1,12 +1,34 @@
-import { Box, Button, Divider, Typography } from '@mui/material';
+import { Avatar, Box, Button, Divider, Typography } from '@mui/material';
 import { convertDate } from '../../../helpers/convertDate';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SingleUserReview } from '../../../hooks/useGetUserReviews';
-import { Review } from '../../../store/reviews.types';
+import { Review } from '../../../types/reviews.types';
+import axios from 'axios';
+import { SERVER_ADDR, SERVER_PORT } from '../../../constants';
+import { AvatarResponse } from '../../../hooks/useGetUserInfo';
 
 export const SingleReview = ({ review, profileView }: { review: SingleUserReview | Review; profileView?: boolean }) => {
   const maxDefaultCommentLength = review.comment.length <= 200 ? review.comment.length : 200;
   const [showFullComment, setShowFullComment] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState('');
+
+  const fetchAvatar = async (username: string) => {
+    try {
+      const response = await axios.get<AvatarResponse>(`${SERVER_ADDR}:${SERVER_PORT}/user/getAvatar/${username}`);
+
+      if (response.status === 200) {
+        setAvatarUrl(`${SERVER_ADDR}:${SERVER_PORT}${response.data.result}`);
+      } else {
+        return;
+      }
+    } catch (error) {
+      return;
+    }
+  };
+
+  useEffect(() => {
+    fetchAvatar((review as Review).username);
+  }, []);
 
   const handleContinueReading = () => {
     setShowFullComment(true);
@@ -23,6 +45,7 @@ export const SingleReview = ({ review, profileView }: { review: SingleUserReview
       }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
+        {!profileView && <Avatar src={avatarUrl} />}
         <Typography fontWeight={700} color="primary.600">
           {profileView && 'title' in review ? review.title : (review as Review).username}
         </Typography>
@@ -61,7 +84,7 @@ export const SingleReview = ({ review, profileView }: { review: SingleUserReview
           </Button>
         )}
       </Box>
-      <Divider />
+      <Divider sx={{ mb: '1rem' }} />
     </Box>
   );
 };

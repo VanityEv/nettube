@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { Video } from '../store/videos.types';
+import { Video } from '../types/videos.types';
 import axios from 'axios';
 import { SERVER_ADDR, SERVER_PORT } from '../constants';
 

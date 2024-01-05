@@ -4,7 +4,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/scrollbar';
 import { Navigation, Scrollbar, Autoplay } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Video } from '../../store/videos.types';
+import { Video } from '../../types/videos.types';
 import { StatefulSlide } from '../StatefulSlide';
 
 type MoviesCarouselProps = {

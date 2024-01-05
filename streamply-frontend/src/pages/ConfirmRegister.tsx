@@ -1,22 +1,19 @@
 import { useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
-import useHttp from '../hooks/useHttp';
+import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import axios from 'axios';
 
 const ConfirmRegister = () => {
   const [searchParams] = useSearchParams();
-  const { sendRequest } = useHttp();
   useEffect(() => {
     const sendConfirmRequest = async () => {
-      const response = await sendRequest({
-        method: 'POST',
-        body: {
-          token: searchParams.get('token'),
-        },
-        endpoint: '/user/confirmRegister',
-      });
+      const response = await axios.post(
+        `${SERVER_ADDR}:${SERVER_PORT}/user/confirmRegister`,
+        searchParams.get('token')
+      );
+      sendConfirmRequest();
     };
-    sendConfirmRequest();
-  }, [searchParams, sendRequest]);
+  }, [searchParams]);
 
   return (
     <>

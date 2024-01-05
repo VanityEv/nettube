@@ -334,8 +334,9 @@ UserRouter.post('/addLike', async (req, res) => {
 
 UserRouter.get('/getAllUsers', async (req, res) => {
   try {
+    console.log('chuj');
     await getAllUsers(users => {
-      res.status(200).json({ result: 'success', data: users });
+      res.status(200).json({ result: 'SUCCESS', data: users });
     });
   } catch (error) {
     res.status(400).json({ error });

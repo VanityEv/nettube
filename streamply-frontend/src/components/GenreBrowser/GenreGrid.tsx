@@ -1,6 +1,6 @@
 import { Box } from '@mui/material';
 import { SingleVideo } from '../VideoViews/SingleVideo';
-import { Video } from '../../store/videos.types';
+import { Video } from '../../types/videos.types';
 
 export const GenreGrid = ({ videos }: { videos: Video[] }) => {
   return (

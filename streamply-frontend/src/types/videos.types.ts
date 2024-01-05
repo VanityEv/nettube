@@ -17,6 +17,11 @@ export type Video = {
   blocked_reviews: number;
 };
 
-export type VideoState = {
-  videos: Video[];
+export type Episode = {
+  season: number;
+  episode: number;
+  episode_name: string;
+  description: string;
+  thumbnail: string;
+  show_name: string;
 };

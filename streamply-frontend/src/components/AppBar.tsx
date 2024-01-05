@@ -22,7 +22,7 @@ const pages = ['movies', 'series', 'genres'];
 const settings = ['profile', 'signout'];
 
 function ResponsiveAppBar() {
-  const { username } = useUserStore();
+  const { username, avatarUrl } = useUserStore();
   const [searchModalOpen, setSeachModalOpen] = useState(false);
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
@@ -105,7 +105,7 @@ function ResponsiveAppBar() {
             <Box sx={{ flexGrow: 0 }}>
               <Tooltip title="Open settings">
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar sx={{ backgroundColor: 'primary.200', color: 'secondary.300' }} />
+                  <Avatar src={avatarUrl ?? ''} sx={{ backgroundColor: 'primary.200', color: 'secondary.300' }} />
                 </IconButton>
               </Tooltip>
               <Menu

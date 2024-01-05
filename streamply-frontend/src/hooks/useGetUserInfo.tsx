@@ -8,7 +8,7 @@ type ProfileInfo = {
   birthdate: string;
 };
 
-type AvatarResponse = {
+export type AvatarResponse = {
   result: string;
 };
 
@@ -44,8 +44,7 @@ const fetchAvatar = async (username: string) => {
       return '';
     }
   } catch (error) {
-    console.error('Error fetching avatar:', error);
-    throw error;
+    return '';
   }
 };
 

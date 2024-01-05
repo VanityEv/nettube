@@ -1,5 +1,5 @@
 import { Grid, Typography } from '@mui/material';
-import { Video } from '../../../store/videos.types';
+import { Video } from '../../../types/videos.types';
 
 export const MoreInformation = ({ video }: { video: Video }) => {
   return (

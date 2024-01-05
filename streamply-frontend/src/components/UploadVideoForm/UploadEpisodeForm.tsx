@@ -15,7 +15,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useVideosStore } from '../../state/videosStore';
-import { Video } from '../../store/videos.types';
+import { Video } from '../../types/videos.types';
 import axios from 'axios';
 import { useContext } from 'react';
 import { SnackbarContext } from '../../App';

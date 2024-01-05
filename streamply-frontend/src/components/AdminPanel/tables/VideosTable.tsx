@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { filterDataFromKeys } from '../../../helpers/filterDataFromKeys';
-import { Video } from '../../../store/videos.types';
+import { Video } from '../../../types/videos.types';
 
 type VideoTableProps = {
   columnNames: string[];

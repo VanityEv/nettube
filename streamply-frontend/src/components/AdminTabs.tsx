@@ -1,15 +1,17 @@
 import { Add, CameraRoll, HighlightOff, LocalMovies, People } from '@mui/icons-material';
-import { Box, Tab, Tabs } from '@mui/material';
-import useHttp from '../hooks/useHttp';
-import { useCallback, useEffect, useState } from 'react';
+import { Box, Tab, Tabs, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { UsersTable } from './AdminPanel/tables/UsersTable';
 import VideosTable from './AdminPanel/tables/VideosTable';
 import { TableConfig, VideoActionsConfigType, tableColumns } from './AdminPanel/tables/VideoTableConfig';
 import { TabPanel } from './TabPanel';
 import { useVideosStore } from '../state/videosStore';
-import { UploadVideoForm } from './UploadVideoForm/UploadVideoForm';
-import { UploadEpisodeForm } from './UploadVideoForm/UploadEpisodeForm';
 import { AddVideoForms } from './AdminPanel/AddVIdeoForms';
+import axios from 'axios';
+import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import { SignalResponse } from '../types/response.types';
+import { SnackbarContext } from '../App';
+import { useGetUsers } from '../hooks/useGetUsers';
 
 export type UserEntry = {
   id: number;
@@ -21,48 +23,27 @@ export type UserEntry = {
 //TODO: CSS - poprawki i layout
 function AdminTabs() {
   const { videos } = useVideosStore();
+  const theme = useTheme();
+  const { data, refetch: refetchUsers } = useGetUsers();
+  const { showSnackbar } = useContext(SnackbarContext);
   const [tabValue, setTabValue] = useState(0);
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
 
-  const { sendRequest } = useHttp();
-  const [users, setUsers] = useState<UserEntry[] | []>([]);
-
-  const sendFetchUsersQuery = useCallback(async () => {
-    const response = await sendRequest({
-      method: 'GET',
-      endpoint: `/user/getAllUsers`,
-    });
-    if (response.result === 'success') {
-      setUsers(response.data);
+  const sendUserDeleteQuery = async (id: number) => {
+    const response = await axios.post<SignalResponse>(`${SERVER_ADDR}:${SERVER_PORT}/user/deleteUser`, id);
+    if (response.data.result === 'SUCCESS') {
+      showSnackbar('User deleted!', 'info');
+      refetchUsers();
     }
-  }, []);
-
-  const sendUserDeleteQuery = useCallback(async (id: number) => {
-    const response = await sendRequest({
-      method: 'POST',
-      body: {
-        id: id,
-      },
-      endpoint: `/user/deleteUser`,
-    });
-    if (response.result === 'success') {
-      //TODO: Handle
-      sendFetchUsersQuery();
-    }
-  }, []);
+  };
 
   //Delete video from database
-  const sendVideoDeleteQuery = useCallback(async (title: string) => {
-    const response = await sendRequest({
-      method: 'POST',
-      body: {
-        title: title,
-      },
-      endpoint: `/videos/deleteVideo`,
-    });
-    if (response.result === 'success') {
-      //TODO: Handle
+  const sendVideoDeleteQuery = async (title: string) => {
+    const response = await axios.post<SignalResponse>(`${SERVER_ADDR}:${SERVER_PORT}/videos/deleteVideo`, title);
+    if (response.data.result === 'SUCCESS') {
+      showSnackbar('Video deleted!', 'info');
     }
-  }, []);
+  };
 
   const handleUserDelete = (id: number) => {
     sendUserDeleteQuery(id);
@@ -94,16 +75,17 @@ function AdminTabs() {
     actions: VideoActionsConfig,
   };
 
-  useEffect(() => {
-    sendFetchUsersQuery();
-  }, [sendFetchUsersQuery]);
+  if (!data) {
+    return <Typography>'Error fetching users or no users on list...'</Typography>;
+  }
 
   return (
     <Box sx={{ flexGrow: 3, pb: 3 }}>
       <Tabs
         value={tabValue}
         onChange={(event, newValue: number) => setTabValue(newValue)}
-        variant="fullWidth"
+        variant={isMobile ? 'scrollable' : 'fullWidth'}
+        scrollButtons="auto"
         indicatorColor="secondary"
         textColor="secondary"
         sx={{
@@ -117,7 +99,7 @@ function AdminTabs() {
         <Tab icon={<Add />} iconPosition="start" label="Add Video" value={3} />
       </Tabs>
       <TabPanel index={0} value={tabValue}>
-        <UsersTable users={users} onDelete={handleUserDelete} />
+        <UsersTable users={data} onDelete={handleUserDelete} />
       </TabPanel>
       <TabPanel index={1} value={tabValue}>
         <VideosTable {...MoviesTableConfig} />

@@ -131,6 +131,13 @@ const App = () => {
               },
             },
           },
+          MuiSvgIcon: {
+            styleOverrides: {
+              root: {
+                color: 'white',
+              },
+            },
+          },
           MuiPaper: {
             styleOverrides: {
               root: {

@@ -37,6 +37,47 @@ const addEpisode = async (episode, resultCallback) => {
   await query(dbQuery, resultCallback);
 };
 
+const getEpisodes = async (id, resultCallback) => {
+  const dbQuery = `SELECT season, title as show_name, episode, episode_name, description FROM series_episodes join videos on series_episodes.show_id = videos.id WHERE series_episodes.show_id = ${id} ORDER BY season,episode;`;
+  await query(dbQuery, resultCallback);
+};
+
+const getRecommendations = async (username, genres, resultCallback) => {
+  try {
+    // Generate placeholders for genres in the IN clause
+    const genresToFilter = "'" + genres.join("', '") + "'";
+    const recordsPerGenre = 5;
+
+    const dbQuery = `
+      WITH RankedVideos AS (
+        SELECT
+          v.*,
+          ROW_NUMBER() OVER (PARTITION BY v.genre ORDER BY v.views DESC, v.grade DESC) AS rn
+        FROM
+          videos v
+        WHERE
+          v.genre IN (${genresToFilter})
+          AND v.id NOT IN (
+            SELECT ul.video_id
+            FROM user_likes ul
+            JOIN users u ON ul.user_id = u.id
+            WHERE u.username = '${username}'
+          )
+      )
+      SELECT *
+      FROM RankedVideos
+      WHERE
+        (${genres.map(genre => `genre = '${genre}' AND rn <= ${recordsPerGenre}`).join(' OR ')})
+      ORDER BY genre, rn;
+    `;
+
+    await query(dbQuery, resultCallback);
+  } catch (error) {
+    console.error(error);
+    // Handle the error as needed
+  }
+};
+
 const changeVideoURL = async (title, newURL, requestCallback) => {
   const dbQuery = `UPDATE videos SET link="${newURL}" WHERE title="${title}"`;
   await query(dbQuery, requestCallback);
@@ -59,6 +100,8 @@ export {
   deleteVideo,
   addVideo,
   addEpisode,
+  getEpisodes,
+  getRecommendations,
   changeVideoURL,
   getPopularMovies,
   getPopularSeries,

@@ -1,4 +1,4 @@
-import { Video } from '../../store/videos.types';
+import { Video } from '../../types/videos.types';
 import styled from 'styled-components';
 import { Box, Button, Grid, Typography } from '@mui/material';
 import { MoviesCarousel } from './MoviesCarousel';
@@ -22,7 +22,7 @@ export const TopMovies = () => {
   const handleSelectedMovieChange = (selection: Video) => setSelectedMovie(selection);
 
   return (
-    <Box sx={{ height: 'calc(100vh - 4.5rem)' }}>
+    <Box sx={{ height: 'calc(100vh - 4.5rem)', display: { mobile: 'none', desktop: 'block', tablet: 'none' } }}>
       <Box
         sx={{
           backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(11, 8, 21, 0.99)), url(${selectedMovie.thumbnail})`,

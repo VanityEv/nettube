@@ -2,11 +2,13 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { SERVER_ADDR, SERVER_PORT } from '../constants';
 import axios from 'axios';
+import { AvatarResponse } from '../hooks/useGetUserInfo';
 
 type LikeResponse = [{ video_id: number }];
 
 export type UserState = {
   username: string;
+  avatarUrl: string;
   likes: number[];
 };
 
@@ -18,6 +20,7 @@ type UserActions = {
 
 const initialState: UserState = {
   username: '',
+  avatarUrl: '',
   likes: [],
 };
 
@@ -34,6 +37,21 @@ const getUserLikes = async (username: string) => {
   }
 };
 
+const getUserAvatar = async (username: string) => {
+  try {
+    const response = await axios.get<AvatarResponse>(`${SERVER_ADDR}:${SERVER_PORT}/user/getAvatar/${username}`);
+
+    if (response.status === 200) {
+      return response.data.result;
+    } else {
+      return '';
+    }
+  } catch (error) {
+    console.error('Error fetching avatar:', error);
+    throw error;
+  }
+};
+
 export const useUserStore = create<UserState & UserActions>()(
   persist(
     set => ({
@@ -45,8 +63,10 @@ export const useUserStore = create<UserState & UserActions>()(
         set(() => ({ username: username }));
         try {
           const userLikes = await getUserLikes(username);
+          const userAvatarPath = await getUserAvatar(username);
           set(() => ({
             likes: userLikes,
+            avatarUrl: `${SERVER_ADDR}:${SERVER_PORT}${userAvatarPath}`,
           }));
         } catch (error) {
           console.error(error);

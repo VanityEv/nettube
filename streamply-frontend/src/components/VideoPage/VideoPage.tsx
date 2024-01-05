@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { TabPanel } from '../TabPanel';
 import { MoreInformation } from './contents/MoreInformation';
 import { ShowReviewList } from './contents/ShowReviewList';
+import { Episodes } from './contents/Episodes';
 
 export const VideoPage = () => {
   const { videos } = useVideosStore();
@@ -71,7 +72,9 @@ export const VideoPage = () => {
           <Tab label="More Information" value={1} />
           <Tab label="Comments & Reviews" value={2} />
         </Tabs>
-        <TabPanel index={0} value={tabValue}></TabPanel>
+        <TabPanel index={0} value={tabValue}>
+          <Episodes show_id={video.id} />
+        </TabPanel>
         <TabPanel index={1} value={tabValue}>
           <MoreInformation video={video} />
         </TabPanel>

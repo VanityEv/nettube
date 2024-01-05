@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Video } from '../../../store/videos.types';
+import { Video } from '../../../types/videos.types';
 
 export type VideoActionsConfigType = {
   icon: ReactNode;

@@ -1,0 +1,45 @@
+import axios from 'axios';
+import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import { useQuery } from '@tanstack/react-query';
+import { Video } from '../types/videos.types';
+
+type RecommendationsResponse = {
+  result: string;
+  recommendations: Video[];
+};
+
+const fetchRecommendations = async (username: string, genres: string[]) => {
+  try {
+    const response = await axios.post<RecommendationsResponse>(
+      `${SERVER_ADDR}:${SERVER_PORT}/videos/recommendations/${username}`,
+      { genres }
+    );
+
+    if (response.data.result === 'SUCCESS') {
+      return response.data.recommendations;
+    } else {
+      console.error(response);
+      return [];
+    }
+  } catch (error) {
+    console.error('Error fetching recommendations:', error);
+    return [];
+  }
+};
+
+export const useGetRecommendations = (username: string, genres: string[]) => {
+  const { data, isLoading, isError, isFetching, error, refetch } = useQuery<Video[], Error>({
+    queryKey: ['recommendations', username],
+    queryFn: () => fetchRecommendations(username, genres),
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    data,
+    isLoading,
+    isError,
+    error,
+    isFetching,
+    refetch,
+  };
+};

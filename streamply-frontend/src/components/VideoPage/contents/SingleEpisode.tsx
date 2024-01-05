@@ -1,28 +1,25 @@
 import { Box, Typography, Zoom } from '@mui/material';
-import { Video } from '../../types/videos.types';
-import { getRatingColor } from '../../helpers/getRatingColors';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { toKebabCase } from '../../helpers/convertToKebabCase';
+import { Episode } from '../../../types/videos.types';
 
-export const HorizontalVideo = ({ video }: { video: Video }) => {
+export const SingleEpisode = ({ episode }: { episode: Episode }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const destinationRoute =
-    video.type === 'film' ? `/movies/${toKebabCase(video.title)}` : `/series/${toKebabCase(video.title)}`;
+  //   const destinationRoute = `/movies/${toKebabCase(episode.title)}`;
 
   return (
-    <Link style={{ textDecoration: 'none' }} to={destinationRoute}>
+    <Link style={{ textDecoration: 'none' }} to={''}>
       <Box
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         sx={{
           position: 'relative',
-          height: '40vh',
+          height: '20vh',
           aspectRatio: '3 / 2',
           width: 'auto',
           maxWidth: '100vw',
-          background: `url(${video.thumbnail})`,
+          background: `url(${episode.thumbnail})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -58,17 +55,7 @@ export const HorizontalVideo = ({ video }: { video: Video }) => {
                     textTransform: 'capitalize',
                   }}
                 >
-                  {`${video.title}`}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color={getRatingColor(video.grade)}
-                  sx={{
-                    fontSize: '12px',
-                    textTransform: 'capitalize',
-                  }}
-                >
-                  Rating: {video.grade}
+                  {`${episode.episode_name}`}
                 </Typography>
               </Box>
             </Zoom>

@@ -12,6 +12,8 @@ import {
   getPopularMovies,
   getPopularSeries,
   addEpisode,
+  getEpisodes,
+  getRecommendations,
 } from './Video.js';
 import Ffmpeg from 'fluent-ffmpeg';
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
@@ -26,6 +28,7 @@ const VideosRouter = Router(); // create router to create route bundle
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+//Multer configuration for this router
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const show_title = req.body.show_title || req.body.title;
@@ -171,6 +174,40 @@ VideosRouter.post('/upload/episode', upload.single('episode_file'), (req, res) =
   } catch (error) {
     console.error(error);
     res.status(500).json({ result: 'ERROR', message: 'Error processing the video.' });
+  }
+});
+
+VideosRouter.get('/episodes/:id', async (req, res) => {
+  const show_id = req.params.id;
+
+  try {
+    await getEpisodes(show_id, async episodes => {
+      // Add the thumbnail field to each episode
+      const episodesWithThumbnail = episodes.map(episode => ({
+        ...episode,
+        thumbnail: `http://localhost:3001/images/thumbnails/${toKebabCase(episode.show_name)}/${toKebabCase(
+          episode.show_name
+        )}-s${episode.season}e${episode.episode}-thumbnail.jpg`,
+      }));
+
+      res.status(200).json({ result: 'SUCCESS', episodes: episodesWithThumbnail });
+    });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
+});
+
+VideosRouter.post('/recommendations/:username', async (req, res) => {
+  const { username } = req.params;
+  const { genres } = req.body;
+
+  try {
+    await getRecommendations(username, genres, async result => {
+      res.status(200).json({ result: 'SUCCESS', recommendations: result });
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ result: 'ERROR', error: 'Internal Server Error' });
   }
 });
 

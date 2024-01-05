@@ -6,7 +6,7 @@ import { Navigation, Scrollbar, Autoplay } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Poster } from './Poster';
 import { Fragment, ReactNode, cloneElement, useState } from 'react';
-import { Video } from '../../store/videos.types';
+import { Video } from '../../types/videos.types';
 import { ConditionalWrapper } from '../ConditionalWrapper';
 import { Link } from 'react-router-dom';
 import { toKebabCase } from '../../helpers/convertToKebabCase';

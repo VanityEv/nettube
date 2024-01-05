@@ -1,5 +1,5 @@
 import { Box, Button, IconButton, Typography } from '@mui/material';
-import { Video } from '../../store/videos.types';
+import { Video } from '../../types/videos.types';
 import { Bookmark, BookmarkBorder, PlayCircleOutline } from '@mui/icons-material';
 import { getRatingColor } from '../../helpers/getRatingColors';
 import { useUserStore } from '../../state/userStore';

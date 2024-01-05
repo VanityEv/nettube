@@ -72,21 +72,6 @@ ReviewsRouter.post('/showLikes/setLike', async (req, res) => {
   }
 });
 
-ReviewsRouter.post('/userReviews/addComment', async (req, res) => {
-  const data = {
-    comment: req.body.comment,
-    show_id: req.body.show_id,
-    username: req.body.username,
-  };
-  try {
-    await addComment(data, () => {
-      res.status(200).json({ result: 'SUCCESS' });
-    });
-  } catch (error) {
-    res.status(500).json({ result: 'error', error: error });
-  }
-});
-
 ReviewsRouter.post('/userReviews/addReview', async (req, res) => {
   const data = {
     comment: req.body.comment,

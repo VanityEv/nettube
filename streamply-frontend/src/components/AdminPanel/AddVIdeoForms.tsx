@@ -1,4 +1,4 @@
-import { Box, Tab, Tabs } from '@mui/material';
+import { Box, Tab, Tabs, useMediaQuery, useTheme } from '@mui/material';
 import { useState } from 'react';
 import { TabPanel } from '../TabPanel';
 import { UploadVideoForm } from '../UploadVideoForm/UploadVideoForm';
@@ -6,6 +6,8 @@ import { UploadEpisodeForm } from '../UploadVideoForm/UploadEpisodeForm';
 
 export const AddVideoForms = () => {
   const [tabValue, setTabValue] = useState(0);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
 
   return (
     <Box sx={{ flexGrow: 3, pb: 3 }}>
@@ -13,6 +15,8 @@ export const AddVideoForms = () => {
         value={tabValue}
         onChange={(event, newValue: number) => setTabValue(newValue)}
         indicatorColor="secondary"
+        variant={isMobile ? 'scrollable' : 'fullWidth'}
+        scrollButtons="auto"
         textColor="secondary"
         sx={{
           p: 3,

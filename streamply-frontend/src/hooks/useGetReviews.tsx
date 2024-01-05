@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { SERVER_ADDR, SERVER_PORT } from '../constants';
 import { useQuery } from '@tanstack/react-query';
-import { Review } from '../store/reviews.types';
+import { Review } from '../types/reviews.types';
 
 type ReviewsResponse = {
   result: string;

@@ -1,6 +1,6 @@
 import { Box, Grid, Typography } from '@mui/material';
 import { useGetReviews } from '../../../hooks/useGetReviews';
-import { Video } from '../../../store/videos.types';
+import { Video } from '../../../types/videos.types';
 import { SingleReview } from '../../VideoPage/contents/SingleReview';
 import { useGetUserReviews } from '../../../hooks/useGetUserReviews';
 import { useUserStore } from '../../../state/userStore';

@@ -4,14 +4,7 @@ import { MoviesCarousel } from '../components/MainImage/MoviesCarousel';
 import { GenreBrowser } from '../components/GenreBrowser/GenreBrowser';
 import { useVideosStore } from '../state/videosStore';
 import { useUserStore } from '../state/userStore';
-
-const posters = [
-  'https://m.media-amazon.com/images/M/MV5BN2Y0NGI2NjktNWI0Yy00OTAwLWI4MTAtNjY1NDBlN2IxZTEwXkEyXkFqcGdeQXVyMTI0NTE1Njg4._V1_.jpg',
-  'https://m.media-amazon.com/images/M/MV5BNzQ1ODUzYjktMzRiMS00ODNiLWI4NzQtOTRiN2VlNTNmODFjXkEyXkFqcGdeQXVyMTkxNjUyNQ@@._V1_.jpg',
-  'https://m.media-amazon.com/images/M/MV5BZWYzOGEwNTgtNWU3NS00ZTQ0LWJkODUtMmVhMjIwMjA1ZmQwXkEyXkFqcGdeQXVyMjkwOTAyMDU@._V1_.jpg',
-  'https://m.media-amazon.com/images/M/MV5BZWMyYzFjYTYtNTRjYi00OGExLWE2YzgtOGRmYjAxZTU3NzBiXkEyXkFqcGdeQXVyMzQ0MzA0NTM@._V1_.jpg',
-  'https://m.media-amazon.com/images/M/MV5BN2FjNmEyNWMtYzM0ZS00NjIyLTg5YzYtYThlMGVjNzE1OGViXkEyXkFqcGdeQXVyMTkxNjUyNQ@@._V1_.jpg',
-];
+import { MovieSuggestions } from '../components/MovieSuggestions/MovieSuggestions';
 
 function HomePage() {
   const { popularMovies, popularSeries, videos } = useVideosStore();
@@ -35,7 +28,7 @@ function HomePage() {
         <MoviesCarousel
           movies={popularMovies}
           withNavigation
-          slidesPerView={7.5}
+          slidesPerView={6.5}
           posterVariant="overlay"
           carouselTitle="Most Popular Movies"
           carouselTitleTextVariant="h4"
@@ -43,22 +36,25 @@ function HomePage() {
         />
         <MoviesCarousel
           movies={popularSeries}
-          slidesPerView={7.5}
+          slidesPerView={6.5}
           withNavigation
           posterVariant="overlay"
           carouselTitle="Top Watched Series"
           carouselTitleTextVariant="h4"
           withLink
         />
-        <MoviesCarousel
-          movies={watchlist}
-          slidesPerView={8}
-          withNavigation
-          posterVariant="overlay"
-          carouselTitle="Your Watchlist"
-          carouselTitleTextVariant="h4"
-          withLink
-        />
+        <MovieSuggestions />
+        {likes && (
+          <MoviesCarousel
+            movies={watchlist}
+            slidesPerView={5}
+            withNavigation
+            posterVariant="overlay"
+            carouselTitle="Your Watchlist"
+            carouselTitleTextVariant="h4"
+            withLink
+          />
+        )}
         <GenreBrowser />
       </Box>
     </>
