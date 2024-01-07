@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { SERVER_ADDR, SERVER_PORT } from '../constants';
 import { useQuery } from '@tanstack/react-query';
+import { getCookie } from 'typescript-cookie';
 
 type ProfileInfo = {
   fullname: string;
@@ -19,9 +20,13 @@ type UserData = {
 
 const fetchUser = async (username: string) => {
   try {
-    const response = await axios.post<ProfileInfo>(`${SERVER_ADDR}:${SERVER_PORT}/user/getUserData`, {
-      username: username,
-    });
+    const response = await axios.post<ProfileInfo>(
+      `${SERVER_ADDR}:${SERVER_PORT}/user/getUserData`,
+      {
+        username: username,
+      },
+      { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
+    );
 
     if (response.status === 200) {
       return response.data;

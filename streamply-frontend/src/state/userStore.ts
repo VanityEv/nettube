@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { SERVER_ADDR, SERVER_PORT } from '../constants';
 import axios from 'axios';
 import { AvatarResponse } from '../hooks/useGetUserInfo';
+import { getCookie } from 'typescript-cookie';
 
 type LikeResponse = [{ video_id: number }];
 
@@ -26,7 +27,9 @@ const initialState: UserState = {
 
 const getUserLikes = async (username: string) => {
   try {
-    const response = await axios.get<LikeResponse>(SERVER_ADDR + ':' + SERVER_PORT + `/user/userLikes/${username}`);
+    const response = await axios.get<LikeResponse>(SERVER_ADDR + ':' + SERVER_PORT + `/user/userLikes/${username}`, {
+      headers: { Authorization: `Bearer ${getCookie('userToken')}` },
+    });
     if (response.status === 200) {
       return response.data.map(video => video.video_id);
     } else {

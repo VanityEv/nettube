@@ -16,14 +16,9 @@ import {
 import { useState } from 'react';
 import { filterDataFromKeys } from '../../../helpers/filterDataFromKeys';
 import { Video } from '../../../types/videos.types';
+import { TableConfig, VideoActionsConfigType } from './VideoTableConfig';
 
-type VideoTableProps = {
-  columnNames: string[];
-  data: Video[];
-  actions: any[];
-};
-
-export const VideosTable = ({ columnNames, data, actions }: VideoTableProps) => {
+export const VideosTable = ({ columnNames, data, actions }: TableConfig) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState('');
   const filterableFields: string[] = ['title', 'genre'];
@@ -44,6 +39,14 @@ export const VideosTable = ({ columnNames, data, actions }: VideoTableProps) => 
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setCurrentPage(newPage);
+  };
+
+  const handleAction = (action: VideoActionsConfigType, video: Video) => {
+    if (action.action.length === 1) {
+      (action.action as (title: string) => void)(video.title);
+    } else {
+      (action.action as (id: number, targetStatus: number) => void)(video.id, video.blocked_reviews);
+    }
   };
 
   return (
@@ -91,14 +94,21 @@ export const VideosTable = ({ columnNames, data, actions }: VideoTableProps) => 
               <TableCell align="left">
                 {actions.map((action, idx) => (
                   <IconButton
-                    key={idx}
+                    key={`action-${idx}`}
                     disableRipple
-                    sx={{ fontSize: '12px', display: 'flex', gap: 1 }}
-                    onClick={() => {
-                      action.actionFn(video.id);
+                    sx={{
+                      fontSize: '12px',
+                      display: 'flex',
+                      gap: 1,
                     }}
+                    onClick={() => handleAction(action, video)}
                   >
                     {action.icon}
+                    <Typography variant="caption" sx={{ color: 'white' }}>
+                      {video.blocked_reviews && action.actionDescription === 'Block Reviews'
+                        ? 'Unblock Reviews'
+                        : action.actionDescription}
+                    </Typography>
                   </IconButton>
                 ))}
               </TableCell>

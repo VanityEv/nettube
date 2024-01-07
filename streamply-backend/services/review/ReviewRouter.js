@@ -12,6 +12,7 @@ import {
   getIsBlocked,
   setIsBlocked,
 } from './Review.js';
+import { verifyAdmin, verifyModerator, verifyToken, verifyUser } from '../../helpers/verifyToken.js';
 
 const ReviewsRouter = Router(); // create router to create route bundle
 
@@ -61,7 +62,7 @@ ReviewsRouter.get('/showLikes/:showId', async (req, res) => {
   }
 });
 
-ReviewsRouter.post('/showLikes/setLike', async (req, res) => {
+ReviewsRouter.post('/showLikes/setLike', verifyToken, verifyUser, async (req, res) => {
   const { username, value, video_id } = req.body;
   try {
     await setShowLike({ username, value, video_id }, () => {
@@ -72,7 +73,7 @@ ReviewsRouter.post('/showLikes/setLike', async (req, res) => {
   }
 });
 
-ReviewsRouter.post('/userReviews/addReview', async (req, res) => {
+ReviewsRouter.post('/userReviews/addReview', verifyToken, verifyUser, async (req, res) => {
   const data = {
     comment: req.body.comment,
     show_id: req.body.show_id,
@@ -88,7 +89,7 @@ ReviewsRouter.post('/userReviews/addReview', async (req, res) => {
   }
 });
 
-ReviewsRouter.post('/userReviews/removeReview', async (req, res) => {
+ReviewsRouter.post('/userReviews/removeReview', verifyToken, verifyModerator, async (req, res) => {
   const data = {
     id: req.body.id,
   };
@@ -114,10 +115,10 @@ ReviewsRouter.get('/userReviews/getIsBlocked/:id', async (req, res) => {
   }
 });
 
-ReviewsRouter.post('/userReviews/blockReviews', async (req, res) => {
+ReviewsRouter.post('/userReviews/blockReviews', verifyToken, verifyAdmin, async (req, res) => {
   const data = {
     id: req.body.id,
-    is_blocked: req.body.isBlocked,
+    targetStatus: req.body.targetStatus,
   };
   try {
     await setIsBlocked(data, () => {

@@ -64,6 +64,7 @@ export const MoviesCarousel = ({
           slidesPerView={slidesPerView}
           loop
           draggable
+          centeredSlides
           navigation={withNavigation}
           style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}
         >

@@ -5,6 +5,7 @@ import { useUserStore } from '../../../state/userStore';
 import { useRef } from 'react';
 import axios from 'axios';
 import { SERVER_ADDR, SERVER_PORT } from '../../../constants';
+import { getCookie } from 'typescript-cookie';
 
 export const PersonalData = () => {
   const { username } = useUserStore();
@@ -32,7 +33,9 @@ export const PersonalData = () => {
       formData.append('avatar', file);
 
       try {
-        await axios.post(`${SERVER_ADDR}:${SERVER_PORT}/user/uploadAvatar/${username}`, formData);
+        await axios.post(`${SERVER_ADDR}:${SERVER_PORT}/user/uploadAvatar/${username}`, formData, {
+          headers: { Authorization: `Bearer ${getCookie('userToken')}` },
+        });
 
         // Refetch user data to get updated avatar URL
         refetch();

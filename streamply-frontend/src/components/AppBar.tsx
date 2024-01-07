@@ -14,12 +14,14 @@ import {
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { useUserStore } from '../state/userStore';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { SearchModal } from './SearchModal/SearchModal';
 import { getCookie } from 'typescript-cookie';
+import { useVideosStore } from '../state/videosStore';
+import { SnackbarContext } from '../App';
 
-const pages = ['movies', 'series', 'genres'];
-const settings = ['profile', 'signout'];
+const pages = ['movies', 'series'];
+const settings = ['profile'];
 
 function ResponsiveAppBar() {
   const { username, avatarUrl } = useUserStore();
@@ -27,6 +29,9 @@ function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const isUserLoggedIn = Boolean(username);
+  const { reset: resetVideos } = useVideosStore();
+  const { reset: resetUser } = useUserStore();
+  const { showSnackbar } = useContext(SnackbarContext);
 
   const handleSearchModalChange = () => {
     setSeachModalOpen(prev => !prev);
@@ -42,6 +47,15 @@ function ResponsiveAppBar() {
 
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
+  };
+
+  const handleSignout = () => {
+    showSnackbar(`You've been logged out!`, 'info');
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    localStorage.removeItem('account_type');
+    resetUser();
+    resetVideos();
   };
 
   return (
@@ -93,7 +107,15 @@ function ResponsiveAppBar() {
                 <Button
                   key={page}
                   onClick={handleCloseNavMenu}
-                  sx={{ mt: 1.5, mb: 2, color: 'white', display: 'block', fontWeight: '600', fontSize: '16px' }}
+                  sx={{
+                    mt: 1.5,
+                    mb: 2,
+                    color: 'white',
+                    ':hover': { backgroundColor: 'transparent' },
+                    display: 'block',
+                    fontWeight: '600',
+                    fontSize: '16px',
+                  }}
                 >
                   {page}
                 </Button>
@@ -133,15 +155,28 @@ function ResponsiveAppBar() {
                     </Link>
                   </MenuItem>
                 )}
+
                 {settings.map((setting, key) => (
-                  <MenuItem key={key} onClick={handleCloseUserMenu}>
-                    <Link style={{ textDecoration: 'none', color: 'inherit' }} key={key} to={'/' + setting}>
+                  <Link key={key} style={{ textDecoration: 'none', color: 'inherit' }} to={'/' + setting}>
+                    <MenuItem onClick={handleCloseUserMenu}>
                       <Typography textAlign="center" sx={{ color: 'white', '&:hover': { color: 'primary.600' } }}>
                         {setting[0].toUpperCase() + setting.slice(1)}
                       </Typography>
-                    </Link>
-                  </MenuItem>
+                    </MenuItem>
+                  </Link>
                 ))}
+                <MenuItem
+                  onClick={() => {
+                    handleCloseUserMenu();
+                    handleSignout();
+                  }}
+                >
+                  <Link style={{ textDecoration: 'none', color: 'inherit' }} to={'/signin'}>
+                    <Typography textAlign="center" sx={{ color: 'white', '&:hover': { color: 'primary.600' } }}>
+                      Signout
+                    </Typography>
+                  </Link>
+                </MenuItem>
               </Menu>
             </Box>
           )}

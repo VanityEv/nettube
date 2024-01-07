@@ -1,16 +1,29 @@
-import { Box, Stack, SxProps, TextField, Radio, RadioGroup, FormControlLabel, Button, InputLabel } from '@mui/material';
+import {
+  Box,
+  Stack,
+  SxProps,
+  TextField,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  Button,
+  InputLabel,
+  CircularProgress,
+} from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 import { SERVER_ADDR, SERVER_PORT } from '../../constants';
 import { SnackbarContext } from '../../App';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { useVideosStore } from '../../state/videosStore';
+import { getCookie } from 'typescript-cookie';
 
 export const UploadVideoForm = () => {
   const { showSnackbar } = useContext(SnackbarContext);
   const { setVideos, reset } = useVideosStore();
+  const [isLoading, setIsLoading] = useState(false);
 
   const fieldSx: SxProps = {
     input: { color: 'white' },
@@ -75,18 +88,23 @@ export const UploadVideoForm = () => {
       formData.append('alternativeTitle', data.alternativeTitle);
       formData.append('video', data.video[0]);
       formData.append('thumbnail', data.thumbnail[0]);
-
-      const response = await axios.post(`${SERVER_ADDR}:${SERVER_PORT}/videos/upload/movie`, formData);
+      setIsLoading(true);
+      const response = await axios.post(`${SERVER_ADDR}:${SERVER_PORT}/videos/upload/movie`, formData, {
+        headers: { Authorization: `Bearer ${getCookie('userToken')}` },
+      });
 
       if (response.status === 200) {
         showSnackbar('Movie uploaded successfully', 'success');
+        setIsLoading(false);
         reset();
         setVideos();
       } else {
         showSnackbar('Error uploading file', 'error');
+        setIsLoading(false);
       }
     } catch (error) {
       showSnackbar(`${error}`, 'error');
+      setIsLoading(false);
     }
   };
 
@@ -281,8 +299,8 @@ export const UploadVideoForm = () => {
             </>
           )}
         />
-        <Button type="submit" sx={{ backgroundColor: 'primary.600', width: '8rem' }}>
-          Submit
+        <Button type="submit" disabled={isLoading} sx={{ backgroundColor: 'primary.600', width: '8rem' }}>
+          {isLoading ? <CircularProgress size="2rem" /> : 'Submit'}
         </Button>
       </Stack>
     </Box>

@@ -10,7 +10,7 @@ const query = async (sql, callback) => {
   const connection = mysql.createConnection(config.db);
   connection.connect(conErr => {
     if (conErr) throw conErr;
-    console.log(`Connection state: ${connection.state}`);
+    console.log(`MySQL connection state: ${connection.state}`);
     connection.query(formattedQuery, (queryErr, res) => {
       if (queryErr) throw queryErr;
       connection.end();

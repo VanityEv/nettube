@@ -8,6 +8,8 @@ import { useUserStore } from '../state/userStore';
 import { setCookie } from 'typescript-cookie';
 import { useNavigate } from 'react-router-dom';
 import { useVideosStore } from '../state/videosStore';
+import { SnackbarContext } from '../App';
+import { useContext } from 'react';
 
 type LoginResponse = {
   username: string;
@@ -18,6 +20,7 @@ type LoginResponse = {
 export const SignInPanel = () => {
   const { setUserData } = useUserStore();
   const { setVideos } = useVideosStore();
+  const { showSnackbar } = useContext(SnackbarContext);
   const navigate = useNavigate();
   const FormSchema = z.object({
     username: z.string().min(2, {
@@ -44,13 +47,14 @@ export const SignInPanel = () => {
       });
       await setVideos();
       if (loginResponse.status === 200) {
+        showSnackbar('Logged in!', 'success');
         await setUserData(loginResponse.data.username);
         setCookie('userToken', loginResponse.data.token);
         setCookie('userAccountType', loginResponse.data.account_type);
         navigate('/');
       }
     } catch (error) {
-      console.error(error);
+      showSnackbar('Incorrect username / password', 'error');
     }
   };
 

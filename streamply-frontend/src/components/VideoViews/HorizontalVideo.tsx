@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toKebabCase } from '../../helpers/convertToKebabCase';
 
-export const HorizontalVideo = ({ video }: { video: Video }) => {
+export const HorizontalVideo = ({ video, height }: { video: Video; height?: string }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const destinationRoute =
@@ -18,7 +18,7 @@ export const HorizontalVideo = ({ video }: { video: Video }) => {
         onMouseLeave={() => setIsHovered(false)}
         sx={{
           position: 'relative',
-          height: '40vh',
+          height: height ?? '40vh',
           aspectRatio: '3 / 2',
           width: 'auto',
           maxWidth: '100vw',

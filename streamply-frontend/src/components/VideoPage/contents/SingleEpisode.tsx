@@ -2,6 +2,7 @@ import { Box, Typography, Zoom } from '@mui/material';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Episode } from '../../../types/videos.types';
+import { toKebabCase } from '../../../helpers/convertToKebabCase';
 
 export const SingleEpisode = ({ episode }: { episode: Episode }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -9,7 +10,10 @@ export const SingleEpisode = ({ episode }: { episode: Episode }) => {
   //   const destinationRoute = `/movies/${toKebabCase(episode.title)}`;
 
   return (
-    <Link style={{ textDecoration: 'none' }} to={''}>
+    <Link
+      style={{ textDecoration: 'none' }}
+      to={`/series/${toKebabCase(episode.show_name)}/season/${episode.season}/episode/${episode.episode}`}
+    >
       <Box
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}

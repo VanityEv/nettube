@@ -1,10 +1,8 @@
 import axios from 'axios';
 import { useUserStore } from '../../state/userStore';
 import { useVideosStore } from '../../state/videosStore';
-import { useEffect } from 'react';
-import { SERVER_ADDR, SERVER_PORT } from '../../constants';
 import { useGetRecommendations } from '../../hooks/useGetRecommendations';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { HorizontalVideo } from '../VideoViews/HorizontalVideo';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Scrollbar } from 'swiper';
@@ -13,6 +11,9 @@ export const MovieSuggestions = () => {
   const { likes } = useUserStore();
   const { videos } = useVideosStore();
   const { username } = useUserStore();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('tablet'));
 
   const likedGenres: string[] = videos.filter(video => likes.includes(video.id)).map(video => video.genre);
 
@@ -44,9 +45,9 @@ export const MovieSuggestions = () => {
       <Box sx={{ width: '100%' }}>
         <Swiper
           modules={[Navigation, Scrollbar, Autoplay]}
-          slidesPerView={3}
-          loop
+          slidesPerView={isTablet ? 1 : isMobile ? 2 : 3}
           draggable
+          loop
           navigation
           style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}
         >

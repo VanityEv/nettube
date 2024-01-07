@@ -8,11 +8,17 @@ import { TabPanel } from '../TabPanel';
 import { MoreInformation } from './contents/MoreInformation';
 import { ShowReviewList } from './contents/ShowReviewList';
 import { Episodes } from './contents/Episodes';
+import { useGetVideos } from '../../hooks/useGetVideos';
 
 export const VideoPage = () => {
-  const { videos } = useVideosStore();
+  const { data: videos } = useGetVideos();
   const { title } = useParams();
   const [tabValue, setTabValue] = useState(1);
+
+  if (!videos) {
+    return <></>;
+  }
+
   const video = videos.find(video => toKebabCase(video.title) === title);
   const isSeries = video?.type === 'series';
 
@@ -41,7 +47,11 @@ export const VideoPage = () => {
               </Typography>
               <Button
                 startIcon={<PlayCircleOutline />}
-                href={`/video/${video.id}`}
+                href={
+                  isSeries
+                    ? `/series/${toKebabCase(video.title)}/season/1/episode/1`
+                    : `/movie/${toKebabCase(video.title)}`
+                }
                 variant="contained"
                 sx={{ backgroundColor: 'primary.600', width: '20%' }}
               >

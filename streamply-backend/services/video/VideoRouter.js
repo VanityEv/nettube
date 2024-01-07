@@ -20,6 +20,7 @@ import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import multer from 'multer';
 import { toKebabCase } from '../../helpers/toKebabCase.js';
 import { ensureFolderExists } from '../../helpers/ensureFolderExists.js';
+import { verifyAdmin, verifyToken } from '../../helpers/verifyToken.js';
 
 Ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
@@ -35,7 +36,7 @@ const storage = multer.diskStorage({
     const season = req.body.season;
     const kebabCaseFilename = toKebabCase(show_title);
 
-    if (file.fieldname === 'video') {
+    if (file.fieldname === 'video' || file.fieldname === 'episode_file') {
       let userFolderPath;
       if (!season) {
         userFolderPath = path.join(__dirname, '../..', 'movies', kebabCaseFilename);
@@ -67,6 +68,8 @@ const upload = multer({ storage: storage });
 
 VideosRouter.post(
   '/upload/movie',
+  verifyToken,
+  verifyAdmin,
   upload.fields([
     { name: 'video', maxCount: 1 },
     { name: 'thumbnail', maxCount: 1 },
@@ -109,7 +112,7 @@ VideosRouter.post(
   }
 );
 
-VideosRouter.post('/upload/episode', upload.single('episode_file'), (req, res) => {
+VideosRouter.post('/upload/episode', verifyToken, verifyAdmin, upload.single('episode_file'), (req, res) => {
   try {
     const videoFile = req.file;
     const { season, episode, show_title } = req.body;
@@ -197,7 +200,7 @@ VideosRouter.get('/episodes/:id', async (req, res) => {
   }
 });
 
-VideosRouter.post('/recommendations/:username', async (req, res) => {
+VideosRouter.post('/recommendations/:username', verifyToken, async (req, res) => {
   const { username } = req.params;
   const { genres } = req.body;
 
@@ -235,28 +238,28 @@ VideosRouter.get('/titles/:title', async (req, res) => {
 VideosRouter.get('/all', async (req, res) => {
   try {
     await getAllVideos(videos => {
-      res.status(200).json(videos);
+      res.status(200).json({ result: 'SUCCESS', data: videos });
     });
   } catch (error) {
     res.status(400).json({ error });
   }
 });
 
-VideosRouter.post('/deleteVideo', async (req, res) => {
+VideosRouter.post('/deleteVideo', verifyToken, verifyAdmin, async (req, res) => {
   try {
     await deleteVideo(req.body.title, async response => {
       const status = response.affectedRows === 1;
-      status ? res.status(200).json({ result: 'success' }) : res.status(500).json({ error: 'error' });
+      status ? res.status(200).json({ result: 'SUCCESS' }) : res.status(500).json({ error: 'ERROR' });
     });
   } catch (error) {
-    res.status(400).json({ error });
+    res.status(400).json({ error: 'ERROR' });
   }
 });
 
 VideosRouter.get('/top-movies', async (req, res) => {
   try {
     await getPopularMovies(videos => {
-      res.status(200).json(videos);
+      res.status(200).json({ result: 'SUCCESS', data: videos });
     });
   } catch (error) {
     res.status(400).json({ error });
@@ -266,7 +269,7 @@ VideosRouter.get('/top-movies', async (req, res) => {
 VideosRouter.get('/top-series', async (req, res) => {
   try {
     await getPopularSeries(videos => {
-      res.status(200).json(videos);
+      res.status(200).json({ result: 'SUCCESS', data: videos });
     });
   } catch (error) {
     res.status(400).json({ error });

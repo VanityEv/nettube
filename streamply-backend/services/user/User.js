@@ -9,7 +9,7 @@ const createUser = async (
   await query(dbQuery, requestCallback);
 };
 const getAllUsers = async requestCallback => {
-  const dbQuery = `SELECT id, username, fullname, last_login from users ORDER BY last_login DESC`;
+  const dbQuery = `SELECT id, username, email, fullname, last_login from users ORDER BY last_login DESC`;
   await query(dbQuery, requestCallback);
 };
 const findOneUser = async (username, requestCallback) => {

@@ -1,30 +1,19 @@
-import {
-  Box,
-  Stack,
-  SxProps,
-  TextField,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  Button,
-  Autocomplete,
-  Select,
-  MenuItem,
-} from '@mui/material';
+import { Box, Stack, SxProps, TextField, Button, Select, MenuItem, CircularProgress, InputLabel } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useVideosStore } from '../../state/videosStore';
-import { Video } from '../../types/videos.types';
 import axios from 'axios';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { SnackbarContext } from '../../App';
 import { SERVER_ADDR, SERVER_PORT } from '../../constants';
+import { getCookie } from 'typescript-cookie';
 
 export const UploadEpisodeForm = () => {
   const { videos } = useVideosStore();
   const { showSnackbar } = useContext(SnackbarContext);
   const availableSeries = videos.filter(video => video.type === 'series');
+  const [isLoading, setIsLoading] = useState(false);
 
   //styles for each field
   const fieldSx: SxProps = {
@@ -70,32 +59,39 @@ export const UploadEpisodeForm = () => {
   const onSubmit = async (data: Schema) => {
     try {
       const selectedSeries = availableSeries.find(series => series.id === data.show);
-      const show_title = selectedSeries ? selectedSeries.title : 'test';
+      if (!selectedSeries) {
+        showSnackbar('Error while selecting series', 'error');
+        return;
+      }
       // Create a FormData object to send the form data, including the file
       const formData = new FormData();
       formData.append('title', data.title);
       formData.append('description', data.description);
-      formData.append('show_title', show_title);
+      formData.append('show_title', selectedSeries.title);
       formData.append('season', data.season);
       formData.append('episode', data.episode);
       formData.append('show', String(data.show));
       formData.append('episode_file', data.video[0]);
+      setIsLoading(true);
 
       // Send the form data to the backend
-      const response = await axios.post(`${SERVER_ADDR}:${SERVER_PORT}/videos/upload/episode`, formData);
+      const response = await axios.post(`${SERVER_ADDR}:${SERVER_PORT}/videos/upload/episode`, formData, {
+        headers: { Authorization: `Bearer ${getCookie('userToken')}` },
+      });
 
       // Handle the response
       if (response.status === 200) {
         showSnackbar('Episode uploaded successfully', 'success');
-        // Optionally reset the form after successful submission
+        setIsLoading(false);
         form.reset();
       } else {
         showSnackbar('Episode upload error', 'error');
+        setIsLoading(false);
         console.error('Form submission failed:', response.statusText);
-        // Handle the error or show an error message to the user
       }
     } catch (error) {
       console.error('Error submitting the form:', error);
+      setIsLoading(false);
       // Handle unexpected errors
     }
   };
@@ -217,12 +213,21 @@ export const UploadEpisodeForm = () => {
           name="video"
           control={form.control}
           render={({ field: { ref, onChange, onBlur } }) => (
-            <input type="file" accept="video/mp4" onChange={e => onChange(e.target.files)} onBlur={onBlur} ref={ref} />
+            <>
+              <InputLabel htmlFor="episode-upload">Episode File Upload</InputLabel>
+              <input
+                type="file"
+                accept="video/mp4"
+                onChange={e => onChange(e.target.files)}
+                onBlur={onBlur}
+                ref={ref}
+              />
+            </>
           )}
         />
 
-        <Button type="submit" sx={{ backgroundColor: 'primary.600', width: '8rem' }}>
-          Submit
+        <Button type="submit" disabled={isLoading} sx={{ backgroundColor: 'primary.600', width: '8rem' }}>
+          {isLoading ? <CircularProgress size="2rem" /> : 'Submit'}
         </Button>
       </Stack>
     </Box>

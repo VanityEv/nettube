@@ -4,6 +4,8 @@ import { SyntheticEvent, useContext, useState } from 'react';
 import axios from 'axios';
 import { SERVER_ADDR, SERVER_PORT } from '../../../constants';
 import { SnackbarContext } from '../../../App';
+import { StarBorder } from '@mui/icons-material';
+import { getCookie } from 'typescript-cookie';
 
 type AddReviewType = {
   show_id: number;
@@ -33,12 +35,16 @@ export const AddReviewField = ({ show_id, blockedReviews, refetch }: AddReviewTy
       } else {
         ratingValue = rating * 2;
       }
-      const response = await axios.post(`${SERVER_ADDR}:${SERVER_PORT}/reviews/userReviews/addReview`, {
-        comment: comment,
-        grade: ratingValue,
-        show_id: show_id,
-        username: username,
-      });
+      const response = await axios.post(
+        `${SERVER_ADDR}:${SERVER_PORT}/reviews/userReviews/addReview`,
+        {
+          comment: comment,
+          grade: ratingValue,
+          show_id: show_id,
+          username: username,
+        },
+        { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
+      );
       if (response.status === 200) {
         refetch();
         showSnackbar('Comment Added', 'success');
@@ -64,12 +70,20 @@ export const AddReviewField = ({ show_id, blockedReviews, refetch }: AddReviewTy
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
           <Box>
             <Typography color="white">Add your review</Typography>
-            <Rating precision={0.5} onChange={handleRatingChange} value={rating} readOnly={blockedReviews} />
+            <Rating
+              sx={{ color: 'white' }}
+              emptyIcon={<StarBorder sx={{ color: 'white' }} />}
+              precision={0.5}
+              onChange={handleRatingChange}
+              value={rating}
+              readOnly={blockedReviews}
+            />
           </Box>
           <TextField
             multiline
             fullWidth
-            placeholder="Add your own comment"
+            disabled={blockedReviews}
+            placeholder={blockedReviews ? "You can't review this show" : 'Add your own comment'}
             rows={3}
             onChange={handleCommentChange}
             sx={{
@@ -79,7 +93,12 @@ export const AddReviewField = ({ show_id, blockedReviews, refetch }: AddReviewTy
           />
         </Box>
       </Box>
-      <Button variant="contained" sx={{ backgroundColor: 'primary.600', width: '8rem' }} onClick={handleAddReview}>
+      <Button
+        disabled={blockedReviews}
+        variant="contained"
+        sx={{ backgroundColor: 'primary.600', width: '8rem' }}
+        onClick={handleAddReview}
+      >
         Add Comment
       </Button>
     </Box>

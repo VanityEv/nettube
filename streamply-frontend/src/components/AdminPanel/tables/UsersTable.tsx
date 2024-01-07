@@ -14,13 +14,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { filterDataFromKeys } from '../../../helpers/filterDataFromKeys';
-
-type UserEntry = {
-  id: number;
-  username: string;
-  last_login: string;
-  email: string;
-};
+import { UserEntry } from '../../../types/user.types';
 
 export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: (id: number) => void }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -97,8 +91,10 @@ export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: 
                     onDelete(user.id);
                   }}
                 >
-                  <HighlightOff color="error" />
-                  Ban
+                  <HighlightOff sx={{ color: 'red' }} />
+                  <Typography variant="body2" sx={{ color: 'white' }}>
+                    Ban
+                  </Typography>
                 </IconButton>
               </TableCell>
             </TableRow>

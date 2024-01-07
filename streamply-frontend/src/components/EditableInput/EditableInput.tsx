@@ -7,6 +7,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { HTMLInputTypeAttribute, useState } from 'react';
 import { SERVER_ADDR, SERVER_PORT } from '../../constants';
 import { useUserStore } from '../../state/userStore';
+import { getCookie } from 'typescript-cookie';
 
 type UpdateResponse = {
   result: string;
@@ -51,18 +52,23 @@ export const EditableInput = ({ param, value, type, onSuccess }: EditableInputPr
       if (param === 'username' || param === 'email') {
         const occurencyCheckResult = await axios.post<OccurencyCheckResult>(
           SERVER_ADDR + ':' + SERVER_PORT + '/user/checkOccurency',
-          { param: param, value: valueToUpdate }
+          { param: param, value: valueToUpdate },
+          { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
         );
         if (occurencyCheckResult.data.result === 'ALREADY_EXISTS') {
           //TODO: SNACKBAR
           return;
         }
       }
-      const response = await axios.post<UpdateResponse>(SERVER_ADDR + ':' + SERVER_PORT + '/user/updateUser', {
-        param: param,
-        value: valueToUpdate,
-        username: username,
-      });
+      const response = await axios.post<UpdateResponse>(
+        SERVER_ADDR + ':' + SERVER_PORT + '/user/updateUser',
+        {
+          param: param,
+          value: valueToUpdate,
+          username: username,
+        },
+        { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
+      );
       if (response.data.result === 'SUCCESS') {
         onSuccess();
       }

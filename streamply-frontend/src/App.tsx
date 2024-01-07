@@ -9,8 +9,7 @@ import ConfirmRegister from './pages/ConfirmRegister';
 import AppBar from './components/AppBar';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
-import Signout from './pages/Signout';
-import { VideoPlayer } from './pages/Player';
+import { MoviePlayer } from './pages/MoviePlayer';
 import { Box, createTheme, CssBaseline, Divider } from '@mui/material';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute, { ProtectedRouteProps } from './ProtectedRoute';
@@ -19,6 +18,9 @@ import { getCookie } from 'typescript-cookie';
 import { VideoPage } from './components/VideoPage/VideoPage';
 import { useSnackbar } from './hooks/useSnackbar';
 import { Snackbar } from './components/Snackbar';
+import Movies from './pages/Movies';
+import Series from './pages/Series';
+import { EpisodePlayer } from './pages/EpisodePlayer';
 
 /**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
  *   const navigate = useNavigate();
@@ -131,13 +133,6 @@ const App = () => {
               },
             },
           },
-          MuiSvgIcon: {
-            styleOverrides: {
-              root: {
-                color: 'white',
-              },
-            },
-          },
           MuiPaper: {
             styleOverrides: {
               root: {
@@ -230,6 +225,8 @@ const App = () => {
                 element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Profile />} />}
                 path="/profile"
               />
+              <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Movies />} />} path="/movies" />
+              <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Series />} />} path="/series" />
 
               <Route
                 element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Dashboard />} />}
@@ -245,19 +242,13 @@ const App = () => {
                 path="/movies/:title"
               />
 
-              {/* <Route
-              element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
-              path="/video/:id"
-            /> */}
-
               <Route
-                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Signout />} />}
-                path="/signout"
+                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<MoviePlayer />} />}
+                path="/movie/:title"
               />
-
               <Route
-                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPlayer />} />}
-                path="/video/:id"
+                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<EpisodePlayer />} />}
+                path="/series/:title/season/:season/episode/:episode"
               />
             </Routes>
           </Box>

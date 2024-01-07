@@ -24,6 +24,7 @@ import path from 'path';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { verifyToken, verifyUser, verifyUsername } from '../../helpers/verifyToken.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -78,7 +79,7 @@ UserRouter.get('/getAvatar/:username', async (req, res) => {
   }
 });
 
-UserRouter.post('/uploadAvatar/:username', upload.single('avatar'), async (req, res) => {
+UserRouter.post('/uploadAvatar/:username', verifyToken, verifyUser, upload.single('avatar'), async (req, res) => {
   try {
     //Delete previous avatar file
     const username = req.params.username;
@@ -92,23 +93,6 @@ UserRouter.post('/uploadAvatar/:username', upload.single('avatar'), async (req, 
       }
     });
     res.status(200).json({ result: 'SUCCESS' });
-  } catch (error) {
-    res.status(400).json({ error });
-  }
-});
-
-UserRouter.post('/getAvatars', async (req, res) => {
-  try {
-    const usernames = req.body.usernames;
-    const avatarFormats = ['.jpeg', '.jpg', '.png'];
-
-    const avatarPaths = usernames.map(username =>
-      avatarFormats
-        .map(format => path.join(__dirname, '../..', 'images', 'avatars', `${username}${format}`))
-        .find(path => fs.existsSync(path))
-    );
-
-    res.status(200).json({ result: 'SUCCESS', avatars: avatarPaths });
   } catch (error) {
     res.status(400).json({ error });
   }
@@ -162,7 +146,7 @@ UserRouter.post('/signin', async (req, res) => {
           if (result) {
             await updateUserLoginDate(req.body.username, () => {});
             // sign token and send it in response
-            const token = jwt.sign({ username: userToLogin.username }, SECRET);
+            const token = jwt.sign({ username: userToLogin.username, account_type: userToLogin.account_type }, SECRET);
 
             res.status(200).json({
               result: 'SUCCESS',
@@ -205,7 +189,7 @@ UserRouter.post('/signin', async (req, res) => {
   }
 });
 
-UserRouter.post('/changePassword', async (req, res) => {
+UserRouter.post('/changePassword', verifyToken, verifyUser, verifyUsername, async (req, res) => {
   try {
     //find user to update
     await findOneUser(req.body.username, async user => {
@@ -252,7 +236,7 @@ UserRouter.post('/confirmRegister', async (req, res) => {
   }
 });
 
-UserRouter.post('/getUserData', async (req, res) => {
+UserRouter.post('/getUserData', verifyToken, verifyUser, verifyUsername, async (req, res) => {
   try {
     await findOneUser(req.body.username, async user => {
       const userData = user[0];
@@ -274,7 +258,7 @@ UserRouter.post('/getUserData', async (req, res) => {
   }
 });
 
-UserRouter.get('/userLikes/:username', async (req, res) => {
+UserRouter.get('/userLikes/:username', verifyToken, verifyUser, async (req, res) => {
   try {
     const username = req.params.username;
     await userLikes(username, userLikes => {
@@ -285,7 +269,7 @@ UserRouter.get('/userLikes/:username', async (req, res) => {
   }
 });
 
-UserRouter.post('/updateUser', async (req, res) => {
+UserRouter.post('/updateUser', verifyToken, verifyUser, verifyUsername, async (req, res) => {
   try {
     await updateUser(req.body.param, req.body.value, req.body.username, async response => {
       const status = response.changedRows === 1 ? 'SUCCESS' : 'ERROR';
@@ -297,7 +281,7 @@ UserRouter.post('/updateUser', async (req, res) => {
   }
 });
 
-UserRouter.post('/checkOccurency', async (req, res) => {
+UserRouter.post('/checkOccurency', verifyToken, async (req, res) => {
   try {
     await checkOccurency(req.body.param, req.body.value, async response => {
       const status = response[0].exists === 0 ? 'NOT_EXISTS' : 'ALREADY_EXISTS';
@@ -308,7 +292,7 @@ UserRouter.post('/checkOccurency', async (req, res) => {
   }
 });
 
-UserRouter.post('/deleteLike', async (req, res) => {
+UserRouter.post('/deleteLike', verifyToken, verifyUser, verifyUsername, async (req, res) => {
   try {
     await deleteLike(req.body.username, req.body.show_id, async response => {
       const status = response.affectedRows === 1 ? 'SUCCESS' : 'ERROR';
@@ -320,7 +304,7 @@ UserRouter.post('/deleteLike', async (req, res) => {
   }
 });
 
-UserRouter.post('/addLike', async (req, res) => {
+UserRouter.post('/addLike', verifyToken, verifyUser, verifyUsername, async (req, res) => {
   try {
     await addLike(req.body.username, req.body.show_id, async response => {
       const status = response.affectedRows === 1 ? 'SUCCESS' : 'ERROR';
@@ -334,7 +318,6 @@ UserRouter.post('/addLike', async (req, res) => {
 
 UserRouter.get('/getAllUsers', async (req, res) => {
   try {
-    console.log('chuj');
     await getAllUsers(users => {
       res.status(200).json({ result: 'SUCCESS', data: users });
     });
@@ -347,7 +330,7 @@ UserRouter.post('/deleteUser', async (req, res) => {
   try {
     await deleteUser(req.body.id, async response => {
       const status = response.affectedRows === 1;
-      status ? res.status(200).json({ result: 'success' }) : res.status(500).json({ error: 'error' });
+      status ? res.status(200).json({ result: 'SUCCESS' }) : res.status(500).json({ error: 'error' });
     });
   } catch (error) {
     res.status(400).json({ error });

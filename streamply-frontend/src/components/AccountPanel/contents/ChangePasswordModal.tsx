@@ -44,12 +44,16 @@ export const ChangePasswordModal = () => {
 
   const onSubmit = async (data: Schema) => {
     try {
-      const response = await axios.post(SERVER_ADDR + ':' + SERVER_PORT + '/user/changePassword', {
-        username: username,
-        token: getCookie('userToken'),
-        oldPassword: data.oldPassword,
-        newPassword: data.newPassword,
-      });
+      const response = await axios.post(
+        SERVER_ADDR + ':' + SERVER_PORT + '/user/changePassword',
+        {
+          username: username,
+          token: getCookie('userToken'),
+          oldPassword: data.oldPassword,
+          newPassword: data.newPassword,
+        },
+        { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
+      );
       if (response.status === 200) {
         //TODO: PASSWORD CHANGE SNACKBAR
       }

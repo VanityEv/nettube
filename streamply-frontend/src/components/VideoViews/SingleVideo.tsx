@@ -7,6 +7,7 @@ import axios from 'axios';
 import { SERVER_ADDR, SERVER_PORT } from '../../constants';
 import { useState } from 'react';
 import { toKebabCase } from '../../helpers/convertToKebabCase';
+import { getCookie } from 'typescript-cookie';
 
 type UpdateResponse = { result: string };
 
@@ -18,10 +19,14 @@ export const SingleVideo = ({ video }: { video: Video }) => {
 
   const updateUserLike = async (id: number, mode: 'add' | 'delete') => {
     const endpointPath = mode === 'add' ? '/user/addLike' : '/user/deleteLike';
-    const response = await axios.post<UpdateResponse>(SERVER_ADDR + ':' + SERVER_PORT + endpointPath, {
-      username: username,
-      show_id: id,
-    });
+    const response = await axios.post<UpdateResponse>(
+      SERVER_ADDR + ':' + SERVER_PORT + endpointPath,
+      {
+        username: username,
+        show_id: id,
+      },
+      { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
+    );
     return response.data.result;
   };
 

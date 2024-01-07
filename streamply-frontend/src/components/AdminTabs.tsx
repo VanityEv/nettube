@@ -1,4 +1,4 @@
-import { Add, CameraRoll, HighlightOff, LocalMovies, People } from '@mui/icons-material';
+import { Add, Block, CameraRoll, HighlightOff, LocalMovies, People } from '@mui/icons-material';
 import { Box, Tab, Tabs, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { UsersTable } from './AdminPanel/tables/UsersTable';
@@ -12,6 +12,8 @@ import { SERVER_ADDR, SERVER_PORT } from '../constants';
 import { SignalResponse } from '../types/response.types';
 import { SnackbarContext } from '../App';
 import { useGetUsers } from '../hooks/useGetUsers';
+import { useGetVideos } from '../hooks/useGetVideos';
+import { getCookie } from 'typescript-cookie';
 
 export type UserEntry = {
   id: number;
@@ -22,15 +24,19 @@ export type UserEntry = {
 
 //TODO: CSS - poprawki i layout
 function AdminTabs() {
-  const { videos } = useVideosStore();
+  const { data: videos, refetch: refetchVideos } = useGetVideos();
   const theme = useTheme();
-  const { data, refetch: refetchUsers } = useGetUsers();
+  const { data: users, refetch: refetchUsers } = useGetUsers();
   const { showSnackbar } = useContext(SnackbarContext);
   const [tabValue, setTabValue] = useState(0);
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
 
   const sendUserDeleteQuery = async (id: number) => {
-    const response = await axios.post<SignalResponse>(`${SERVER_ADDR}:${SERVER_PORT}/user/deleteUser`, id);
+    const response = await axios.post<SignalResponse>(
+      `${SERVER_ADDR}:${SERVER_PORT}/user/deleteUser`,
+      { id: id },
+      { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
+    );
     if (response.data.result === 'SUCCESS') {
       showSnackbar('User deleted!', 'info');
       refetchUsers();
@@ -39,9 +45,53 @@ function AdminTabs() {
 
   //Delete video from database
   const sendVideoDeleteQuery = async (title: string) => {
-    const response = await axios.post<SignalResponse>(`${SERVER_ADDR}:${SERVER_PORT}/videos/deleteVideo`, title);
-    if (response.data.result === 'SUCCESS') {
-      showSnackbar('Video deleted!', 'info');
+    try {
+      const response = await axios.post<SignalResponse>(
+        `${SERVER_ADDR}:${SERVER_PORT}/videos/deleteVideo`,
+        {
+          title: title,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${getCookie('userToken')}`,
+          },
+        }
+      );
+      if (response.data.result === 'SUCCESS') {
+        showSnackbar('Video deleted!', 'info');
+        refetchVideos();
+      }
+    } catch (error) {
+      showSnackbar('Error while deleting show!', 'error');
+    }
+  };
+
+  const sendBlockReviewsQuery = async (id: number, targetStatus: number) => {
+    try {
+      let shouldBeBlocked: number;
+      if (!!targetStatus) {
+        shouldBeBlocked = 0;
+      } else {
+        shouldBeBlocked = 1;
+      }
+      const response = await axios.post<SignalResponse>(
+        `${SERVER_ADDR}:${SERVER_PORT}/reviews/userReviews/blockReviews`,
+        {
+          id: id,
+          targetStatus: shouldBeBlocked,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${getCookie('userToken')}`,
+          },
+        }
+      );
+      if (response.data.result === 'SUCCESS') {
+        showSnackbar(`Reviews Blocked!`, 'info');
+        refetchVideos();
+      }
+    } catch (error) {
+      showSnackbar('Error while blocking reviews!', 'error');
     }
   };
 
@@ -54,12 +104,28 @@ function AdminTabs() {
     sendVideoDeleteQuery(title);
   };
 
+  const handleVideoBlock = (id: number, targetStatus: number) => {
+    sendBlockReviewsQuery(id, targetStatus);
+  };
+
+  if (!users) {
+    return <Typography>'Error fetching users or no users on list...'</Typography>;
+  }
+  if (!videos) {
+    return <Typography>'Error fetching videos or no videos on list...'</Typography>;
+  }
+
   //actions for each entry
   const VideoActionsConfig: VideoActionsConfigType[] = [
     {
-      icon: <HighlightOff color="error" />,
+      icon: <HighlightOff sx={{ color: 'red' }} />,
       action: handleVideoDelete,
       actionDescription: 'Delete',
+    },
+    {
+      icon: <Block sx={{ color: 'white' }} />,
+      action: handleVideoBlock,
+      actionDescription: 'Block Reviews',
     },
   ];
 
@@ -74,10 +140,6 @@ function AdminTabs() {
     columnNames: tableColumns,
     actions: VideoActionsConfig,
   };
-
-  if (!data) {
-    return <Typography>'Error fetching users or no users on list...'</Typography>;
-  }
 
   return (
     <Box sx={{ flexGrow: 3, pb: 3 }}>
@@ -99,7 +161,7 @@ function AdminTabs() {
         <Tab icon={<Add />} iconPosition="start" label="Add Video" value={3} />
       </Tabs>
       <TabPanel index={0} value={tabValue}>
-        <UsersTable users={data} onDelete={handleUserDelete} />
+        <UsersTable users={users} onDelete={handleUserDelete} />
       </TabPanel>
       <TabPanel index={1} value={tabValue}>
         <VideosTable {...MoviesTableConfig} />

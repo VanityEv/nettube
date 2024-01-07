@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { TopMovies } from '../components/MainImage/TopMovies';
 import { MoviesCarousel } from '../components/MainImage/MoviesCarousel';
 import { GenreBrowser } from '../components/GenreBrowser/GenreBrowser';
@@ -10,6 +10,9 @@ function HomePage() {
   const { popularMovies, popularSeries, videos } = useVideosStore();
   const { likes } = useUserStore();
   const watchlist = videos.filter(video => likes.includes(video.id));
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('tablet'));
 
   return (
     <>
@@ -28,7 +31,7 @@ function HomePage() {
         <MoviesCarousel
           movies={popularMovies}
           withNavigation
-          slidesPerView={6.5}
+          slidesPerView={isTablet ? 1 : isMobile ? 2 : 6.5}
           posterVariant="overlay"
           carouselTitle="Most Popular Movies"
           carouselTitleTextVariant="h4"
@@ -36,7 +39,7 @@ function HomePage() {
         />
         <MoviesCarousel
           movies={popularSeries}
-          slidesPerView={6.5}
+          slidesPerView={isTablet ? 1 : isMobile ? 2 : 6.5}
           withNavigation
           posterVariant="overlay"
           carouselTitle="Top Watched Series"
@@ -47,7 +50,7 @@ function HomePage() {
         {likes && (
           <MoviesCarousel
             movies={watchlist}
-            slidesPerView={5}
+            slidesPerView={isTablet ? 1 : isMobile ? 2 : 5}
             withNavigation
             posterVariant="overlay"
             carouselTitle="Your Watchlist"

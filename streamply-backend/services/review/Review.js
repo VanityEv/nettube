@@ -53,7 +53,7 @@ const getIsBlocked = async (data, requestCallback) => {
 };
 
 const setIsBlocked = async (data, requestCallback) => {
-  const dbQuery = `update videos set blocked_reviews=${data.is_blocked} where id=${data.id}`;
+  const dbQuery = `update videos set blocked_reviews=${data.targetStatus} where id=${data.id}`;
   await query(dbQuery, requestCallback);
 };
 

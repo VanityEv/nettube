@@ -26,7 +26,7 @@ export const ShowReviewList = ({ video }: { video: Video }) => {
 
   return (
     <Box>
-      <AddReviewField show_id={video.id} refetch={refetch} />
+      <AddReviewField blockedReviews={!!video.blocked_reviews} show_id={video.id} refetch={refetch} />
       {data?.reviews.slice(0, displayedReviews).map(review => (
         <SingleReview key={`review-${review.id}`} review={review} />
       ))}

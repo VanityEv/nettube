@@ -30,6 +30,9 @@ node_modules/
 streamply-backend/images/
 streamply-backend/movies/
 
+#database config
+streamply-backend/services/db
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

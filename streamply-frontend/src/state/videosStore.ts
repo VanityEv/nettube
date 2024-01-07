@@ -16,13 +16,18 @@ type VideoActions = {
   reset: () => void;
 };
 
+type VideosResponse = {
+  result: string;
+  data: Video[];
+};
+
 type VideosEndpoint = 'all' | 'top-movies' | 'top-series';
 
 const getVideos = async (endpoint: VideosEndpoint) => {
   try {
-    const response = await axios.get<Video[]>(SERVER_ADDR + ':' + SERVER_PORT + `/videos/${endpoint}`);
-    if (response.status === 200) {
-      return response.data;
+    const response = await axios.get<VideosResponse>(SERVER_ADDR + ':' + SERVER_PORT + `/videos/${endpoint}`);
+    if (response.data.result === 'SUCCESS') {
+      return response.data.data;
     } else {
       throw new Error(`Request failed with status ${response.status}`);
     }

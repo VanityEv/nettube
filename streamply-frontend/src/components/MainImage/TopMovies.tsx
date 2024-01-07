@@ -6,6 +6,7 @@ import { useVideosStore } from '../../state/videosStore';
 import { createContext, useState } from 'react';
 import { HeadPosterCarousel } from './HeadPosterCarousel';
 import { PlayCircleOutline } from '@mui/icons-material';
+import { toKebabCase } from '../../helpers/convertToKebabCase';
 
 type TopMoviesContextType = {
   selectedMovie: Video;
@@ -45,7 +46,11 @@ export const TopMovies = () => {
               </Typography>
               <Button
                 startIcon={<PlayCircleOutline />}
-                href={`/video/${selectedMovie.id}`}
+                href={
+                  selectedMovie.type === 'series'
+                    ? `/series/${toKebabCase(selectedMovie.title)}/season/1/episode/1`
+                    : `/movie/${toKebabCase(selectedMovie.title)}`
+                }
                 variant="contained"
                 sx={{ backgroundColor: 'primary.600', width: '20%' }}
               >
