@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import { api } from '../constants';
 import { useQuery } from '@tanstack/react-query';
 import { Video } from '../types/videos.types';
 import { getCookie } from 'typescript-cookie';
@@ -12,7 +12,7 @@ type RecommendationsResponse = {
 const fetchRecommendations = async (username: string, genres: string[]) => {
   try {
     const response = await axios.post<RecommendationsResponse>(
-      `${SERVER_ADDR}:${SERVER_PORT}/videos/recommendations/${username}`,
+      `${api}/videos/recommendations/${username}`,
       { genres },
       { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
     );

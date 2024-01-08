@@ -1,17 +1,19 @@
-import { Box, Button, IconButton, Modal, Stack, TextField, Typography } from '@mui/material';
-import { useState } from 'react';
+import { Box, Button, IconButton, Modal, Stack, TextField } from '@mui/material';
+import { useContext, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Close } from '@mui/icons-material';
-import { SERVER_ADDR, SERVER_PORT } from '../../../constants';
-import axios from 'axios';
+import { api } from '../../../constants';
+import axios, { AxiosError } from 'axios';
 import { useUserStore } from '../../../state/userStore';
 import { getCookie } from 'typescript-cookie';
+import { SnackbarContext } from '../../../App';
 
 export const ChangePasswordModal = () => {
   const { username } = useUserStore();
   const [open, setOpen] = useState(false);
+  const { showSnackbar } = useContext(SnackbarContext);
   const handleOpenChange = () => {
     setOpen(prev => !prev);
   };
@@ -45,7 +47,7 @@ export const ChangePasswordModal = () => {
   const onSubmit = async (data: Schema) => {
     try {
       const response = await axios.post(
-        SERVER_ADDR + ':' + SERVER_PORT + '/user/changePassword',
+        `${api}/user/changePassword`,
         {
           username: username,
           token: getCookie('userToken'),
@@ -55,10 +57,10 @@ export const ChangePasswordModal = () => {
         { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
       );
       if (response.status === 200) {
-        //TODO: PASSWORD CHANGE SNACKBAR
+        showSnackbar('Password changed', 'success');
       }
     } catch (error) {
-      console.error(error);
+      if (error instanceof AxiosError) showSnackbar(`Error while changing password: ${error.code}`, 'error');
     }
   };
 

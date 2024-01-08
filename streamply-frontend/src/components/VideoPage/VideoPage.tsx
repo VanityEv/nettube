@@ -1,5 +1,4 @@
 import { Box, Button, Grid, Tab, Tabs, Typography } from '@mui/material';
-import { useVideosStore } from '../../state/videosStore';
 import { useParams } from 'react-router-dom';
 import { PlayCircleOutline } from '@mui/icons-material';
 import { toKebabCase } from '../../helpers/convertToKebabCase';
@@ -9,6 +8,7 @@ import { MoreInformation } from './contents/MoreInformation';
 import { ShowReviewList } from './contents/ShowReviewList';
 import { Episodes } from './contents/Episodes';
 import { useGetVideos } from '../../hooks/useGetVideos';
+import { api } from '../../constants';
 
 export const VideoPage = () => {
   const { data: videos } = useGetVideos();
@@ -26,15 +26,20 @@ export const VideoPage = () => {
     return <></>;
   }
 
+  const url = video.thumbnail.includes('http')
+    ? video.thumbnail
+    : `${api}/images/thumbnails/${toKebabCase(video.thumbnail)}`;
+
   return (
     <Box sx={{ height: 'calc(100vh - 4.5rem)' }}>
       <Box
         sx={{
-          backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(11, 8, 21, 0.99)), url(${video.thumbnail})`,
+          backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(11, 8, 21, 0.99)), url(${url})`,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           backgroundSize: 'cover',
+          backgroundPosition: 'center center',
           height: '100%',
           width: '100%',
         }}

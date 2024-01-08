@@ -2,8 +2,6 @@ import { Box, Typography } from '@mui/material';
 import { useUserStore } from '../../../state/userStore';
 import { useVideosStore } from '../../../state/videosStore';
 import { HorizontalVideo } from '../../VideoViews/HorizontalVideo';
-import { useState } from 'react';
-import { Video } from '../../../types/videos.types';
 
 export const Watchlist = () => {
   const { likes } = useUserStore();

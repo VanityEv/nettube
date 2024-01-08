@@ -1,6 +1,5 @@
-import { HighlightOff, Search, VideoStable } from '@mui/icons-material';
+import { Search } from '@mui/icons-material';
 import {
-  Box,
   IconButton,
   InputAdornment,
   InputBase,
@@ -17,6 +16,7 @@ import { useState } from 'react';
 import { filterDataFromKeys } from '../../../helpers/filterDataFromKeys';
 import { Video } from '../../../types/videos.types';
 import { TableConfig, VideoActionsConfigType } from './VideoTableConfig';
+import { api } from '../../../constants';
 
 export const VideosTable = ({ columnNames, data, actions }: TableConfig) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -84,7 +84,13 @@ export const VideosTable = ({ columnNames, data, actions }: TableConfig) => {
           {pagedData.map(video => (
             <TableRow key={video.id} sx={{ '&>th,td': { color: 'white' } }}>
               <TableCell component="th" scope="row">
-                <img src={video.thumbnail} style={{ height: 'auto', width: 'auto', maxHeight: '100px' }} />
+                <img
+                  alt={`table-thumbnail-${video.title}`}
+                  src={
+                    video.thumbnail.includes('http') ? video.thumbnail : `${api}/images/thumbnails${video.thumbnail}`
+                  }
+                  style={{ height: 'auto', width: 'auto', maxHeight: '100px' }}
+                />
               </TableCell>
               <TableCell align="left">{video.title}</TableCell>
               <TableCell align="left">{video.genre}</TableCell>

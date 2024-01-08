@@ -1,32 +1,30 @@
 import { Video } from '../../types/videos.types';
-import styled from 'styled-components';
 import { Box, Button, Grid, Typography } from '@mui/material';
-import { MoviesCarousel } from './MoviesCarousel';
 import { useVideosStore } from '../../state/videosStore';
 import { createContext, useState } from 'react';
 import { HeadPosterCarousel } from './HeadPosterCarousel';
 import { PlayCircleOutline } from '@mui/icons-material';
 import { toKebabCase } from '../../helpers/convertToKebabCase';
-
-type TopMoviesContextType = {
-  selectedMovie: Video;
-  setSelectedMovie: (selection: Video) => void;
-};
+import { api } from '../../constants';
 
 export const TopMoviesContext = createContext({});
 
 export const TopMovies = () => {
   const { videos } = useVideosStore();
-  const displayVideos = videos.slice(0, 10);
+  const sortedVideos = videos.sort((a, b) => b.views - a.views);
+  const displayVideos = sortedVideos.slice(0, 10);
   const [selectedMovie, setSelectedMovie] = useState<Video>(displayVideos[0]);
 
   const handleSelectedMovieChange = (selection: Video) => setSelectedMovie(selection);
+  const url = selectedMovie.thumbnail.includes('http')
+    ? selectedMovie.thumbnail
+    : `${api}/images/main-display/${toKebabCase(selectedMovie.title)}.jpg`;
 
   return (
     <Box sx={{ height: 'calc(100vh - 4.5rem)', display: { mobile: 'none', desktop: 'block', tablet: 'none' } }}>
       <Box
         sx={{
-          backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(11, 8, 21, 0.99)), url(${selectedMovie.thumbnail})`,
+          backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(11, 8, 21, 0.99)), url(${url})`,
           display: 'flex',
           flexDirection: 'row',
           justifyContent: 'center',

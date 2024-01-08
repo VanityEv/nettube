@@ -1,4 +1,4 @@
-import { Box, Button, Menu, MenuItem, Paper, Zoom } from '@mui/material';
+import { Box, Button, Menu, MenuItem, Zoom } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { useState } from 'react';
 import { useVideosStore } from '../../state/videosStore';
@@ -71,11 +71,15 @@ export const GenreList = () => {
         open={open}
         onClose={handleMenuClose}
         sx={{ borderColor: 'primary.600', color: 'primary.600', p: '0.5rem', borderRadius: '40px' }}
-        slotProps={{paper: {sx: { backgroundColor: 'secondary.400' }}}}
+        slotProps={{ paper: { sx: { backgroundColor: 'secondary.400' } } }}
       >
         {restGenres.map(genre => (
           <MenuItem
-          sx={{backgroundColor:'secondary.400', color:'white', '&:hover': {backgroundColor:'secondary.400', color:'primary.600'}}}
+            sx={{
+              backgroundColor: 'secondary.400',
+              color: 'white',
+              '&:hover': { backgroundColor: 'secondary.400', color: 'primary.600' },
+            }}
             key={genre}
             onClick={() => {
               handleMenuGenreAdd(genre);

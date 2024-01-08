@@ -1,14 +1,13 @@
 import { Add, Block, CameraRoll, HighlightOff, LocalMovies, People } from '@mui/icons-material';
 import { Box, Tab, Tabs, Typography, useMediaQuery, useTheme } from '@mui/material';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useContext, useState } from 'react';
 import { UsersTable } from './AdminPanel/tables/UsersTable';
 import VideosTable from './AdminPanel/tables/VideosTable';
 import { TableConfig, VideoActionsConfigType, tableColumns } from './AdminPanel/tables/VideoTableConfig';
 import { TabPanel } from './TabPanel';
-import { useVideosStore } from '../state/videosStore';
 import { AddVideoForms } from './AdminPanel/AddVIdeoForms';
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import { api } from '../constants';
 import { SignalResponse } from '../types/response.types';
 import { SnackbarContext } from '../App';
 import { useGetUsers } from '../hooks/useGetUsers';
@@ -22,7 +21,6 @@ export type UserEntry = {
   last_login: string;
 };
 
-//TODO: CSS - poprawki i layout
 function AdminTabs() {
   const { data: videos, refetch: refetchVideos } = useGetVideos();
   const theme = useTheme();
@@ -33,7 +31,7 @@ function AdminTabs() {
 
   const sendUserDeleteQuery = async (id: number) => {
     const response = await axios.post<SignalResponse>(
-      `${SERVER_ADDR}:${SERVER_PORT}/user/deleteUser`,
+      `${api}/user/deleteUser`,
       { id: id },
       { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
     );
@@ -47,7 +45,7 @@ function AdminTabs() {
   const sendVideoDeleteQuery = async (title: string) => {
     try {
       const response = await axios.post<SignalResponse>(
-        `${SERVER_ADDR}:${SERVER_PORT}/videos/deleteVideo`,
+        `${api}/videos/deleteVideo`,
         {
           title: title,
         },
@@ -75,7 +73,7 @@ function AdminTabs() {
         shouldBeBlocked = 1;
       }
       const response = await axios.post<SignalResponse>(
-        `${SERVER_ADDR}:${SERVER_PORT}/reviews/userReviews/blockReviews`,
+        `${api}/reviews/userReviews/blockReviews`,
         {
           id: id,
           targetStatus: shouldBeBlocked,

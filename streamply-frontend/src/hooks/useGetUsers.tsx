@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import { api } from '../constants';
 import { useQuery } from '@tanstack/react-query';
 import { UserEntry } from '../types/user.types';
 
@@ -10,7 +10,7 @@ type UserListResponse = {
 
 const fetchUsers = async () => {
   try {
-    const response = await axios.get<UserListResponse>(`${SERVER_ADDR}:${SERVER_PORT}/user/getAllUsers`);
+    const response = await axios.get<UserListResponse>(`${api}/user/getAllUsers`);
     if (response.data.result === 'SUCCESS') {
       return response.data.data;
     } else {

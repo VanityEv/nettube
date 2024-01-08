@@ -1,16 +1,13 @@
 import { useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
-import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import { api } from '../constants';
 import axios from 'axios';
 
 const ConfirmRegister = () => {
   const [searchParams] = useSearchParams();
   useEffect(() => {
     const sendConfirmRequest = async () => {
-      const response = await axios.post(
-        `${SERVER_ADDR}:${SERVER_PORT}/user/confirmRegister`,
-        searchParams.get('token')
-      );
+      const response = await axios.post(`${api}/user/confirmRegister`, searchParams.get('token'));
       sendConfirmRequest();
     };
   }, [searchParams]);

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { SingleUserReview } from '../../../hooks/useGetUserReviews';
 import { Review } from '../../../types/reviews.types';
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../../../constants';
+import { api } from '../../../constants';
 import { AvatarResponse } from '../../../hooks/useGetUserInfo';
 
 export const SingleReview = ({ review, profileView }: { review: SingleUserReview | Review; profileView?: boolean }) => {
@@ -14,10 +14,10 @@ export const SingleReview = ({ review, profileView }: { review: SingleUserReview
 
   const fetchAvatar = async (username: string) => {
     try {
-      const response = await axios.get<AvatarResponse>(`${SERVER_ADDR}:${SERVER_PORT}/user/getAvatar/${username}`);
+      const response = await axios.get<AvatarResponse>(`${api}/user/getAvatar/${username}`);
 
       if (response.status === 200) {
-        setAvatarUrl(`${SERVER_ADDR}:${SERVER_PORT}${response.data.result}`);
+        setAvatarUrl(`${api}${response.data.result}`);
       } else {
         return;
       }
@@ -28,7 +28,7 @@ export const SingleReview = ({ review, profileView }: { review: SingleUserReview
 
   useEffect(() => {
     fetchAvatar((review as Review).username);
-  }, []);
+  }, [review]);
 
   const handleContinueReading = () => {
     setShowFullComment(true);

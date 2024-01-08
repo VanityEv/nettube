@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { useUserStore } from '../../state/userStore';
 import { useVideosStore } from '../../state/videosStore';
 import { useGetRecommendations } from '../../hooks/useGetRecommendations';

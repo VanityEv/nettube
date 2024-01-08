@@ -3,18 +3,20 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import { api } from '../constants';
 import { useUserStore } from '../state/userStore';
 import { setCookie } from 'typescript-cookie';
 import { useNavigate } from 'react-router-dom';
 import { useVideosStore } from '../state/videosStore';
 import { SnackbarContext } from '../App';
 import { useContext } from 'react';
+import { ResendConfirmationModal } from './ResendConfirmation';
 
 type LoginResponse = {
   username: string;
   token: string;
   account_type: number;
+  confirmed: number;
 };
 
 export const SignInPanel = () => {
@@ -42,16 +44,20 @@ export const SignInPanel = () => {
 
   const onSubmit = async (data: Schema) => {
     try {
-      const loginResponse = await axios.post<LoginResponse>(SERVER_ADDR + ':' + SERVER_PORT + '/user/signin', {
+      const loginResponse = await axios.post<LoginResponse>(`${api}/user/signin`, {
         ...data,
       });
       await setVideos();
       if (loginResponse.status === 200) {
-        showSnackbar('Logged in!', 'success');
-        await setUserData(loginResponse.data.username);
-        setCookie('userToken', loginResponse.data.token);
-        setCookie('userAccountType', loginResponse.data.account_type);
-        navigate('/');
+        if (!loginResponse.data.confirmed) {
+          showSnackbar('Email not confirmed!', 'error');
+        } else {
+          showSnackbar('Logged in!', 'success');
+          await setUserData(loginResponse.data.username);
+          setCookie('userToken', loginResponse.data.token);
+          setCookie('userAccountType', loginResponse.data.account_type);
+          navigate('/');
+        }
       }
     } catch (error) {
       showSnackbar('Incorrect username / password', 'error');
@@ -155,6 +161,7 @@ export const SignInPanel = () => {
           <Link href="/signup" variant="body1">
             Not a member? Register now!
           </Link>
+          <ResendConfirmationModal />
         </Stack>
       </Box>
     </Box>

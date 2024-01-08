@@ -4,10 +4,11 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import axios from 'axios';
 import dayjs, { Dayjs } from 'dayjs';
-import { HTMLInputTypeAttribute, useState } from 'react';
-import { SERVER_ADDR, SERVER_PORT } from '../../constants';
+import { HTMLInputTypeAttribute, useContext, useState } from 'react';
+import { api } from '../../constants';
 import { useUserStore } from '../../state/userStore';
 import { getCookie } from 'typescript-cookie';
+import { SnackbarContext } from '../../App';
 
 type UpdateResponse = {
   result: string;
@@ -28,6 +29,7 @@ export const EditableInput = ({ param, value, type, onSuccess }: EditableInputPr
   const [editMode, setEditMode] = useState(false);
   const [editedValue, setEditedValue] = useState(value);
   const { username } = useUserStore();
+  const { showSnackbar } = useContext(SnackbarContext);
 
   const handleInputValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEditedValue(event.target.value);
@@ -51,17 +53,17 @@ export const EditableInput = ({ param, value, type, onSuccess }: EditableInputPr
       }
       if (param === 'username' || param === 'email') {
         const occurencyCheckResult = await axios.post<OccurencyCheckResult>(
-          SERVER_ADDR + ':' + SERVER_PORT + '/user/checkOccurency',
+          `${api}/user/checkOccurency`,
           { param: param, value: valueToUpdate },
           { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
         );
         if (occurencyCheckResult.data.result === 'ALREADY_EXISTS') {
-          //TODO: SNACKBAR
+          showSnackbar('This email or password are already in use!', 'error');
           return;
         }
       }
       const response = await axios.post<UpdateResponse>(
-        SERVER_ADDR + ':' + SERVER_PORT + '/user/updateUser',
+        `${api}/user/updateUser`,
         {
           param: param,
           value: valueToUpdate,
@@ -70,6 +72,7 @@ export const EditableInput = ({ param, value, type, onSuccess }: EditableInputPr
         { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
       );
       if (response.data.result === 'SUCCESS') {
+        showSnackbar('Updated Information', 'success');
         onSuccess();
       }
     } catch (error) {

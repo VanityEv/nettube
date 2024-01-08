@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Video } from '../types/videos.types';
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import { api } from '../constants';
 
 export type VideoState = {
   videos: Video[];
@@ -25,7 +25,7 @@ type VideosEndpoint = 'all' | 'top-movies' | 'top-series';
 
 const getVideos = async (endpoint: VideosEndpoint) => {
   try {
-    const response = await axios.get<VideosResponse>(SERVER_ADDR + ':' + SERVER_PORT + `/videos/${endpoint}`);
+    const response = await axios.get<VideosResponse>(`${api}/videos/${endpoint}`);
     if (response.data.result === 'SUCCESS') {
       return response.data.data;
     } else {

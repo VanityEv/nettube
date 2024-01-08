@@ -6,7 +6,7 @@ import { useVideosStore } from '../../state/videosStore';
 import axios from 'axios';
 import { useContext, useState } from 'react';
 import { SnackbarContext } from '../../App';
-import { SERVER_ADDR, SERVER_PORT } from '../../constants';
+import { api } from '../../constants';
 import { getCookie } from 'typescript-cookie';
 
 export const UploadEpisodeForm = () => {
@@ -75,7 +75,7 @@ export const UploadEpisodeForm = () => {
       setIsLoading(true);
 
       // Send the form data to the backend
-      const response = await axios.post(`${SERVER_ADDR}:${SERVER_PORT}/videos/upload/episode`, formData, {
+      const response = await axios.post(`${api}/videos/upload/episode`, formData, {
         headers: { Authorization: `Bearer ${getCookie('userToken')}` },
       });
 

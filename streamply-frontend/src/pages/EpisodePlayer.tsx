@@ -37,8 +37,8 @@ export const EpisodePlayer = () => {
   return (
     <Box
       sx={{
-        height: '1080px',
-        width: '1920px',
+        height: '50vmin',
+        width: '60vmax',
         boxSizing: 'border-box',
       }}
     >

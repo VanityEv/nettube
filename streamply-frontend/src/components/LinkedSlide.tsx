@@ -14,7 +14,7 @@ export const LinkedSlide = ({ movie }: LinkedSlideProps) => (
     wrapper={children => (
       <Link
         style={{ textDecoration: 'none' }}
-        to={`/${movie.type == 'film' ? 'movies' : 'series'}/${toKebabCase(movie.title)}`}
+        to={`/${movie.type === 'film' ? 'movies' : 'series'}/${toKebabCase(movie.title)}`}
       >
         {children}
       </Link>

@@ -2,7 +2,7 @@ import { Avatar, Box, Button, Rating, TextField, Typography } from '@mui/materia
 import { useUserStore } from '../../../state/userStore';
 import { SyntheticEvent, useContext, useState } from 'react';
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../../../constants';
+import { api } from '../../../constants';
 import { SnackbarContext } from '../../../App';
 import { StarBorder } from '@mui/icons-material';
 import { getCookie } from 'typescript-cookie';
@@ -36,7 +36,7 @@ export const AddReviewField = ({ show_id, blockedReviews, refetch }: AddReviewTy
         ratingValue = rating * 2;
       }
       const response = await axios.post(
-        `${SERVER_ADDR}:${SERVER_PORT}/reviews/userReviews/addReview`,
+        `${api}/reviews/userReviews/addReview`,
         {
           comment: comment,
           grade: ratingValue,

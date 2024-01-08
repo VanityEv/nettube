@@ -1,4 +1,4 @@
-import { Box, IconButton, InputAdornment, InputBase, Modal, Zoom } from '@mui/material';
+import { Box, IconButton, InputAdornment, InputBase, Modal } from '@mui/material';
 import { useVideosStore } from '../../state/videosStore';
 import { SingleVideo } from '../VideoViews/SingleVideo';
 import { useState } from 'react';

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import { api } from '../constants';
 import { useQuery } from '@tanstack/react-query';
 import { Video } from '../types/videos.types';
 
@@ -10,7 +10,7 @@ type VideoListResponse = {
 
 const fetchVideos = async () => {
   try {
-    const response = await axios.get<VideoListResponse>(`${SERVER_ADDR}:${SERVER_PORT}/videos/all`);
+    const response = await axios.get<VideoListResponse>(`${api}/videos/all`);
     if (response.data.result === 'SUCCESS') {
       return response.data.data;
     } else {

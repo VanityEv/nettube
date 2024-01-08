@@ -2,12 +2,14 @@ import { Box, Typography, Stack, TextField, Button, Link } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import axios, { AxiosError } from 'axios';
+import { api } from '../constants';
 import { useNavigate } from 'react-router-dom';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
+import { useContext } from 'react';
+import { SnackbarContext } from '../App';
 
 type RegisterResponse = {
   result: string;
@@ -15,6 +17,7 @@ type RegisterResponse = {
 
 export const SignUpPanel = () => {
   const navigate = useNavigate();
+  const { showSnackbar } = useContext(SnackbarContext);
 
   const SignUpSchema = z
     .object({
@@ -52,21 +55,31 @@ export const SignUpPanel = () => {
       password: '',
       confirmPassword: '',
     },
-    mode: 'onChange',
+    mode: 'onSubmit',
   });
 
   const onSubmit = async (data: Schema) => {
     try {
       const birthdateAsDate = data.birthdate.format('YYYY-MM-DD');
-      const signUpResponse = await axios.post<RegisterResponse>(SERVER_ADDR + ':' + SERVER_PORT + '/user/signup', {
+      const signUpResponse = await axios.post<RegisterResponse>(`${api}/user/signup`, {
         ...data,
         birthdate: birthdateAsDate,
       });
       if (signUpResponse.status === 200) {
+        showSnackbar('Account created. Please check your email to confirm your account.', 'success');
         navigate('/signin');
       }
     } catch (error) {
-      console.error(error);
+      if (error instanceof AxiosError) {
+        switch (error.response?.status) {
+          case 400:
+            showSnackbar('Error while creating account', 'error');
+            break;
+          case 409:
+            showSnackbar('This username or email are already in use.', 'error');
+            break;
+        }
+      }
     }
   };
 

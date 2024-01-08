@@ -1,15 +1,11 @@
-import { Box, Button, ButtonBase, Stack, Typography, TypographyVariant } from '@mui/material';
+import { Box, Typography, TypographyVariant } from '@mui/material';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/scrollbar';
 import { Navigation, Scrollbar, Autoplay } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Poster } from './Poster';
-import { Fragment, ReactNode, cloneElement, useState } from 'react';
+import { useState } from 'react';
 import { Video } from '../../types/videos.types';
-import { ConditionalWrapper } from '../ConditionalWrapper';
-import { Link } from 'react-router-dom';
-import { toKebabCase } from '../../helpers/convertToKebabCase';
 import { LinkedSlide } from '../LinkedSlide';
 import { StatefulSlide } from '../StatefulSlide';
 

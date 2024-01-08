@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import { api } from '../constants';
 import { useQuery } from '@tanstack/react-query';
 import { Review } from '../types/reviews.types';
 
@@ -10,7 +10,7 @@ type ReviewsResponse = {
 
 const fetchReviews = async (showId: number) => {
   try {
-    const response = await axios.get<ReviewsResponse>(`${SERVER_ADDR}:${SERVER_PORT}/reviews/${showId}`);
+    const response = await axios.get<ReviewsResponse>(`${api}/reviews/${showId}`);
 
     if (response.status === 200) {
       return response.data;

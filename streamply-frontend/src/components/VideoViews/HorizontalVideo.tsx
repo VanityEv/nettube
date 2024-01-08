@@ -4,9 +4,11 @@ import { getRatingColor } from '../../helpers/getRatingColors';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toKebabCase } from '../../helpers/convertToKebabCase';
+import { api } from '../../constants';
 
 export const HorizontalVideo = ({ video, height }: { video: Video; height?: string }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const url = video.thumbnail.includes('http') ? video.thumbnail : `${api}/images/thumbnails${video.thumbnail}`;
 
   const destinationRoute =
     video.type === 'film' ? `/movies/${toKebabCase(video.title)}` : `/series/${toKebabCase(video.title)}`;
@@ -22,7 +24,7 @@ export const HorizontalVideo = ({ video, height }: { video: Video; height?: stri
           aspectRatio: '3 / 2',
           width: 'auto',
           maxWidth: '100vw',
-          background: `url(${video.thumbnail})`,
+          background: `url(${url})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

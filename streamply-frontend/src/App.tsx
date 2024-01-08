@@ -1,5 +1,5 @@
 import { ThemeProvider } from '@mui/system';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import './App.css';
 import HomePage from './pages/HomePage';
 import Profile from './pages/Profile';
@@ -10,7 +10,7 @@ import AppBar from './components/AppBar';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import { MoviePlayer } from './pages/MoviePlayer';
-import { Box, createTheme, CssBaseline, Divider } from '@mui/material';
+import { Box, createTheme, CssBaseline } from '@mui/material';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute, { ProtectedRouteProps } from './ProtectedRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -22,14 +22,6 @@ import Movies from './pages/Movies';
 import Series from './pages/Series';
 import { EpisodePlayer } from './pages/EpisodePlayer';
 
-/**TODO: hook do nawigowania na /login jeśli user jest nieautoryzowany
- *   const navigate = useNavigate();
-  const token = localStorage.getItem("userToken");
-  if (!token) {
-    navigate("/login");
-  }
- * 
- */
 declare module '@mui/material/styles' {
   interface BreakpointOverrides {
     xs: false;

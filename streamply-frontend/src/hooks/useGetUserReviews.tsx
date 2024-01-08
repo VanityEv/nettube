@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import { api } from '../constants';
 import { useQuery } from '@tanstack/react-query';
 
 export type SingleUserReview = {
@@ -16,7 +16,7 @@ type ReviewsResponse = {
 
 const fetchUserReviews = async (username: string) => {
   try {
-    const response = await axios.get<ReviewsResponse>(`${SERVER_ADDR}:${SERVER_PORT}/reviews/userReviews/${username}`);
+    const response = await axios.get<ReviewsResponse>(`${api}/reviews/userReviews/${username}`);
 
     if (response.status === 200) {
       return response.data;

@@ -1,4 +1,5 @@
 import { Box, Divider, Stack, Typography, Zoom } from '@mui/material';
+import { api } from '../../constants';
 
 type PosterProps = {
   posterURL: string;
@@ -8,12 +9,14 @@ type PosterProps = {
 };
 
 export const Poster = ({ posterURL, title, variant, active }: PosterProps) => {
+  const url = posterURL.includes('http') ? posterURL : `${api}/images/thumbnails${posterURL}`;
   return (
     <>
       {variant === 'caption' ? (
         <Stack sx={{ alignItems: 'center' }}>
           <img
-            src={posterURL}
+            alt={`poster-${title}`}
+            src={url}
             style={{
               aspectRatio: '2 / 3',
               width: '90%',
@@ -41,7 +44,7 @@ export const Poster = ({ posterURL, title, variant, active }: PosterProps) => {
       ) : (
         <Box
           sx={{
-            backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(0, 0, 0, 0.99)), url(${posterURL})`,
+            backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(0, 0, 0, 0.99)), url(${url})`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             height: '400px',

@@ -1,10 +1,10 @@
-import { Box, Button, IconButton, Typography } from '@mui/material';
+import { Box, IconButton, Typography } from '@mui/material';
 import { Video } from '../../types/videos.types';
 import { Bookmark, BookmarkBorder, PlayCircleOutline } from '@mui/icons-material';
 import { getRatingColor } from '../../helpers/getRatingColors';
 import { useUserStore } from '../../state/userStore';
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../../constants';
+import { api } from '../../constants';
 import { useState } from 'react';
 import { toKebabCase } from '../../helpers/convertToKebabCase';
 import { getCookie } from 'typescript-cookie';
@@ -16,11 +16,12 @@ export const SingleVideo = ({ video }: { video: Video }) => {
   const [liked, setLiked] = useState(likes.includes(video.id));
   const destinationRoute =
     video.type === 'film' ? `/movies/${toKebabCase(video.title)}` : `/series/${toKebabCase(video.title)}`;
+  const url = video.thumbnail.includes('http') ? video.thumbnail : `${api}/images/thumbnails${video.thumbnail}`;
 
   const updateUserLike = async (id: number, mode: 'add' | 'delete') => {
     const endpointPath = mode === 'add' ? '/user/addLike' : '/user/deleteLike';
     const response = await axios.post<UpdateResponse>(
-      SERVER_ADDR + ':' + SERVER_PORT + endpointPath,
+      api + endpointPath,
       {
         username: username,
         show_id: id,
@@ -45,7 +46,7 @@ export const SingleVideo = ({ video }: { video: Video }) => {
   return (
     <Box
       sx={{
-        backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(0, 0, 0, 0.99)), url(${video.thumbnail})`,
+        backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(0, 0, 0, 0.99)), url(${url})`,
         backgroundSize: 'contain',
         backgroundRepeat: 'no-repeat',
         height: '400px',

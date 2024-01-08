@@ -14,7 +14,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../../constants';
+import { api } from '../../constants';
 import { SnackbarContext } from '../../App';
 import { useContext, useState } from 'react';
 import { useVideosStore } from '../../state/videosStore';
@@ -89,7 +89,7 @@ export const UploadVideoForm = () => {
       formData.append('video', data.video[0]);
       formData.append('thumbnail', data.thumbnail[0]);
       setIsLoading(true);
-      const response = await axios.post(`${SERVER_ADDR}:${SERVER_PORT}/videos/upload/movie`, formData, {
+      const response = await axios.post(`${api}/videos/upload/movie`, formData, {
         headers: { Authorization: `Bearer ${getCookie('userToken')}` },
       });
 

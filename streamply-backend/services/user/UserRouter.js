@@ -3,6 +3,7 @@ dotenv.config();
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import {
   isUserInDB,
   createUser,
@@ -17,6 +18,7 @@ import {
   deleteUser,
   updateUserLoginDate,
   changePassword,
+  findOneUserByEmail,
 } from './User.js';
 import { sendConfirmationEmail } from '../mail/Mail.js';
 import multer from 'multer';
@@ -101,11 +103,11 @@ UserRouter.post('/uploadAvatar/:username', verifyToken, verifyUser, upload.singl
 // Signup route to create a new user
 UserRouter.post('/signup', async (req, res) => {
   try {
-    await isUserInDB(req.body.username, async data => {
+    await isUserInDB(req.body.username, req.body.email, async data => {
       const isUserAlreadySigned = data[0].count > 0;
       if (!isUserAlreadySigned) {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const registerToken = Math.floor(Math.random() * 1000000);
+        const registerToken = crypto.randomBytes(16).toString('hex');
         const userToRegister = {
           username: req.body.username,
           fullname: req.body.fullname,
@@ -124,7 +126,7 @@ UserRouter.post('/signup', async (req, res) => {
           }
         });
       } else {
-        res.json({ result: 'ALREADY_SIGNED' });
+        res.status(409).json({ result: 'ALREADY_SIGNED' });
       }
     });
   } catch (error) {
@@ -152,6 +154,7 @@ UserRouter.post('/signin', async (req, res) => {
               result: 'SUCCESS',
               username: userToLogin.username,
               account_type: userToLogin.account_type,
+              confirmed: userToLogin.confirmed,
               token,
             });
           } else {
@@ -236,6 +239,20 @@ UserRouter.post('/confirmRegister', async (req, res) => {
   }
 });
 
+UserRouter.post('/resendConfirmation', async (req, res) => {
+  try {
+    await findOneUserByEmail(req.body.email, async user => {
+      if (!user) {
+        res.status(404).json({ result: 'NOT_FOUND' });
+      }
+      sendConfirmationEmail(user.email, user.register_token);
+      res.status(200).json({ result: 'SUCCESS' });
+    });
+  } catch (error) {
+    res.status(500).json({ result: 'INTERNAL_ERROR' });
+  }
+});
+
 UserRouter.post('/getUserData', verifyToken, verifyUser, verifyUsername, async (req, res) => {
   try {
     await findOneUser(req.body.username, async user => {
@@ -258,7 +275,7 @@ UserRouter.post('/getUserData', verifyToken, verifyUser, verifyUsername, async (
   }
 });
 
-UserRouter.get('/userLikes/:username', verifyToken, verifyUser, async (req, res) => {
+UserRouter.get('/userLikes/:username', async (req, res) => {
   try {
     const username = req.params.username;
     await userLikes(username, userLikes => {

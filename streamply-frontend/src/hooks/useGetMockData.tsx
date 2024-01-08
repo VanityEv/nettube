@@ -7,7 +7,8 @@ export const getMockData = async () => {
     url: 'https://moviesdatabase.p.rapidapi.com/titles',
     params: {
       startYear: '2018',
-      list: 'top_rated_english_250',
+      list: 'top_rated_series_250',
+      limit: '10',
     },
     headers: {
       'X-RapidAPI-Key': 'f34b36f4fbmsh60a0900ae4215a8p1b4197jsn1dd75f43af0e',

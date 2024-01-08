@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { SERVER_ADDR, SERVER_PORT } from '../constants';
+import { api } from '../constants';
 import { useQuery } from '@tanstack/react-query';
 import { getCookie } from 'typescript-cookie';
 
@@ -21,7 +21,7 @@ type UserData = {
 const fetchUser = async (username: string) => {
   try {
     const response = await axios.post<ProfileInfo>(
-      `${SERVER_ADDR}:${SERVER_PORT}/user/getUserData`,
+      `${api}/user/getUserData`,
       {
         username: username,
       },
@@ -41,7 +41,7 @@ const fetchUser = async (username: string) => {
 
 const fetchAvatar = async (username: string) => {
   try {
-    const response = await axios.get<AvatarResponse>(`${SERVER_ADDR}:${SERVER_PORT}/user/getAvatar/${username}`);
+    const response = await axios.get<AvatarResponse>(`${api}/user/getAvatar/${username}`);
 
     if (response.status === 200) {
       return response.data.result;

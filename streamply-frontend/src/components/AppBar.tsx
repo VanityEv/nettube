@@ -12,11 +12,11 @@ import {
   Tooltip,
   MenuItem,
 } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useUserStore } from '../state/userStore';
 import { useContext, useState } from 'react';
 import { SearchModal } from './SearchModal/SearchModal';
-import { getCookie } from 'typescript-cookie';
+import { getCookie, removeCookie } from 'typescript-cookie';
 import { useVideosStore } from '../state/videosStore';
 import { SnackbarContext } from '../App';
 
@@ -32,6 +32,7 @@ function ResponsiveAppBar() {
   const { reset: resetVideos } = useVideosStore();
   const { reset: resetUser } = useUserStore();
   const { showSnackbar } = useContext(SnackbarContext);
+  const navigate = useNavigate();
 
   const handleSearchModalChange = () => {
     setSeachModalOpen(prev => !prev);
@@ -51,11 +52,13 @@ function ResponsiveAppBar() {
 
   const handleSignout = () => {
     showSnackbar(`You've been logged out!`, 'info');
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    localStorage.removeItem('account_type');
-    resetUser();
-    resetVideos();
+    if (getCookie('userToken')) {
+      removeCookie('userToken');
+      removeCookie('userAccountType');
+      resetUser();
+      resetVideos();
+      navigate('/signin');
+    }
   };
 
   return (

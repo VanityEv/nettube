@@ -16,8 +16,14 @@ const findOneUser = async (username, requestCallback) => {
   const dbQuery = `SELECT * from users WHERE username = "${username}"`;
   await query(dbQuery, requestCallback);
 };
-const isUserInDB = async (username, requestCallback) => {
-  const dbQuery = `SELECT COUNT(*) as count from users WHERE username = "${username}"`;
+
+const findOneUserByEmail = async (email, requestCallback) => {
+  const dbQuery = `SELECT * from users WHERE email = "${email}"`;
+  await query(dbQuery, requestCallback);
+};
+
+const isUserInDB = async (username, email, requestCallback) => {
+  const dbQuery = `SELECT COUNT(*) as count from users WHERE username = "${username}" OR email = "${email}"`;
   await query(dbQuery, requestCallback);
 };
 const confirmUser = async (token, requestCallback) => {
@@ -67,6 +73,7 @@ export {
   createUser,
   getAllUsers,
   findOneUser,
+  findOneUserByEmail,
   confirmUser,
   isUserInDB,
   updateUser,

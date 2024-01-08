@@ -14,6 +14,7 @@ export type Video = {
   tier: string;
   reviews_count: number;
   link: string;
+  views: number;
   blocked_reviews: number;
 };
 

@@ -1,4 +1,4 @@
-import { Box, Grid, Paper, Typography } from '@mui/material';
+import { Box, Paper } from '@mui/material';
 import { AccountSection } from './AccountSection';
 import { PersonalData } from './contents/PersonalData';
 import { Security } from './contents/Security';
