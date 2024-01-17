@@ -13,8 +13,12 @@ export const HorizontalVideo = ({ video, height }: { video: Video; height?: stri
   const destinationRoute =
     video.type === 'film' ? `/movies/${toKebabCase(video.title)}` : `/series/${toKebabCase(video.title)}`;
 
+    const queryParams = new URLSearchParams();
+    queryParams.append('id', video.id.toString())
+    const routeWithParams = `${destinationRoute}?${queryParams.toString()}`;
+
   return (
-    <Link style={{ textDecoration: 'none' }} to={destinationRoute}>
+    <Link style={{ textDecoration: 'none' }} to={routeWithParams}>
       <Box
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -22,11 +26,11 @@ export const HorizontalVideo = ({ video, height }: { video: Video; height?: stri
           position: 'relative',
           height: height ?? '40vh',
           aspectRatio: '3 / 2',
-          width: 'auto',
+          width: {desktop: 'auto', mobile:'100vw'},
           maxWidth: '100vw',
           background: `url(${url})`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
           transition: 'transform 0.6s ease-in-out',
           '&:hover': {

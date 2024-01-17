@@ -8,21 +8,30 @@ import {
   getVideosByGenre,
   deleteVideo,
   addVideo,
-  changeVideoURL,
   getPopularMovies,
   getPopularSeries,
   addEpisode,
   getEpisodes,
   getRecommendations,
+  getProgressedVideos,
+  getProgress,
+  setProgressMovie,
+  setProgressSeries,
+  updateMovieProgress,
+  updateSeriesProgress,
+  deleteProgressedVideo
 } from './Video.js';
 import Ffmpeg from 'fluent-ffmpeg';
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+import ffprobeInstaller from '@ffprobe-installer/ffprobe';
 import multer from 'multer';
 import { toKebabCase } from '../../helpers/toKebabCase.js';
 import { ensureFolderExists } from '../../helpers/ensureFolderExists.js';
 import { verifyAdmin, verifyToken } from '../../helpers/verifyToken.js';
+import fs from 'fs';
 
 Ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+Ffmpeg.setFfprobePath(ffprobeInstaller.path);
 
 const VideosRouter = Router(); // create router to create route bundle
 
@@ -78,17 +87,17 @@ VideosRouter.post(
     try {
       const { title } = req.body;
       const videoFile = req.files['video'][0];
-      console.log(req.body);
 
       // Rename the file to kebab case
       const kebabCaseFilename = toKebabCase(title);
+      const thumbnailExtension = path.extname(thumbnailFile.originalname);
 
       const inputFilePath = path.resolve(`movies/${kebabCaseFilename}/${videoFile.filename}`);
       const outputFilePath = path.resolve(`movies/${kebabCaseFilename}/${kebabCaseFilename}.m3u8`);
-      // Perform video transcoding
+      //Create HLS manifest and create 10s segments from input
       Ffmpeg()
-        .input(inputFilePath) // Use the file buffer as input
-        .inputFormat('mp4') // Specify the input format (assuming mp4)
+        .input(inputFilePath)
+        .inputFormat('mp4')
         .addOptions([
           '-profile:v baseline',
           '-level 3.0',
@@ -100,9 +109,18 @@ VideosRouter.post(
         .output(outputFilePath)
         .on('end', async () => {
           console.log(`${kebabCaseFilename} - video transcoding completed.`);
-          await addVideo(req.body, async response => {
-            const status = response.affectedRows === 1;
-            status ? res.status(200).json({ result: 'success' }) : res.status(500).json({ result: 'error' });
+          Ffmpeg.ffprobe(inputFilePath, async (err, metadata) => {
+            if (err) {
+              res.status(422).json({ result: 'ERROR' });
+            } else {
+              const videoDuration = Math.round(metadata.format.duration / 60);
+              //delete mp4 file
+              fs.unlinkSync(inputFilePath);
+              await addVideo(req.body, videoDuration, thumbnailExtension, async response => {
+                const status = response.affectedRows === 1;
+                status ? res.status(200).json({ result: 'SUCCESS' }) : res.status(500).json({ result: 'ERROR' });
+              });
+            }
           });
         })
         .run();
@@ -153,7 +171,7 @@ VideosRouter.post('/upload/episode', verifyToken, verifyAdmin, upload.single('ep
         // Generate Thumbnail
         Ffmpeg()
           .input(inputFilePath)
-          .seekInput(10) // Seek to the 5-second mark (you can change this as needed)
+          .seekInput(10) // Seek to the 10-second mark
           .frames(1) // Capture a single frame
           .output(thumbnailFilePath)
           .on('end', () => {
@@ -213,6 +231,66 @@ VideosRouter.post('/recommendations/:username', verifyToken, async (req, res) =>
     res.status(500).json({ result: 'ERROR', error: 'Internal Server Error' });
   }
 });
+
+VideosRouter.get('/getProgressed/:username', verifyToken, async (req, res) => {
+  const { username } = req.params;
+  try {
+    await getProgressedVideos(username, async result => {
+      res.status(200).json({ result: 'SUCCESS', progressedVideos: result });
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ result: 'ERROR', error: 'Internal Server Error' });
+  }
+});
+
+VideosRouter.post('/setProgress/:username', verifyToken, async (req, res) => {
+  const { username } = req.params;
+  const { season, episode, showID, timeWatched } = req.body;
+  try {
+    await getProgress(showID, username, async result => {
+      if (!result || !result[0]) {
+        if (!season && !episode) {
+          await setProgressMovie(username, showID, timeWatched, async result => {
+            res.status(201).json({ result: 'SUCCESS' });
+          });
+        } else {
+          await setProgressSeries(username, showID, season, episode, timeWatched, async result => {
+            res.status(201).json({ result: 'SUCCESS' });
+          });
+        }
+      } else {
+        if (!season && !episode) {
+          await updateMovieProgress(username, showID, timeWatched, async result => {
+            res.status(201).json({ result: 'SUCCESS' });
+          });
+        }
+        else {
+          await updateSeriesProgress(username, showID, timeWatched, season, episode, async result => {
+            res.status(201).json({ result: 'SUCCESS' });
+          });
+        }
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ result: 'ERROR', error: 'Internal Server Error' });
+  }
+});
+
+VideosRouter.post('/deleteProgressedVideo/:username', verifyToken, async (req,res) => {
+  const {showID, username} = req.body;
+  try {
+    await deleteProgressedVideo(showID, username, async response => {
+      const status = response.affectedRows === 1;
+      status ? res.status(200).json({ result: 'SUCCESS' }) : res.status(500).json({ error: 'ERROR' });
+    })
+  }
+  catch(error) {
+    console.error(error);
+    res.status(500).json({ result: 'ERROR', error: 'Internal Server Error' });
+  }
+})
 
 VideosRouter.get('/genres/:genreName', async (req, res) => {
   const genreName = req.params.genreName;

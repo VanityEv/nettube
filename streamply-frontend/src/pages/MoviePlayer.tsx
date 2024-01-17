@@ -1,12 +1,25 @@
 import { Box } from '@mui/material';
-import { useRef } from 'react';
+import { useContext, useRef } from 'react';
 import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
 import VideoJS from '../components/VideoJS';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { getCookie } from 'typescript-cookie';
+import { api } from '../constants';
+import { SignalResponse } from '../types/response.types';
+import { SnackbarContext } from '../App';
+import { useUserStore } from '../state/userStore';
 
 export const MoviePlayer = () => {
+  
   const { title } = useParams();
+  const {showSnackbar} = useContext(SnackbarContext);
+  const {username} = useUserStore();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const timestamp = queryParams.get('timestamp')
+  const showID = queryParams.get('id');
   const options = {
     controls: true,
     fill: true,
@@ -17,6 +30,24 @@ export const MoviePlayer = () => {
         type: 'application/x-mpegURL',
       },
     ],
+  };
+
+  const handleVideoProgressSave = async (timestamp: number | undefined) => {
+    try {
+      if (!timestamp) {
+        return;
+      }
+      const response = await axios.post<SignalResponse>(
+        `${api}/videos/setProgress/${username}`,
+        { showID: showID, timeWatched: timestamp },
+        { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
+      );
+      if(response.data.result === 'SUCCESS') {
+        return;
+      }
+    } catch (error) {
+      showSnackbar(`Error occured while trying to save video progress`, 'error');
+    }
   };
 
   const playerRef = useRef<Player | null>(null);
@@ -30,7 +61,13 @@ export const MoviePlayer = () => {
     });
 
     player.on('dispose', () => {
+      handleVideoProgressSave(player.currentTime())
       videojs.log('player will dispose');
+    });
+    player.on('loadedmetadata', () => {
+      if (timestamp) {
+        player.currentTime(Number(timestamp));
+      }
     });
   };
 

@@ -1,4 +1,4 @@
-import UserTabs from '../components/ProfileTabs';
+import UserTabs from '../components/UserTabs';
 
 function Profile() {
   return <UserTabs />;

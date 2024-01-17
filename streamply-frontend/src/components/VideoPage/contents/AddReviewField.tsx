@@ -96,7 +96,7 @@ export const AddReviewField = ({ show_id, blockedReviews, refetch }: AddReviewTy
       <Button
         disabled={blockedReviews}
         variant="contained"
-        sx={{ backgroundColor: 'primary.600', width: '8rem' }}
+        sx={{ backgroundColor: 'primary.600', width: {desktop: '10rem',mobile:'50%'} }}
         onClick={handleAddReview}
       >
         Add Comment

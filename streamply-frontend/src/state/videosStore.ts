@@ -29,11 +29,11 @@ const getVideos = async (endpoint: VideosEndpoint) => {
     if (response.data.result === 'SUCCESS') {
       return response.data.data;
     } else {
-      throw new Error(`Request failed with status ${response.status}`);
+      return [];
     }
   } catch (error) {
     console.error('Error fetching videos data:', error);
-    throw error;
+    return [];
   }
 };
 

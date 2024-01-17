@@ -18,6 +18,10 @@ export const SingleVideo = ({ video }: { video: Video }) => {
     video.type === 'film' ? `/movies/${toKebabCase(video.title)}` : `/series/${toKebabCase(video.title)}`;
   const url = video.thumbnail.includes('http') ? video.thumbnail : `${api}/images/thumbnails${video.thumbnail}`;
 
+  const queryParams = new URLSearchParams();
+  queryParams.append('id', video.id.toString())
+  const routeWithParams = `${destinationRoute}?${queryParams.toString()}`;
+
   const updateUserLike = async (id: number, mode: 'add' | 'delete') => {
     const endpointPath = mode === 'add' ? '/user/addLike' : '/user/deleteLike';
     const response = await axios.post<UpdateResponse>(
@@ -97,7 +101,7 @@ export const SingleVideo = ({ video }: { video: Video }) => {
               <BookmarkBorder color="error" />
             </IconButton>
           )}
-          <IconButton href={destinationRoute} sx={{ color: 'white' }}>
+          <IconButton href={routeWithParams} sx={{ color: 'white' }}>
             <PlayCircleOutline />
           </IconButton>
         </Box>

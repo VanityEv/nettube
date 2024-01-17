@@ -21,7 +21,12 @@ export const ShowReviewList = ({ video }: { video: Video }) => {
   }
 
   if (data?.reviews.length === 0) {
-    return <Typography color="white">This show has no reviews yet.</Typography>;
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <AddReviewField blockedReviews={!!video.blocked_reviews} show_id={video.id} refetch={refetch} />
+        <Typography color="white">This show has no reviews yet.</Typography>
+      </Box>
+    );
   }
 
   return (

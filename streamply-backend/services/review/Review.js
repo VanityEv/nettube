@@ -1,4 +1,5 @@
 import query from '../db.js';
+import { removeDangerousChars } from '../../helpers/removeDangerousChars.js';
 
 const getReviewByShow = async (show_id, requestCallback) => {
   const dbQuery = `SELECT reviews.*, username from reviews INNER JOIN users on reviews.user_id=users.id where show_id = ${show_id}`;
@@ -16,12 +17,12 @@ const getReviewsByUser = async (username, requestCallback) => {
 };
 
 const addComment = async (data, requestCallback) => {
-  const dbQuery = `INSERT INTO reviews (comment, grade, show_id, user_id) values ("${data.comment}",null, ${data.show_id}, (select id from users where username = "${data.username}"))`;
+  const dbQuery = `INSERT INTO reviews (comment, grade, show_id, user_id) values ("${removeDangerousChars(data.comment)}",null, ${data.show_id}, (select id from users where username = "${data.username}"))`;
   await query(dbQuery, requestCallback);
 };
 
 const addReview = async (data, requestCallback) => {
-  const dbQuery = `INSERT INTO reviews (comment, grade, show_id, user_id) values ("${data.comment}",${data.grade}, ${data.show_id}, (select id from users where username = "${data.username}"))`;
+  const dbQuery = `INSERT INTO reviews (comment, grade, comment_date, show_id, user_id) values ("${removeDangerousChars(data.comment)}",${data.grade}, NOW(), ${data.show_id}, (select id from users where username = "${data.username}"))`;
   await query(dbQuery, requestCallback);
 };
 

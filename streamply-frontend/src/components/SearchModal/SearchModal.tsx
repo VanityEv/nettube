@@ -3,11 +3,12 @@ import { useVideosStore } from '../../state/videosStore';
 import { SingleVideo } from '../VideoViews/SingleVideo';
 import { useState } from 'react';
 import { Close, Search, SearchOutlined } from '@mui/icons-material';
+import { filterDataFromKeys } from '../../helpers/filterDataFromKeys';
 
 export const SearchModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
   const { videos } = useVideosStore();
   const [searchValue, setSearchValue] = useState('');
-  const videosToDisplay = videos.filter(video => video.title.toLowerCase().includes(searchValue));
+  const videosToDisplay = filterDataFromKeys(videos, ['title', 'production_year', 'genre', 'tags'], searchValue);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(event.target.value);

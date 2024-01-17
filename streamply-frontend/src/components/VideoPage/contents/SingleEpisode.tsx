@@ -7,12 +7,16 @@ import { toKebabCase } from '../../../helpers/convertToKebabCase';
 export const SingleEpisode = ({ episode }: { episode: Episode }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  //   const destinationRoute = `/movies/${toKebabCase(episode.title)}`;
+  const destinationRoute = `/series/${toKebabCase(episode.show_name)}/season/${episode.season}/episode/${episode.episode}`;
+  const queryParams = new URLSearchParams();
+  queryParams.append('id', episode.show_id.toString())
+
+  const routeWithParams = `${destinationRoute}?${queryParams.toString()}`;
 
   return (
     <Link
       style={{ textDecoration: 'none' }}
-      to={`/series/${toKebabCase(episode.show_name)}/season/${episode.season}/episode/${episode.episode}`}
+      to={routeWithParams}
     >
       <Box
         onMouseEnter={() => setIsHovered(true)}

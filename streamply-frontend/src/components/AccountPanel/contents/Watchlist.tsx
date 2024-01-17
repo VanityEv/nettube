@@ -15,7 +15,7 @@ export const Watchlist = () => {
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '2rem' }}>
         {videosInWatchlist.map(video => (
-          <HorizontalVideo video={video} />
+          <HorizontalVideo key={`watchlist-${video.id}`} video={video} />
         ))}
       </Box>
     </>

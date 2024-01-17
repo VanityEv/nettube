@@ -19,7 +19,7 @@ export const GenreBrowser = () => {
 
   return (
     <Box sx={{ width: '100%', height: 'auto', display: 'flex', flexDirection: 'column' }}>
-      <Typography variant="h4" sx={{ ml: '2rem', fontWeight: '700', color: 'white' }}>
+      <Typography variant="h4" sx={{ ml: '2rem', mb:{mobile:'2rem'}, fontWeight: '700', color: 'white' }}>
         Explore Genres
       </Typography>
       <GenreList />

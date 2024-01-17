@@ -1,4 +1,4 @@
-import { Box, Typography, Stack, TextField, Button, Link } from '@mui/material';
+import { Box, Typography, Stack, TextField, Button, Link, SxProps } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,6 +18,19 @@ type RegisterResponse = {
 export const SignUpPanel = () => {
   const navigate = useNavigate();
   const { showSnackbar } = useContext(SnackbarContext);
+
+  const fieldSx: SxProps = {
+    input: { color: 'white' },
+    width: {
+      mobile: '75%',
+      desktop: '50%',
+      '& .MuiOutlinedInput-root:hover': {
+        '& > fieldset': {
+          borderColor: 'white',
+        },
+      },
+    },
+  }
 
   const SignUpSchema = z
     .object({
@@ -125,18 +138,7 @@ export const SignUpPanel = () => {
                 id="username"
                 label="Username"
                 autoFocus
-                sx={{
-                  input: { color: 'white' },
-                  width: {
-                    mobile: '75%',
-                    desktop: '50%',
-                    '& .MuiOutlinedInput-root:hover': {
-                      '& > fieldset': {
-                        borderColor: 'white',
-                      },
-                    },
-                  },
-                }}
+                sx={fieldSx}
                 inputRef={ref}
                 {...field}
               />
@@ -154,18 +156,7 @@ export const SignUpPanel = () => {
                 id="fullname"
                 label="Full Name"
                 autoFocus
-                sx={{
-                  input: { color: 'white' },
-                  width: {
-                    mobile: '75%',
-                    desktop: '50%',
-                    '& .MuiOutlinedInput-root:hover': {
-                      '& > fieldset': {
-                        borderColor: 'white',
-                      },
-                    },
-                  },
-                }}
+                sx={fieldSx}
                 inputRef={ref}
                 {...field}
               />
@@ -183,18 +174,7 @@ export const SignUpPanel = () => {
                 id="email"
                 label="Email"
                 autoFocus
-                sx={{
-                  input: { color: 'white' },
-                  width: {
-                    mobile: '75%',
-                    desktop: '50%',
-                    '& .MuiOutlinedInput-root:hover': {
-                      '& > fieldset': {
-                        borderColor: 'white',
-                      },
-                    },
-                  },
-                }}
+                sx={fieldSx}
                 inputRef={ref}
                 {...field}
               />
@@ -213,17 +193,7 @@ export const SignUpPanel = () => {
                   maxDate={dayjs()}
                   minDate={dayjs('1900-01-01')}
                   {...field}
-                  sx={{
-                    width: {
-                      mobile: '75%',
-                      desktop: '50%',
-                      '& .MuiOutlinedInput-root:hover': {
-                        '& > fieldset': {
-                          borderColor: 'white',
-                        },
-                      },
-                    },
-                  }}
+                  sx={fieldSx}
                   slotProps={{
                     inputAdornment: {
                       sx: {
@@ -279,17 +249,7 @@ export const SignUpPanel = () => {
                 label="Password"
                 type="password"
                 id="password"
-                sx={{
-                  width: {
-                    mobile: '75%',
-                    desktop: '50%',
-                    '& .MuiOutlinedInput-root:hover': {
-                      '& > fieldset': {
-                        borderColor: 'white',
-                      },
-                    },
-                  },
-                }}
+                sx={fieldSx}
                 inputRef={ref}
                 {...field}
                 variant="outlined"
@@ -307,17 +267,7 @@ export const SignUpPanel = () => {
                 label="Confirm Password"
                 type="password"
                 id="confirm-password"
-                sx={{
-                  width: {
-                    mobile: '75%',
-                    desktop: '50%',
-                    '& .MuiOutlinedInput-root:hover': {
-                      '& > fieldset': {
-                        borderColor: 'white',
-                      },
-                    },
-                  },
-                }}
+                sx={fieldSx}
                 inputRef={ref}
                 {...field}
                 variant="outlined"

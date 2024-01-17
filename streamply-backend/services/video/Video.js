@@ -21,14 +21,14 @@ const deleteVideo = async (title, requestCallback) => {
   await query(dbQuery, requestCallback);
 };
 
-const addVideo = async (video, resultCallback) => {
-  const dbQuery = `INSERT INTO videos(title, type, genre, production_year, production_country, director, tags, descr, thumbnail, alt, grade, reviews_count,link) VALUES("${
+const addVideo = async (video, videoDuration, videoThumbnailExt, resultCallback) => {
+  const dbQuery = `INSERT INTO videos(title, type, seasons, genre, production_year, production_country, director, tags, descr, thumbnail, alt, video_length, grade, reviews_count, views, link, blocked_reviews) VALUES("${
     video.title
-  }",'${video.type}',"${video.genre}",${video.productionYear},"${video.productionCountry}","${video.director}",'${
+  }",'${video.type}', 0, "${video.genre}",${video.productionYear},"${video.productionCountry}","${video.director}",'${
     video.tags
-  }',"${video.description}",'${toKebabCase(video.title)}','${video.alternativeTitle}',0,0,'${toKebabCase(
-    video.title
-  )}/${toKebabCase(video.title)}.m3u8')`;
+  }',"${video.description}",'/${toKebabCase(video.title)}/${toKebabCase(video.title)}.${videoThumbnailExt}','${
+    video.alternativeTitle
+  }',${videoDuration},0,0,0,'${toKebabCase(video.title)}/${toKebabCase(video.title)}.m3u8', 0)`;
   await query(dbQuery, resultCallback);
 };
 
@@ -38,7 +38,7 @@ const addEpisode = async (episode, resultCallback) => {
 };
 
 const getEpisodes = async (id, resultCallback) => {
-  const dbQuery = `SELECT season, title as show_name, episode, episode_name, description FROM series_episodes join videos on series_episodes.show_id = videos.id WHERE series_episodes.show_id = ${id} ORDER BY season,episode;`;
+  const dbQuery = `SELECT season, videos.id as show_id, title as show_name, episode, episode_name, description FROM series_episodes join videos on series_episodes.show_id = videos.id WHERE series_episodes.show_id = ${id} ORDER BY season,episode;`;
   await query(dbQuery, resultCallback);
 };
 
@@ -78,20 +78,49 @@ const getRecommendations = async (username, genres, resultCallback) => {
   }
 };
 
-const changeVideoURL = async (title, newURL, requestCallback) => {
-  const dbQuery = `UPDATE videos SET link="${newURL}" WHERE title="${title}"`;
-  await query(dbQuery, requestCallback);
+const getProgressedVideos = async (username, resultCallback) => {
+  const dbQuery = `SELECT videos.id, videos.type, videos.title, videos.thumbnail, videos.video_length, user_watching.season, user_watching.episode, user_watching.time_watched FROM user_watching join videos on videos.id = user_watching.show_id join users on users.id = user_watching.user_id WHERE username = '${username}'`;
+  await query(dbQuery, resultCallback);
 };
 
-const getPopularMovies = async requestCallback => {
+const getPopularMovies = async resultCallback => {
   const dbQuery = `SELECT * FROM videos WHERE views > 10000 AND type = 'film' ORDER BY production_year DESC, views DESC LIMIT 15`;
-  await query(dbQuery, requestCallback);
+  await query(dbQuery, resultCallback);
 };
 
-const getPopularSeries = async requestCallback => {
+const getPopularSeries = async resultCallback => {
   const dbQuery = `SELECT * FROM videos WHERE views > 10000 AND type = 'series' ORDER BY production_year DESC, views DESC LIMIT 15`;
-  await query(dbQuery, requestCallback);
+  await query(dbQuery, resultCallback);
 };
+
+const getProgress = async (showID, username, resultCallback) => {
+  const dbQuery = `SELECT * FROM user_watching WHERE show_id = ${showID} AND user_id = (SELECT id FROM users where username = '${username}')`
+  await query(dbQuery, resultCallback);
+}
+
+const setProgressMovie = async (username, title, timestamp, resultCallback) => {
+  const dbQuery = `INSERT INTO user_watching(show_id, user_id, season, episode, time_watched) VALUES((SELECT id from videos where title = '${title}'),(SELECT id FROM users where username = '${username}'), 0, NULL, ${Math.round(timestamp)})`;
+  await query(dbQuery, resultCallback);
+};
+
+const updateMovieProgress = async (username, showID, timestamp, resultCallback) => {
+  const dbQuery = `UPDATE user_watching SET time_watched = ${Math.round(timestamp)} WHERE show_id = ${showID} AND user_id = (SELECT id FROM users where username = '${username}')`;
+  await query(dbQuery, resultCallback);
+};
+const updateSeriesProgress = async (username, showID, timestamp, season, episode, resultCallback) => {
+  const dbQuery = `UPDATE user_watching SET time_watched = ${Math.round(timestamp)}, season = ${season}, episode = ${episode} WHERE show_id = ${showID} AND user_id = (SELECT id FROM users where username = '${username}')`;
+  await query(dbQuery, resultCallback);
+};
+
+const setProgressSeries = async (username, showID, season, episode, timestamp, resultCallback) => {
+  const dbQuery = `INSERT INTO user_watching(show_id, user_id, season, episode, time_watched) VALUES(${showID},(SELECT id FROM users where username = '${username}'), ${season}, ${episode}, ${Math.round(timestamp)})`;
+  await query(dbQuery, resultCallback);
+};
+
+const deleteProgressedVideo = async (showID, username, resultCallback) => {
+  const dbQuery = `DELETE FROM user_watching WHERE show_id = ${showID} AND user_id = (SELECT id FROM users where username = '${username}')`;
+  await query(dbQuery, resultCallback);
+}
 
 export {
   getOneVideo,
@@ -102,7 +131,13 @@ export {
   addEpisode,
   getEpisodes,
   getRecommendations,
-  changeVideoURL,
+  getProgressedVideos,
   getPopularMovies,
   getPopularSeries,
+  getProgress,
+  setProgressMovie,
+  setProgressSeries,
+  updateMovieProgress,
+  updateSeriesProgress,
+  deleteProgressedVideo,
 };

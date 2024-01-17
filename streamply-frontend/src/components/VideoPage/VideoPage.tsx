@@ -20,13 +20,22 @@ export const VideoPage = () => {
   }
 
   const video = videos.find(video => toKebabCase(video.title) === title);
-  const isSeries = video?.type === 'series';
 
   if (!video) {
     return <></>;
   }
 
-  const url = video.thumbnail.includes('http')
+  const isSeries = video?.type === 'series';
+
+  const destinationRoute = isSeries
+    ? `/series/${toKebabCase(video.title)}/season/1/episode/1`
+    : `/movie/${toKebabCase(video.title)}`;
+
+  const queryParams = new URLSearchParams();
+  queryParams.append('id', video.id.toString());
+  const routeWithParams = `${destinationRoute}?${queryParams.toString()}`;
+
+  const thumbnailURL = video.thumbnail.includes('http')
     ? video.thumbnail
     : `${api}/images/thumbnails/${toKebabCase(video.thumbnail)}`;
 
@@ -34,35 +43,36 @@ export const VideoPage = () => {
     <Box sx={{ height: 'calc(100vh - 4.5rem)' }}>
       <Box
         sx={{
-          backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(11, 8, 21, 0.99)), url(${url})`,
+          backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(11, 8, 21, 0.99)), url(${thumbnailURL})`,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           backgroundSize: 'cover',
-          backgroundPosition: 'center center',
-          height: '100%',
+          backgroundPosition: { desktop: 'center center', mobile: 'top center' },
+          height: { desktop: '100%', mobile: '35%' },
           width: '100%',
         }}
       >
         <Grid container direction="row" sx={{ alignItems: 'center', height: '80%' }}>
-          <Grid item sx={{ width: '40%' }}>
+          <Grid item sx={{ width: { desktop: '40%', mobile: '100%' } }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', ml: '4rem', gap: '3rem' }}>
               <Typography variant="h3" color="white">
                 {video.title}
               </Typography>
               <Button
+                disabled={isSeries && video.seasons === 0}
                 startIcon={<PlayCircleOutline />}
-                href={
-                  isSeries
-                    ? `/series/${toKebabCase(video.title)}/season/1/episode/1`
-                    : `/movie/${toKebabCase(video.title)}`
-                }
+                href={routeWithParams}
                 variant="contained"
-                sx={{ backgroundColor: 'primary.600', width: '20%' }}
+                sx={{ backgroundColor: 'primary.600', width: { desktop: '20%', mobile: '75%' } }}
               >
                 Play
               </Button>
-              <Typography variant="body1" sx={{ fontSize: '1rem', width: '75%' }} color="white">
+              <Typography
+                variant="body1"
+                sx={{ fontSize: '1rem', width: '75%', display: { desktop: 'block', mobile: 'none' } }}
+                color="white"
+              >
                 {video.descr}
               </Typography>
             </Box>

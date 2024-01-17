@@ -3,7 +3,7 @@ import { Video } from '../../../types/videos.types';
 
 export const MoreInformation = ({ video }: { video: Video }) => {
   return (
-    <Grid container sx={{ '&>div>p': { color: 'white', fontSize: '18px' }, ml: '1rem' }}>
+    <Grid container sx={{ '&>div>p': { color: 'white', fontSize: '18px' }, gap:{mobile:'1rem', desktop:0}, ml: '1rem' }}>
       <Grid item desktop={6} mobile={6}>
         <Typography>Title: {video.title}</Typography>
       </Grid>

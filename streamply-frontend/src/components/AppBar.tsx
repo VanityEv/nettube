@@ -76,57 +76,31 @@ function ResponsiveAppBar() {
           <Link style={{ textDecoration: 'none', marginRight: '12px' }} to={'/'}>
             <img alt="logo" src="logo.svg" width="40px" height="auto" />
           </Link>
-          <Box sx={{ flexGrow: 1, display: { mobile: 'flex', desktop: 'none' } }}>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-              }}
-              open={Boolean(anchorElNav)}
-              onClose={handleCloseNavMenu}
-              sx={{
-                display: { mobile: 'block', desktop: 'none' },
-              }}
-            >
-              {pages.map((page, key) => (
-                <MenuItem key={key} onClick={handleCloseNavMenu}>
-                  <Link style={{ textDecoration: 'none' }} to={'/' + page}>
-                    <Typography textAlign="center">{page.toUpperCase()}</Typography>
-                  </Link>
-                </MenuItem>
-              ))}
-            </Menu>
-          </Box>
           <Box sx={{ flexGrow: 1, display: { mobile: 'none', desktop: 'flex' } }}>
             {pages.map((page, key) => (
-              <Link style={{ textDecoration: 'none' }} key={key} to={'/' + page}>
                 <Button
                   key={page}
                   onClick={handleCloseNavMenu}
                   sx={{
+                    display: isUserLoggedIn ? 'block' : 'none',
                     mt: 1.5,
                     mb: 2,
-                    color: 'white',
                     ':hover': { backgroundColor: 'transparent' },
-                    display: 'block',
                     fontWeight: '600',
                     fontSize: '16px',
                   }}
                 >
+                                <Link style={{ textDecoration: 'none', color:'white' }} key={key} to={'/' + page}>
                   {page}
+                  </Link>
                 </Button>
-              </Link>
+
             ))}
           </Box>
-          <SearchModal open={searchModalOpen} onClose={handleSearchModalChange} />
+          
           {isUserLoggedIn && (
+            <>
+            <SearchModal open={searchModalOpen} onClose={handleSearchModalChange} />
             <Box sx={{ flexGrow: 0 }}>
               <Tooltip title="Open settings">
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
@@ -182,6 +156,7 @@ function ResponsiveAppBar() {
                 </MenuItem>
               </Menu>
             </Box>
+            </>
           )}
         </Toolbar>
       </Container>

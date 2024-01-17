@@ -13,4 +13,5 @@ export type UserEntry = {
   username: string;
   last_login: string;
   email: string;
+  account_type: number;
 };

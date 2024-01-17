@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Typography, Container, TextField, Button } from '@mui/material';
+import { Box, Typography, Container, TextField, Button, SxProps } from '@mui/material';
 import { Stack } from '@mui/material';
 
 /**
@@ -11,6 +11,19 @@ function ResetPassword() {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
   };
+
+  const fieldSx: SxProps = {
+    input: { color: 'white' },
+    width: {
+      mobile: '75%',
+      desktop: '100%'},
+      '&>div>fieldset': {borderColor:'primary.600'},
+      '& .MuiOutlinedInput-root:hover': {
+        '& > fieldset': {
+          borderColor: 'white',
+      },
+    },
+  }
   return (
     <Container component="main" maxWidth="desktop">
       <Box
@@ -21,8 +34,8 @@ function ResetPassword() {
           alignItems: 'center',
         }}
       >
-        <img alt="logo" src="logo.svg" width="150px" height="auto" />
-        <Typography component="h1" variant="h5">
+        <img alt="logo" src="logo-text-dark.svg" width="300px" height="auto" style={{ marginBottom: '1rem' }} />
+        <Typography component="h1" variant="h5" sx={{color:'white'}}>
           Password Rescue
         </Typography>
         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3, pb: 2 }}>
@@ -35,8 +48,9 @@ function ResetPassword() {
               label="Email"
               id="email"
               autoComplete="email"
+              sx={fieldSx}
             />
-            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2, backgroundColor:'primary.600' }}>
               Send password reset link
             </Button>
           </Stack>

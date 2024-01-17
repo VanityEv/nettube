@@ -1,22 +1,26 @@
-import mysql from 'mysql';
+import mysql, { createPool } from 'mysql';
 import config from '../config/config.js';
 
 const formatQuery = sql => {
   return sql.replaceAll('"', "'");
 };
 
+const pool = createPool(config.db);
+
 const query = async (sql, callback) => {
-  const formattedQuery = formatQuery(sql);
-  const connection = mysql.createConnection(config.db);
-  connection.connect(conErr => {
-    if (conErr) throw conErr;
-    console.log(`MySQL connection state: ${connection.state}`);
+  pool.getConnection((connectionError, connection) => {
+    if (connectionError) throw new Error(`DB Connection error: ${connectionError}`);
+    const formattedQuery = formatQuery(sql);
+    // console.log(`MySQL connection state: ${connection.state}`);
     connection.query(formattedQuery, (queryErr, res) => {
-      if (queryErr) throw queryErr;
-      connection.end();
+      if (queryErr) {
+        connection.release();
+        throw queryErr;
+      }
+      connection.release();
       callback(res);
     });
-  });
+  })
 };
 
 export default query;

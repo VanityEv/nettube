@@ -67,7 +67,7 @@ export const ChangePasswordModal = () => {
   return (
     <>
       <Button
-        sx={{ backgroundColor: 'primary.600', width: { mobile: '30%', desktop: '10%' } }}
+        sx={{ backgroundColor: 'primary.600', width: { mobile: '30%', desktop: '15%' } }}
         onClick={handleOpenChange}
       >
         Change Password
@@ -167,7 +167,7 @@ export const ChangePasswordModal = () => {
                     <TextField
                       aria-label="confirm-password-field"
                       required
-                      label="Password"
+                      label="Confirm New Password"
                       type="password"
                       id="confirm-password"
                       sx={{

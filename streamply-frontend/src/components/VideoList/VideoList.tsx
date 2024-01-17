@@ -33,17 +33,10 @@ export const VideoList = ({ type }: { type: 'film' | 'series' }) => {
               ? `Movies of genre ${capitalizeFirstLetter(genre)}`
               : `Series of genre ${capitalizeFirstLetter(genre)}`}
           </Typography>
-          {videos.length < 3 ? (
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: '2rem' }}>
-              {videos.map(video => (
-                <HorizontalVideo key={`video-genre-${genre}-${video.title}`} video={video} />
-              ))}
-            </Box>
-          ) : (
+
             <Swiper
               modules={[Navigation, Scrollbar, Autoplay]}
               slidesPerView={isMobile ? 1 : 3}
-              loop
               draggable
               navigation
               style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}
@@ -54,7 +47,6 @@ export const VideoList = ({ type }: { type: 'film' | 'series' }) => {
                 </SwiperSlide>
               ))}
             </Swiper>
-          )}
         </Box>
       ))}
     </>

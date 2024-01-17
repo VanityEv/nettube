@@ -1,4 +1,4 @@
-import { HighlightOff, Search } from '@mui/icons-material';
+import { ArrowCircleDown, ArrowCircleUp, HighlightOff, Search } from '@mui/icons-material';
 import {
   IconButton,
   InputAdornment,
@@ -11,6 +11,8 @@ import {
   TableHead,
   TableRow,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { useState } from 'react';
 import { filterDataFromKeys } from '../../../helpers/filterDataFromKeys';
@@ -22,6 +24,8 @@ export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: 
   const filterableFields: string[] = ['username', 'email'];
   const rowsPerPage = 5;
   const indexedPage = currentPage - 1;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
 
   const filteredData = filterDataFromKeys(users, filterableFields as (keyof UserEntry)[], filter);
 
@@ -38,6 +42,8 @@ export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: 
   const handleChangePage = (event: unknown, newPage: number) => {
     setCurrentPage(newPage);
   };
+
+  const onRoleChange = (id: number, account_type: number) => {};
 
   return (
     <TableContainer component={'div'}>
@@ -84,18 +90,51 @@ export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: 
               <TableCell align="left">{user.email}</TableCell>
               <TableCell align="left">{user.last_login.substring(0, 10)}</TableCell>
               <TableCell align="left">
-                <IconButton
-                  disableRipple
-                  sx={{ fontSize: '12px', display: 'flex', gap: 1 }}
-                  onClick={() => {
-                    onDelete(user.id);
-                  }}
-                >
-                  <HighlightOff sx={{ color: 'red' }} />
+                {user.account_type < 3 && (
+                  <IconButton
+                    disableRipple
+                    sx={{ fontSize: '12px', display: 'flex', gap: 1 }}
+                    onClick={() => {
+                      onRoleChange(user.id, user.account_type);
+                    }}
+                  >
+                    {user.account_type === 1 ? (
+                      <>
+                        {' '}
+                        <ArrowCircleUp sx={{ color: 'green' }} />
+                        <Typography variant="body2" sx={{ color: 'white' }}>
+                          {isMobile ? 'Promote' : 'Promote to Moderator'}
+                        </Typography>
+                      </>
+                    ) : (
+                      <>
+                        {' '}
+                        <ArrowCircleDown sx={{ color: 'orange' }} />
+                        <Typography variant="body2" sx={{ color: 'white' }}>
+                          {isMobile ? 'Demote' : 'Demote to User'}
+                        </Typography>
+                      </>
+                    )}
+                  </IconButton>
+                )}
+                {user.account_type === 3 ? (
                   <Typography variant="body2" sx={{ color: 'white' }}>
-                    Ban
+                    Admin Account
                   </Typography>
-                </IconButton>
+                ) : (
+                  <IconButton
+                    disableRipple
+                    sx={{ fontSize: '12px', display: 'flex', gap: 1 }}
+                    onClick={() => {
+                      onDelete(user.id);
+                    }}
+                  >
+                    <HighlightOff sx={{ color: 'red' }} />
+                    <Typography variant="body2" sx={{ color: 'white' }}>
+                      Ban
+                    </Typography>
+                  </IconButton>
+                )}
               </TableCell>
             </TableRow>
           ))}

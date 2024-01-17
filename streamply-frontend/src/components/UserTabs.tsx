@@ -1,5 +1,5 @@
 import { Reviews, SavedSearch, Settings } from '@mui/icons-material';
-import { Box, Tab, Tabs } from '@mui/material';
+import { Box, Tab, Tabs, useMediaQuery, useTheme } from '@mui/material';
 import { useState } from 'react';
 import { TabPanel } from './TabPanel';
 import { AccountPanel } from './AccountPanel/AccountPanel';
@@ -15,13 +15,15 @@ export type UserEntry = {
 
 function UserTabs() {
   const [tabValue, setTabValue] = useState(0);
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'))
 
   return (
     <Box sx={{ flexGrow: 3, pb: 3 }}>
       <Tabs
         value={tabValue}
         onChange={(event, newValue: number) => setTabValue(newValue)}
-        variant="fullWidth"
+        variant={isMobile ? "scrollable" : 'fullWidth'}
         indicatorColor="secondary"
         textColor="secondary"
         sx={{

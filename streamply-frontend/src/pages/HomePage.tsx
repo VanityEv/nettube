@@ -6,6 +6,7 @@ import { useVideosStore } from '../state/videosStore';
 import { useUserStore } from '../state/userStore';
 import { MovieSuggestions } from '../components/MovieSuggestions/MovieSuggestions';
 import { useGetMockData } from '../hooks/useGetMockData';
+import { ContinueWatching } from '../components/ContinueWatching/ContinueWatching';
 
 function HomePage() {
   const { popularMovies, popularSeries, videos } = useVideosStore();
@@ -14,10 +15,6 @@ function HomePage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
   const isTablet = useMediaQuery(theme.breakpoints.down('tablet'));
-  const { data } = useGetMockData();
-  console.log(data);
-  //@ts-ignore
-  console.log(data?.results.map(elem => elem.primaryImage.url));
 
   return (
     <>
@@ -52,6 +49,7 @@ function HomePage() {
           withLink
         />
         <MovieSuggestions />
+        <ContinueWatching/>
         {likes && (
           <MoviesCarousel
             movies={watchlist}

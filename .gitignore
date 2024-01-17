@@ -7,6 +7,7 @@
 /streamply-backend/.yarn/
 
 .yarn/
+.VSCodeCounter/
 /.pnp
 node_modules/
 .history/

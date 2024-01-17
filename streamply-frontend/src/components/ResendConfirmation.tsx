@@ -28,7 +28,7 @@ export const ResendConfirmationModal = () => {
 
   return (
     <>
-      <Typography sx={{ color: 'white' }} onClick={handleOpenChange}>
+      <Typography sx={{ color: 'white', cursor:'pointer' }} onClick={handleOpenChange}>
         Resend Confirmation Link
       </Typography>
       <Modal

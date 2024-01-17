@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
 import 'video.js/dist/video-js.css';
