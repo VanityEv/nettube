@@ -94,8 +94,10 @@ ReviewsRouter.post('/userReviews/removeReview', verifyToken, verifyModerator, as
     id: req.body.id,
   };
   try {
-    await removeReview(data, () => {
+    await removeReview(data, async response => {
+      if(response.affectedRows === 1) {
       res.status(200).json({ result: 'SUCCESS' });
+      }
     });
   } catch (error) {
     res.status(500).json({ result: 'error', error: error });

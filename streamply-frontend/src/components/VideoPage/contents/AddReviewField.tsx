@@ -6,6 +6,8 @@ import { api } from '../../../constants';
 import { SnackbarContext } from '../../../App';
 import { StarBorder } from '@mui/icons-material';
 import { getCookie } from 'typescript-cookie';
+import { SignalResponse } from '../../../types/response.types';
+import { useGetVideos } from '../../../hooks/useGetVideos';
 
 type AddReviewType = {
   show_id: number;
@@ -18,6 +20,7 @@ export const AddReviewField = ({ show_id, blockedReviews, refetch }: AddReviewTy
   const [comment, setComment] = useState('');
   const [rating, setRating] = useState(0);
   const { showSnackbar } = useContext(SnackbarContext);
+  const {refetch: refetchVideoState} = useGetVideos();
 
   const handleRatingChange = (event: SyntheticEvent<Element, Event>, value: number | null) => {
     if (value !== null) setRating(value);
@@ -26,6 +29,44 @@ export const AddReviewField = ({ show_id, blockedReviews, refetch }: AddReviewTy
   const handleCommentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setComment(event.target.value);
   };
+
+  const sendReviewBlockQuery = async (id: number, targetStatus: 'unlock' | 'lock') => {
+    try {
+      let shouldBeBlocked: number;
+      if (targetStatus === 'unlock') {
+        shouldBeBlocked = 0;
+      } else {
+        shouldBeBlocked = 1;
+      }
+      const response = await axios.post<SignalResponse>(
+        `${api}/reviews/userReviews/blockReviews`,
+        {
+          id: id,
+          targetStatus: shouldBeBlocked,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${getCookie('userToken')}`,
+          },
+        }
+      );
+      if (response.data.result === 'SUCCESS') {
+        showSnackbar(`Ratings submission has been (un)locked.`, 'info');
+        refetchVideoState();
+      }
+    } catch (error) {
+      showSnackbar('Error while blocking reviews!', 'error');
+    }
+  };
+
+  const handleReviewBlock = () => {
+    if(blockedReviews) {
+      sendReviewBlockQuery(show_id, 'unlock')
+    }
+    else {
+      sendReviewBlockQuery(show_id, 'lock')
+    }
+  }
 
   const handleAddReview = async () => {
     try {
@@ -93,14 +134,26 @@ export const AddReviewField = ({ show_id, blockedReviews, refetch }: AddReviewTy
           />
         </Box>
       </Box>
-      <Button
-        disabled={blockedReviews}
-        variant="contained"
-        sx={{ backgroundColor: 'primary.600', width: {desktop: '10rem',mobile:'50%'} }}
-        onClick={handleAddReview}
-      >
-        Add Comment
-      </Button>
+      <Box sx={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
+        <Button
+          disabled={blockedReviews}
+          variant="contained"
+          sx={{ backgroundColor: 'primary.600', width: { desktop: '10rem', mobile: '50%' } }}
+          onClick={handleAddReview}
+        >
+          Add Comment
+        </Button>
+        {Number(getCookie('userAccountType')) === 2 ||
+          Number(getCookie('userAccountType')) === 3 ? (
+            <Button
+              variant="contained"
+              sx={{ backgroundColor: 'primary.600', width: { desktop: '10rem', mobile: '50%' } }}
+              onClick={handleReviewBlock}
+            >
+              {blockedReviews ? 'Unblock Reviews' : 'Block Reviews'}
+            </Button>
+          ) : null}
+      </Box>
     </Box>
   );
 };

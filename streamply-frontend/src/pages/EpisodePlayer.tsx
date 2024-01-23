@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useContext, useRef } from 'react';
 import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
@@ -10,11 +10,12 @@ import axios from 'axios';
 import { getCookie } from 'typescript-cookie';
 import { SignalResponse } from '../types/response.types';
 import { SnackbarContext } from '../App';
+import { Episodes } from '../components/VideoPage/contents/Episodes';
 
 export const EpisodePlayer = () => {
   const { title, season, episode } = useParams();
   const { username } = useUserStore();
-  const {showSnackbar} = useContext(SnackbarContext)
+  const { showSnackbar } = useContext(SnackbarContext);
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const timestamp = queryParams.get('timestamp');
@@ -23,6 +24,9 @@ export const EpisodePlayer = () => {
     controls: true,
     fill: true,
     responsive: true,
+    controlBar: {
+      pictureInPictureToggle: false
+    },
     sources: [
       {
         src: `http://localhost:3001/movies/${title}/season-${season}/${title}-s${season}e${episode}.m3u8`,
@@ -41,7 +45,7 @@ export const EpisodePlayer = () => {
         { showID: showID, season: season, episode: episode, timeWatched: timestamp },
         { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
       );
-      if(response.data.result === 'SUCCESS') {
+      if (response.data.result === 'SUCCESS') {
         return;
       }
     } catch (error) {
@@ -78,12 +82,19 @@ export const EpisodePlayer = () => {
   return (
     <Box
       sx={{
-        height: '50vmin',
-        width: '60vmax',
-        boxSizing: 'border-box',
+        height: {mobile: 'auto', desktop: '50vmin'},
+        width: {mobile:'100vmin', desktop:'70vmax'},
+        m: 'auto',
       }}
     >
-      <VideoJS options={options} onReady={handlePlayerReady} />;
+      <VideoJS options={options} onReady={handlePlayerReady} />
+
+      {showID && (
+        <Box sx={{ width: '100%', my:'2rem', pb:'2rem' }}>
+           <Typography variant="h5" sx={{ marginBottom: '1rem', color: 'white' }}>Other Episodes</Typography>
+          <Episodes show_id={Number(showID)} />
+        </Box>
+      )}
     </Box>
   );
 };

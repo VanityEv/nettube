@@ -98,8 +98,8 @@ const getProgress = async (showID, username, resultCallback) => {
   await query(dbQuery, resultCallback);
 }
 
-const setProgressMovie = async (username, title, timestamp, resultCallback) => {
-  const dbQuery = `INSERT INTO user_watching(show_id, user_id, season, episode, time_watched) VALUES((SELECT id from videos where title = '${title}'),(SELECT id FROM users where username = '${username}'), 0, NULL, ${Math.round(timestamp)})`;
+const setProgressMovie = async (username, showID, timestamp, resultCallback) => {
+  const dbQuery = `INSERT INTO user_watching(show_id, user_id, season, episode, time_watched) VALUES(${showID},(SELECT id FROM users where username = '${username}'), 0, NULL, ${Math.round(timestamp)})`;
   await query(dbQuery, resultCallback);
 };
 
@@ -122,6 +122,11 @@ const deleteProgressedVideo = async (showID, username, resultCallback) => {
   await query(dbQuery, resultCallback);
 }
 
+const getShowLength = async (showID, resultCallback) => {
+  const dbQuery = `SELECT video_length FROM videos WHERE id = ${showID}`;
+  await query(dbQuery, resultCallback)
+}
+
 export {
   getOneVideo,
   getVideosByGenre,
@@ -140,4 +145,5 @@ export {
   updateMovieProgress,
   updateSeriesProgress,
   deleteProgressedVideo,
+  getShowLength,
 };

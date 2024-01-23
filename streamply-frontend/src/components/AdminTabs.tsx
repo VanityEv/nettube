@@ -85,7 +85,7 @@ function AdminTabs() {
         }
       );
       if (response.data.result === 'SUCCESS') {
-        showSnackbar(`Reviews Blocked!`, 'info');
+        showSnackbar(`Ratings submission has been (un)locked.`, 'info');
         refetchVideos();
       }
     } catch (error) {
@@ -159,7 +159,7 @@ function AdminTabs() {
         <Tab icon={<Add />} iconPosition="start" label="Add Video" value={3} />
       </Tabs>
       <TabPanel index={0} value={tabValue}>
-        <UsersTable users={users} onDelete={handleUserDelete} />
+        <UsersTable users={users} onDelete={handleUserDelete} refetch={refetchUsers} />
       </TabPanel>
       <TabPanel index={1} value={tabValue}>
         <VideosTable {...MoviesTableConfig} />

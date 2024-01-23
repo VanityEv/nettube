@@ -48,9 +48,13 @@ export const verifyUsername = (req, res, next) => {
 
 export const verifyModerator = (req, res, next) => {
   const { accountType } = req.user;
+  const allowedAccountTypes = [2, 3];
 
-  if (accountType !== 3 || accountType !== 2) {
-    return res.status(403).json({ result: 'ERROR', message: 'Forbidden - Not a moderator' });
+  if (!allowedAccountTypes.includes(accountType)) {
+    return res.status(403).json({
+      result: 'ERROR',
+      message: 'Forbidden - User does not have the required role (moderator)',
+    });
   }
 
   next();

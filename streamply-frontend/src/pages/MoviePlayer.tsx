@@ -12,18 +12,24 @@ import { SnackbarContext } from '../App';
 import { useUserStore } from '../state/userStore';
 
 export const MoviePlayer = () => {
-  
   const { title } = useParams();
-  const {showSnackbar} = useContext(SnackbarContext);
-  const {username} = useUserStore();
+  const { showSnackbar } = useContext(SnackbarContext);
+  const { username } = useUserStore();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const timestamp = queryParams.get('timestamp')
+  const timestamp = queryParams.get('timestamp');
   const showID = queryParams.get('id');
   const options = {
     controls: true,
     fill: true,
     responsive: true,
+    controlBar: {
+      pictureInPictureToggle: false,
+      skipButtons: {
+        forward: 10,
+        backward: 10,
+      }
+    },
     sources: [
       {
         src: `http://localhost:3001/movies/${title}/${title}.m3u8`,
@@ -42,7 +48,7 @@ export const MoviePlayer = () => {
         { showID: showID, timeWatched: timestamp },
         { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
       );
-      if(response.data.result === 'SUCCESS') {
+      if (response.data.result === 'SUCCESS') {
         return;
       }
     } catch (error) {
@@ -61,7 +67,7 @@ export const MoviePlayer = () => {
     });
 
     player.on('dispose', () => {
-      handleVideoProgressSave(player.currentTime())
+      handleVideoProgressSave(player.currentTime());
       videojs.log('player will dispose');
     });
     player.on('loadedmetadata', () => {
@@ -74,9 +80,9 @@ export const MoviePlayer = () => {
   return (
     <Box
       sx={{
-        height: '50vmin',
-        width: '60vmax',
-        boxSizing: 'border-box',
+        height: { mobile: 'auto', desktop: '50vmin' },
+        width: { mobile: '100vmin', desktop: '70vmax' },
+        m: 'auto',
       }}
     >
       <VideoJS options={options} onReady={handlePlayerReady} />;

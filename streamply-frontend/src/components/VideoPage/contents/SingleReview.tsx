@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Divider, Typography } from '@mui/material';
+import { Avatar, Box, Button, Typography } from '@mui/material';
 import { convertDate } from '../../../helpers/convertDate';
 import { useEffect, useState } from 'react';
 import { SingleUserReview } from '../../../hooks/useGetUserReviews';
@@ -84,7 +84,6 @@ export const SingleReview = ({ review, profileView }: { review: SingleUserReview
           </Button>
         )}
       </Box>
-      <Divider sx={{ mb: '1rem' }} />
     </Box>
   );
 };

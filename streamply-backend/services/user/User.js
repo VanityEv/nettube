@@ -4,8 +4,8 @@ const createUser = async (
   { username, fullname, password, birthdate, email, subscription, registerToken },
   requestCallback
 ) => {
-  const dbQuery = `INSERT INTO users (username, fullname, password, birthdate, confirmed, email, register_token, account_type, register_date, last_login)
-                     VALUES ("${username}", "${fullname}", "${password}", "${birthdate}", 0, "${email}", "${registerToken}", 1, NOW(), NOW());`;
+  const dbQuery = `INSERT INTO users (username, fullname, password, birthdate, confirmed, email, register_token, account_type, register_date, last_login, reset_token)
+                     VALUES ("${username}", "${fullname}", "${password}", "${birthdate}", 0, "${email}", "${registerToken}", 1, NOW(), NOW(), NULL);`;
   await query(dbQuery, requestCallback);
 };
 const getAllUsers = async requestCallback => {
@@ -69,6 +69,31 @@ const updateUserLoginDate = async (username, requestCallback) => {
   await query(dbQuery, requestCallback);
 };
 
+const addPasswordResetToken = async (email, token, requestCallback) => {
+  const dbQuery = `UPDATE users SET reset_token = '${token}' WHERE email = '${email}'`;
+  await query(dbQuery, requestCallback);
+}
+
+const updatePassword = async (id, password, requestCallback) => {
+  const dbQuery = `UPDATE users set password = '${password}' WHERE id = ${id}`;
+  await query(dbQuery,requestCallback)
+}
+
+const revokeToken = async (id, requestCallback) => {
+  const dbQuery = `UPDATE users set reset_token = NULL WHERE id = ${id}`;
+  await query(dbQuery,requestCallback)
+}
+
+const promoteUser = async (id, requestCallback) => {
+  const dbQuery = `UPDATE users set account_type = 2 WHERE id = ${id}`;
+  await query(dbQuery,requestCallback)
+}
+
+const demoteUser = async (id, requestCallback) => {
+  const dbQuery = `UPDATE users set account_type = 1 WHERE id = ${id}`;
+  await query(dbQuery,requestCallback)
+}
+
 export {
   createUser,
   getAllUsers,
@@ -84,4 +109,9 @@ export {
   deleteUser,
   changePassword,
   updateUserLoginDate,
+  addPasswordResetToken,
+  updatePassword,
+  revokeToken,
+  promoteUser,
+  demoteUser,
 };

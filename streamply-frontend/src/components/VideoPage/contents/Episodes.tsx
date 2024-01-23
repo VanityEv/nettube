@@ -10,7 +10,7 @@ type GroupedEpisodes = {
 export const Episodes = ({ show_id }: { show_id: number }) => {
   const { data: episodes } = useGetEpisodes(show_id);
 
-  if (!episodes) {
+  if (!episodes || episodes.length === 0) {
     return (
       <Typography variant="h5" sx={{ color: 'white' }}>
         This show has no episodes yet.

@@ -19,7 +19,8 @@ import {
   setProgressSeries,
   updateMovieProgress,
   updateSeriesProgress,
-  deleteProgressedVideo
+  deleteProgressedVideo,
+  getShowLength
 } from './Video.js';
 import Ffmpeg from 'fluent-ffmpeg';
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
@@ -87,6 +88,7 @@ VideosRouter.post(
     try {
       const { title } = req.body;
       const videoFile = req.files['video'][0];
+      const thumbnailFile = req.files['thumbnail'][0];
 
       // Rename the file to kebab case
       const kebabCaseFilename = toKebabCase(title);
@@ -248,30 +250,41 @@ VideosRouter.post('/setProgress/:username', verifyToken, async (req, res) => {
   const { username } = req.params;
   const { season, episode, showID, timeWatched } = req.body;
   try {
-    await getProgress(showID, username, async result => {
-      if (!result || !result[0]) {
-        if (!season && !episode) {
-          await setProgressMovie(username, showID, timeWatched, async result => {
-            res.status(201).json({ result: 'SUCCESS' });
-          });
-        } else {
-          await setProgressSeries(username, showID, season, episode, timeWatched, async result => {
-            res.status(201).json({ result: 'SUCCESS' });
-          });
-        }
-      } else {
-        if (!season && !episode) {
-          await updateMovieProgress(username, showID, timeWatched, async result => {
-            res.status(201).json({ result: 'SUCCESS' });
-          });
-        }
-        else {
-          await updateSeriesProgress(username, showID, timeWatched, season, episode, async result => {
-            res.status(201).json({ result: 'SUCCESS' });
-          });
-        }
+    await getShowLength(showID, async result => {
+      //get video duration in seconds
+      const videoLength = result[0].video_length * 60;
+      if(videoLength - 10 < timeWatched) {
+        await deleteProgressedVideo(showID, username, async result => {
+          res.status(200).json({ result: 'SUCCESS' });
+        })
       }
-    });
+      else {
+        await getProgress(showID, username, async result => {
+          if (!result || !result[0]) {
+            if (!season && !episode) {
+              await setProgressMovie(username, showID, timeWatched, async result => {
+                res.status(201).json({ result: 'SUCCESS' });
+              });
+            } else {
+              await setProgressSeries(username, showID, season, episode, timeWatched, async result => {
+                res.status(201).json({ result: 'SUCCESS' });
+              });
+            }
+          } else {
+            if (!season && !episode) {
+              await updateMovieProgress(username, showID, timeWatched, async result => {
+                res.status(201).json({ result: 'SUCCESS' });
+              });
+            }
+            else {
+              await updateSeriesProgress(username, showID, timeWatched, season, episode, async result => {
+                res.status(201).json({ result: 'SUCCESS' });
+              });
+            }
+          }
+        });
+      }
+    })
   } catch (error) {
     console.error(error);
     res.status(500).json({ result: 'ERROR', error: 'Internal Server Error' });

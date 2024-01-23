@@ -1,4 +1,4 @@
-import { Typography, Box } from '@mui/material';
+import { Typography, Box, useTheme, useMediaQuery } from '@mui/material';
 import { Scrollbar, Autoplay, Navigation } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { ProgressVideo } from './ProgressVideo';
@@ -15,6 +15,8 @@ export const ContinueWatching = () => {
   const { username } = useUserStore();
   const { data: progressedVideos, refetch } = useGetProgressedVideos(username);
   const { showSnackbar } = useContext(SnackbarContext);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
 
   const handleProgessVideoDelete = async (id: number) => {
     try {
@@ -43,7 +45,7 @@ export const ContinueWatching = () => {
       <Box sx={{ width: '100%' }}>
         <Swiper
           modules={[Navigation, Scrollbar, Autoplay]}
-          slidesPerView={3}
+          slidesPerView={isMobile ? 1 : 3}
           draggable
           loop
           navigation

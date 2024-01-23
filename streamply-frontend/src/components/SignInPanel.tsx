@@ -11,6 +11,7 @@ import { useVideosStore } from '../state/videosStore';
 import { SnackbarContext } from '../App';
 import { useContext } from 'react';
 import { ResendConfirmationModal } from './ResendConfirmation';
+import { PasswordResetLinkModal } from './PasswordResetLinkModal';
 
 type LoginResponse = {
   username: string;
@@ -155,9 +156,7 @@ export const SignInPanel = () => {
           <Button type="submit" variant="contained" sx={{ mt: 3, mb: 2, px: 8, backgroundColor: 'primary.600' }}>
             Sign In
           </Button>
-          <Link href="/reset-password" variant="body1">
-            Forgot password?
-          </Link>
+          <PasswordResetLinkModal/>
           <Link href="/signup" variant="body1">
             Not a member? Register now!
           </Link>

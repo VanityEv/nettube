@@ -19,14 +19,19 @@ import {
   updateUserLoginDate,
   changePassword,
   findOneUserByEmail,
+  addPasswordResetToken,
+  updatePassword,
+  revokeToken,
+  promoteUser,
+  demoteUser,
 } from './User.js';
-import { sendConfirmationEmail } from '../mail/Mail.js';
+import { sendConfirmationEmail, sendPasswordResetMail } from '../mail/Mail.js';
 import multer from 'multer';
 import path from 'path';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import { verifyToken, verifyUser, verifyUsername } from '../../helpers/verifyToken.js';
+import { verifyAdmin, verifyToken, verifyUser, verifyUsername } from '../../helpers/verifyToken.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -333,7 +338,7 @@ UserRouter.post('/addLike', verifyToken, verifyUser, verifyUsername, async (req,
   }
 });
 
-UserRouter.get('/getAllUsers', async (req, res) => {
+UserRouter.get('/getAllUsers',verifyToken, verifyAdmin, async (req, res) => {
   try {
     await getAllUsers(users => {
       res.status(200).json({ result: 'SUCCESS', data: users });
@@ -343,7 +348,7 @@ UserRouter.get('/getAllUsers', async (req, res) => {
   }
 });
 
-UserRouter.post('/deleteUser', async (req, res) => {
+UserRouter.post('/deleteUser',verifyToken, verifyAdmin, async (req, res) => {
   try {
     await deleteUser(req.body.id, async response => {
       const status = response.affectedRows === 1;
@@ -354,25 +359,111 @@ UserRouter.post('/deleteUser', async (req, res) => {
   }
 });
 
-UserRouter.get('/getAllUsers', async (req, res) => {
+UserRouter.post('/resetPassword', async (req, res) => {
   try {
-    await getAllUsers(users => {
-      res.status(200).json({ result: 'success', data: users });
+    await findOneUserByEmail(req.body.email, async response => {
+      const user = response[0];
+      if (!user) {
+        res.status(404).json({ result: 'NOT FOUND' });
+      }
+      const token = jwt.sign({ email: req.body.email }, SECRET, { expiresIn: '30m' });
+      await addPasswordResetToken(user.email, token, async result => {
+        if (result.affectedRows === 1) {
+          sendPasswordResetMail(user.email, token);
+          res.status(200).json({ result: 'SUCCESS' });
+        }
+      });
     });
   } catch (error) {
-    res.status(400).json({ error });
+    console.log(error);
+    res.status(404).json({ error });
   }
 });
 
-UserRouter.post('/deleteUser', async (req, res) => {
+UserRouter.post('/setPassword', async (req, res) => {
   try {
-    await deleteUser(req.body.id, async response => {
-      const status = response.affectedRows === 1;
+    const { email, token } = req.body;
 
-      status ? res.status(200).json({ result: 'success' }) : res.status(500).json({ error: 'error' });
+    await findOneUserByEmail(email, async response => {
+      const user = response[0];
+
+      if (!user) {
+        return res.status(404).json({ result: 'NOT FOUND' });
+      }
+
+      try {
+        const decoded = jwt.verify(token, SECRET);
+
+        if (decoded.email !== email) {
+          return res.status(401).json({ result: 'EMAIL MISMATCH' });
+        }
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        await updatePassword(user.id, hashedPassword, async updateResponse => {
+          if (updateResponse.affectedRows === 1) {
+            await revokeToken(user.id, async response => {
+              if (response.affectedRows === 1) {
+                res.status(200).json({ result: 'SUCCESS' });
+              }
+            });
+          } else {
+            res.status(500).json({ result: 'ERROR' });
+          }
+        });
+      } catch (err) {
+        if (err.name === 'TokenExpiredError') {
+          return res.status(401).json({ result: 'TOKEN EXPIRED' });
+        } else {
+          console.error(err);
+          return res.status(401).json({ result: 'INVALID TOKEN' });
+        }
+      }
     });
   } catch (error) {
-    res.status(400).json({ error });
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+UserRouter.post('/promoteToModerator', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    await findOneUser(req.body.username, async response => {
+      const user = response[0];
+
+      if (!user) {
+        return res.status(404).json({ result: 'NOT FOUND' });
+      }
+
+      if (user.account_type === 1) {
+        await promoteUser(user.id, async response => {
+          if (response.affectedRows === 1) {
+            res.status(200).json({ result: 'SUCCESS' });
+          }
+        });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ result: 'ERROR' });
+  }
+});
+
+UserRouter.post('/demoteModerator', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    await findOneUser(req.body.username, async response => {
+      const user = response[0];
+
+      if (!user) {
+        return res.status(404).json({ result: 'NOT FOUND' });
+      }
+      if (user.account_type === 2) {
+        await demoteUser(user.id, async response => {
+          if (response.affectedRows === 1) {
+            res.status(200).json({ result: 'SUCCESS' });
+          }
+        });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ result: 'ERROR' });
   }
 });
 

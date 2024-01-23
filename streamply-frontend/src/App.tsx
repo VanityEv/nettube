@@ -4,7 +4,7 @@ import './App.css';
 import HomePage from './pages/HomePage';
 import Profile from './pages/Profile';
 import { createContext, useMemo } from 'react';
-import ResetPassword from './pages/ResetPassword';
+import { ResetPassword } from './pages/ResetPassword';
 import ConfirmRegister from './pages/ConfirmRegister';
 import AppBar from './components/AppBar';
 import SignIn from './pages/SignIn';

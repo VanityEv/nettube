@@ -14,11 +14,16 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { filterDataFromKeys } from '../../../helpers/filterDataFromKeys';
 import { UserEntry } from '../../../types/user.types';
+import axios from 'axios';
+import { SignalResponse } from '../../../types/response.types';
+import { api } from '../../../constants';
+import { SnackbarContext } from '../../../App';
+import { getCookie } from 'typescript-cookie';
 
-export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: (id: number) => void }) => {
+export const UsersTable = ({ users, onDelete, refetch }: { users: UserEntry[]; onDelete: (id: number) => void, refetch: () => void }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState('');
   const filterableFields: string[] = ['username', 'email'];
@@ -26,6 +31,7 @@ export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: 
   const indexedPage = currentPage - 1;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
+  const { showSnackbar } = useContext(SnackbarContext);
 
   const filteredData = filterDataFromKeys(users, filterableFields as (keyof UserEntry)[], filter);
 
@@ -43,7 +49,47 @@ export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: 
     setCurrentPage(newPage);
   };
 
-  const onRoleChange = (id: number, account_type: number) => {};
+  const onDemote = async (username: string) => {
+    try {
+      const response = await axios.post<SignalResponse>(
+        `${api}/user/demoteModerator`,
+        { username: username },
+        {
+          headers: {
+            Authorization: `Bearer ${getCookie('userToken')}`,
+          },
+        }
+      );
+      if (response.data.result === 'SUCCESS') {
+        showSnackbar('User demoted', 'info');
+        refetch();
+      }
+    } catch (error) {
+      console.log(error)
+      showSnackbar('Error while demoting user', 'error');
+    }
+  };
+
+  const onPromote = async (username: string) => {
+    try {
+      const response = await axios.post<SignalResponse>(
+        `${api}/user/promoteToModerator`,
+        { username: username },
+        {
+          headers: {
+            Authorization: `Bearer ${getCookie('userToken')}`,
+          },
+        }
+      );
+      if (response.data.result === 'SUCCESS') {
+        showSnackbar('User promoted', 'info');
+        refetch();
+      }
+    } catch (error) {
+      console.log(error)
+      showSnackbar('Error while promoting user', 'error');
+    }
+  };
 
   return (
     <TableContainer component={'div'}>
@@ -90,38 +136,40 @@ export const UsersTable = ({ users, onDelete }: { users: UserEntry[]; onDelete: 
               <TableCell align="left">{user.email}</TableCell>
               <TableCell align="left">{user.last_login.substring(0, 10)}</TableCell>
               <TableCell align="left">
-                {user.account_type < 3 && (
-                  <IconButton
-                    disableRipple
-                    sx={{ fontSize: '12px', display: 'flex', gap: 1 }}
-                    onClick={() => {
-                      onRoleChange(user.id, user.account_type);
-                    }}
-                  >
-                    {user.account_type === 1 ? (
-                      <>
-                        {' '}
-                        <ArrowCircleUp sx={{ color: 'green' }} />
-                        <Typography variant="body2" sx={{ color: 'white' }}>
-                          {isMobile ? 'Promote' : 'Promote to Moderator'}
-                        </Typography>
-                      </>
-                    ) : (
-                      <>
-                        {' '}
-                        <ArrowCircleDown sx={{ color: 'orange' }} />
-                        <Typography variant="body2" sx={{ color: 'white' }}>
-                          {isMobile ? 'Demote' : 'Demote to User'}
-                        </Typography>
-                      </>
-                    )}
-                  </IconButton>
-                )}
                 {user.account_type === 3 ? (
                   <Typography variant="body2" sx={{ color: 'white' }}>
                     Admin Account
                   </Typography>
                 ) : (
+                  <IconButton
+                    disableRipple
+                    sx={{ fontSize: '12px', display: 'flex', gap: 1 }}
+                    onClick={() => {
+                      if (user.account_type === 2) {
+                        onDemote(user.username);
+                      } else {
+                        onPromote(user.username);
+                      }
+                    }}
+                  >
+                    {user.account_type === 2 ? (
+                      <ArrowCircleDown sx={{ color: 'orange' }} />
+                    ) : (
+                      <ArrowCircleUp sx={{ color: 'green' }} />
+                    )}
+                    <Typography variant="body2" sx={{ color: 'white' }}>
+                      {user.account_type === 2
+                        ? isMobile
+                          ? 'Demote'
+                          : 'Demote to User'
+                        : isMobile
+                        ? 'Promote'
+                        : 'Promote to Moderator'}
+                    </Typography>
+                  </IconButton>
+                )}
+
+                {user.account_type === 3 ? null : (
                   <IconButton
                     disableRipple
                     sx={{ fontSize: '12px', display: 'flex', gap: 1 }}

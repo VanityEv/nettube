@@ -2,6 +2,7 @@ import axios from 'axios';
 import { api } from '../constants';
 import { useQuery } from '@tanstack/react-query';
 import { UserEntry } from '../types/user.types';
+import { getCookie } from 'typescript-cookie';
 
 type UserListResponse = {
   result: string;
@@ -10,7 +11,11 @@ type UserListResponse = {
 
 const fetchUsers = async () => {
   try {
-    const response = await axios.get<UserListResponse>(`${api}/user/getAllUsers`);
+    const response = await axios.get<UserListResponse>(`${api}/user/getAllUsers`, {
+      headers: {
+        Authorization: `Bearer ${getCookie('userToken')}`,
+      },
+    });
     if (response.data.result === 'SUCCESS') {
       return response.data.data;
     } else {
