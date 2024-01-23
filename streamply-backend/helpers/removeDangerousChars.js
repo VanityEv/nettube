@@ -1,0 +1,1 @@
+export const removeDangerousChars = (text) => text.replace(/[^a-zA-Z0-9_\- ]/g, '')
