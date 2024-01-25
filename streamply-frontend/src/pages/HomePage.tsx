@@ -5,7 +5,6 @@ import { GenreBrowser } from '../components/GenreBrowser/GenreBrowser';
 import { useVideosStore } from '../state/videosStore';
 import { useUserStore } from '../state/userStore';
 import { MovieSuggestions } from '../components/MovieSuggestions/MovieSuggestions';
-import { useGetMockData } from '../hooks/useGetMockData';
 import { ContinueWatching } from '../components/ContinueWatching/ContinueWatching';
 
 function HomePage() {

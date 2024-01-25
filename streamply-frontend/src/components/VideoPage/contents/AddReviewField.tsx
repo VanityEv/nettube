@@ -16,7 +16,7 @@ type AddReviewType = {
 };
 
 export const AddReviewField = ({ show_id, blockedReviews, refetch }: AddReviewType) => {
-  const { avatarUrl, username } = useUserStore();
+  const { avatarUrl, username, setUserData } = useUserStore();
   const [comment, setComment] = useState('');
   const [rating, setRating] = useState(0);
   const { showSnackbar } = useContext(SnackbarContext);
@@ -88,6 +88,7 @@ export const AddReviewField = ({ show_id, blockedReviews, refetch }: AddReviewTy
       );
       if (response.status === 200) {
         refetch();
+        setUserData(username)
         showSnackbar('Comment Added', 'success');
       }
     } catch (error) {

@@ -134,10 +134,11 @@ export const SignUpPanel = () => {
               <TextField
                 aria-label="username-field"
                 required
-                error={Boolean(form.formState.errors.username)}
                 id="username"
                 label="Username"
                 autoFocus
+                error={!!form.formState.errors.username}
+                helperText={form.formState.errors.username?.message}
                 sx={fieldSx}
                 inputRef={ref}
                 {...field}
@@ -152,10 +153,11 @@ export const SignUpPanel = () => {
               <TextField
                 aria-label="fullname-field"
                 required
-                error={Boolean(form.formState.errors.fullname)}
                 id="fullname"
                 label="Full Name"
                 autoFocus
+                error={!!form.formState.errors.fullname}
+                helperText={form.formState.errors.fullname?.message}
                 sx={fieldSx}
                 inputRef={ref}
                 {...field}
@@ -170,9 +172,10 @@ export const SignUpPanel = () => {
               <TextField
                 aria-label="email-field"
                 required
-                error={Boolean(form.formState.errors.email)}
                 id="email"
                 label="Email"
+                error={!!form.formState.errors.email}
+                helperText={form.formState.errors.email?.message}
                 autoFocus
                 sx={fieldSx}
                 inputRef={ref}
@@ -249,6 +252,8 @@ export const SignUpPanel = () => {
                 label="Password"
                 type="password"
                 id="password"
+                error={!!form.formState.errors.password}
+                helperText={form.formState.errors.password?.message}
                 sx={fieldSx}
                 inputRef={ref}
                 {...field}
@@ -267,6 +272,8 @@ export const SignUpPanel = () => {
                 label="Confirm Password"
                 type="password"
                 id="confirm-password"
+                error={!!form.formState.errors.confirmPassword}
+                helperText={form.formState.errors.confirmPassword?.message}
                 sx={fieldSx}
                 inputRef={ref}
                 {...field}

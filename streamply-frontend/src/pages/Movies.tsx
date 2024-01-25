@@ -1,7 +1,5 @@
 import { VideoList } from '../components/VideoList/VideoList';
 
-function Movies() {
+export const Movies = () => {
   return <VideoList type="film" />;
 }
-
-export default Movies;

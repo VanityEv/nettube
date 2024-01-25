@@ -8,7 +8,7 @@ import { api } from '../../../constants';
 import { getCookie } from 'typescript-cookie';
 
 export const PersonalData = () => {
-  const { username } = useUserStore();
+  const { username, setUserData } = useUserStore();
   const { userData, isLoading, isError, error, refetch } = useFetchUser(username);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,6 +25,10 @@ export const PersonalData = () => {
     }
   };
 
+  const handleUsernameChange = () => {
+    refetch();
+  }
+
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
@@ -39,6 +43,7 @@ export const PersonalData = () => {
 
         // Refetch user data to get updated avatar URL
         refetch();
+        setUserData(username)
       } catch (error) {
         console.error('Error uploading avatar:', error);
       }
@@ -75,7 +80,7 @@ export const PersonalData = () => {
             }}
           >
             <Typography fontWeight={600}>Username:</Typography>
-            <EditableInput param="username" value={username} onSuccess={refetch} />
+            <Typography sx={{ fontSize: '18px' }}>{username}</Typography>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
             <Typography fontWeight={600}>Birth date: </Typography>

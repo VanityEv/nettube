@@ -14,11 +14,10 @@ import { Box, createTheme, CssBaseline } from '@mui/material';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute, { ProtectedRouteProps } from './ProtectedRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getCookie } from 'typescript-cookie';
 import { VideoPage } from './components/VideoPage/VideoPage';
 import { useSnackbar } from './hooks/useSnackbar';
 import { Snackbar } from './components/Snackbar';
-import Movies from './pages/Movies';
+import { Movies } from './pages/Movies';
 import Series from './pages/Series';
 import { EpisodePlayer } from './pages/EpisodePlayer';
 
@@ -175,7 +174,6 @@ const App = () => {
   const queryClient = new QueryClient();
 
   const defaultProtectedRouteProps: Omit<ProtectedRouteProps, 'outlet'> = {
-    isAuthenticated: !!getCookie('userToken'),
     authenticationPath: '/signin',
   };
 

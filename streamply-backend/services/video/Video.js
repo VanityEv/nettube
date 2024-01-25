@@ -26,7 +26,7 @@ const addVideo = async (video, videoDuration, videoThumbnailExt, resultCallback)
     video.title
   }",'${video.type}', 0, "${video.genre}",${video.productionYear},"${video.productionCountry}","${video.director}",'${
     video.tags
-  }',"${video.description}",'/${toKebabCase(video.title)}/${toKebabCase(video.title)}.${videoThumbnailExt}','${
+  }',"${video.description}",'/${toKebabCase(video.title)}/${toKebabCase(video.title)}-thumbnail.${videoThumbnailExt}','${
     video.alternativeTitle
   }',${videoDuration},0,0,0,'${toKebabCase(video.title)}/${toKebabCase(video.title)}.m3u8', 0)`;
   await query(dbQuery, resultCallback);
@@ -74,7 +74,6 @@ const getRecommendations = async (username, genres, resultCallback) => {
     await query(dbQuery, resultCallback);
   } catch (error) {
     console.error(error);
-    // Handle the error as needed
   }
 };
 

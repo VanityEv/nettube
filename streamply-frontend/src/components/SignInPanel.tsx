@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 import { api } from '../constants';
 import { useUserStore } from '../state/userStore';
-import { setCookie } from 'typescript-cookie';
+import { getCookie, setCookie } from 'typescript-cookie';
 import { useNavigate } from 'react-router-dom';
 import { useVideosStore } from '../state/videosStore';
 import { SnackbarContext } from '../App';
@@ -34,6 +34,10 @@ export const SignInPanel = () => {
 
   type Schema = z.infer<typeof FormSchema>;
 
+  const handleRedirect = () => {
+    navigate('/')
+  }
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -55,9 +59,9 @@ export const SignInPanel = () => {
         } else {
           showSnackbar('Logged in!', 'success');
           await setUserData(loginResponse.data.username);
-          setCookie('userToken', loginResponse.data.token);
-          setCookie('userAccountType', loginResponse.data.account_type);
-          navigate('/');
+           setCookie('userToken', loginResponse.data.token);
+           setCookie('userAccountType', loginResponse.data.account_type);
+           navigate('/')
         }
       }
     } catch (error) {
@@ -156,7 +160,7 @@ export const SignInPanel = () => {
           <Button type="submit" variant="contained" sx={{ mt: 3, mb: 2, px: 8, backgroundColor: 'primary.600' }}>
             Sign In
           </Button>
-          <PasswordResetLinkModal/>
+          <PasswordResetLinkModal />
           <Link href="/signup" variant="body1">
             Not a member? Register now!
           </Link>
