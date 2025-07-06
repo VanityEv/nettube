@@ -30,7 +30,7 @@ export const SignUpPanel = () => {
         },
       },
     },
-  }
+  };
 
   const SignUpSchema = z
     .object({
@@ -47,8 +47,10 @@ export const SignUpPanel = () => {
       birthdate: z.instanceof(dayjs as unknown as typeof Dayjs),
       password: z
         .string()
-        .min(2, { message: 'Please enter valid password.' })
-        .regex(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/),
+        .min(8, { message: 'Password must be at least 8 characters.' })
+        .regex(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/, {
+          message: 'Password must contain a letter, a number, and a special character.',
+        }),
       confirmPassword: z.string().min(2),
     })
     .refine(data => data.password === data.confirmPassword, {
@@ -286,3 +288,21 @@ export const SignUpPanel = () => {
     </Box>
   );
 };
+
+// --- GLOBAL FORM VALIDATION: Use zod + react-hook-form everywhere ---
+// Example for all forms:
+//
+// const schema = z.object({
+//   username: z.string().min(3),
+//   password: z.string().min(8),
+//   ...
+// });
+// const form = useForm({ resolver: zodResolver(schema) });
+//
+// This ensures all user input is validated and sanitized before submission.
+//
+// --- TESTING: All forms and critical flows should have e2e (Cypress/Playwright) and unit tests (Jest/RTL) ---
+// Example:
+// describe('SignUpPanel', () => { it('validates input', ...); });
+//
+// This ensures production reliability and security.

@@ -93,6 +93,11 @@ export const UploadEpisodeForm = () => {
       console.error('Error submitting the form:', error);
       setIsLoading(false);
       // Handle unexpected errors
+      // --- API ERROR HANDLING: Always show user-friendly error messages, never stack traces ---
+      // Example:
+      // try { ... } catch (error) { showSnackbar('Something went wrong. Please try again.', 'error'); }
+      //
+      // Never display raw error or stack trace to the user in production.
     }
   };
 
@@ -233,3 +238,9 @@ export const UploadEpisodeForm = () => {
     </Box>
   );
 };
+
+// --- TESTING: All forms and critical flows should have e2e (Cypress/Playwright) and unit tests (Jest/RTL) ---
+// Example:
+// describe('UploadEpisodeForm', () => { it('uploads episode securely', ...); });
+//
+// This ensures production reliability and security.

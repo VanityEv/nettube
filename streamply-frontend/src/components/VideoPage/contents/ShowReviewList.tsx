@@ -10,11 +10,12 @@ import { api } from '../../../constants';
 import { getCookie } from 'typescript-cookie';
 import { Delete } from '@mui/icons-material';
 import { SnackbarContext } from '../../../App';
+import DOMPurify from 'dompurify';
 
 export const ShowReviewList = ({ video }: { video: Video }) => {
   const { data, isLoading, error, refetch } = useGetReviews(video.id);
   const [displayedReviews, setDisplayedReviews] = useState(10);
-  const {showSnackbar} = useContext(SnackbarContext);
+  const { showSnackbar } = useContext(SnackbarContext);
 
   const handleReviewDelete = async (id: number) => {
     try {
@@ -35,6 +36,8 @@ export const ShowReviewList = ({ video }: { video: Video }) => {
   const handleViewMore = () => {
     setDisplayedReviews(prev => prev + 10);
   };
+
+  const safeReview = (review: string) => ({ __html: DOMPurify.sanitize(review) });
 
   if (isLoading) {
     return <Typography color="white">Loading...</Typography>;
@@ -57,8 +60,22 @@ export const ShowReviewList = ({ video }: { video: Video }) => {
       <AddReviewField blockedReviews={!!video.blocked_reviews} show_id={video.id} refetch={refetch} />
       {data?.reviews.slice(0, displayedReviews).map(review => (
         <Fragment key={`review-${review.id}`}>
-          <Box sx={{ display: 'flex', flexDirection: {mobile:'column', desktop: 'row'}, gap: '2rem', justifyContent:'space-between' }}>
-            <SingleReview review={review} />
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { mobile: 'column', desktop: 'row' },
+              gap: '2rem',
+              justifyContent: 'space-between',
+            }}
+          >
+            {' '}
+            {/* Sanitize review comment before rendering (anti-XSS) */}
+            <SingleReview review={{ ...review, comment: '' }} />
+            <Typography
+              color="white"
+              sx={{ flex: 1, wordBreak: 'break-word' }}
+              dangerouslySetInnerHTML={safeReview(review.comment)}
+            />
             {(Number(getCookie('userAccountType')) === 2 || Number(getCookie('userAccountType')) === 3) && (
               <IconButton onClick={() => handleReviewDelete(review.id)}>
                 <Delete sx={{ color: 'white' }} />
@@ -83,3 +100,9 @@ export const ShowReviewList = ({ video }: { video: Video }) => {
     </Box>
   );
 };
+
+// --- DOMPurify: Always sanitize user-generated HTML before rendering ---
+// Example usage in review rendering:
+// dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(review.comment) }}
+//
+// If using dangerouslySetInnerHTML anywhere, always sanitize with DOMPurify first.

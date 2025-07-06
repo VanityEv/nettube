@@ -4,7 +4,7 @@ import { useGetRecommendations } from '../../hooks/useGetRecommendations';
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { HorizontalVideo } from '../VideoViews/HorizontalVideo';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Navigation, Scrollbar } from 'swiper';
+import { Autoplay, Navigation, Scrollbar } from 'swiper/modules';
 
 export const MovieSuggestions = () => {
   const { likes } = useUserStore();

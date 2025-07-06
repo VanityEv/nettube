@@ -103,6 +103,11 @@ export const UploadVideoForm = () => {
         setIsLoading(false);
       }
     } catch (error) {
+      // --- API ERROR HANDLING: Always show user-friendly error messages, never stack traces ---
+      // Example:
+      // try { ... } catch (error) { showSnackbar('Something went wrong. Please try again.', 'error'); }
+      //
+      // Never display raw error or stack trace to the user in production.
       showSnackbar(`${error}`, 'error');
       setIsLoading(false);
     }
@@ -306,3 +311,9 @@ export const UploadVideoForm = () => {
     </Box>
   );
 };
+
+// --- TESTING: All forms and critical flows should have e2e (Cypress/Playwright) and unit tests (Jest/RTL) ---
+// Example:
+// describe('UploadVideoForm', () => { it('uploads video securely', ...); });
+//
+// This ensures production reliability and security.

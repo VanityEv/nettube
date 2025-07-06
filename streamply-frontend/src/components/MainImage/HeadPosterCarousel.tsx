@@ -2,7 +2,7 @@ import { Box, Typography, TypographyVariant } from '@mui/material';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/scrollbar';
-import { Navigation, Scrollbar, Autoplay } from 'swiper';
+import { Navigation, Scrollbar, Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Video } from '../../types/videos.types';
 import { StatefulSlide } from '../StatefulSlide';

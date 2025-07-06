@@ -1,0 +1,69 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "headers": {
+        "cache-control": "max-age=31536000,immutable"
+      }
+    },
+    {
+      "src": "/manifest.json",
+      "headers": {
+        "cache-control": "max-age=86400"
+      }
+    },
+    {
+      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot))",
+      "headers": {
+        "cache-control": "max-age=31536000,immutable"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html",
+      "headers": {
+        "cache-control": "no-cache"
+      }
+    }
+  ],
+  "env": {
+    "REACT_APP_BACKEND_URL": "@backend_url",
+    "REACT_APP_API_URL": "@backend_url",
+    "REACT_APP_STRIPE_PUBLISHABLE_KEY": "@stripe_publishable_key",
+    "REACT_APP_NODE_ENV": "production",
+    "REACT_APP_USE_PROXY": "false",
+    "REACT_APP_ENABLE_ANTI_PIRACY": "true",
+    "REACT_APP_WATERMARK_ENABLED": "true",
+    "REACT_APP_ENABLE_DEVICE_FINGERPRINTING": "true",
+    "GENERATE_SOURCEMAP": "false"
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}

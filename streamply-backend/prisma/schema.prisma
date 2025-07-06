@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// SECURITY: Prisma ORM models to replace all raw SQL queries
+// This prevents SQL injection attacks through parameterized queries
+
+model User {
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  fullname      String
+  password      String
+  birthdate     DateTime
+  confirmed     Boolean  @default(false)
+  email         String   @unique
+  registerToken String?  @map("register_token")
+  accountType   Int      @default(1) @map("account_type")
+  registerDate  DateTime @default(now()) @map("register_date")
+  lastLogin     DateTime @default(now()) @map("last_login")
+  resetToken    String?  @map("reset_token")
+  
+  // Relations
+  reviews       Review[]
+  userLikes     UserLike[]
+  userWatching  UserWatching[]
+  
+  @@map("users")
+}
+
+model Video {
+  id                Int      @id @default(autoincrement())
+  title             String
+  type              String   // 'film' or 'series'
+  seasons           Int      @default(0)
+  genre             String
+  productionYear    Int      @map("production_year")
+  productionCountry String   @map("production_country")
+  director          String
+  tags              String
+  description       String   @map("descr")
+  thumbnail         String
+  alternativeTitle  String   @map("alt")
+  videoLength       Float    @map("video_length")
+  grade             Float    @default(0)
+  reviewsCount      Int      @default(0) @map("reviews_count")
+  views             Int      @default(0)
+  link              String
+  blockedReviews    Boolean  @default(false) @map("blocked_reviews")
+  createdAt         DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  reviews          Review[]
+  userLikes        UserLike[]
+  userWatching     UserWatching[]
+  seriesEpisodes   SeriesEpisode[]
+  
+  @@map("videos")
+}
+
+model Review {
+  id          Int      @id @default(autoincrement())
+  comment     String
+  grade       Float?
+  commentDate DateTime @default(now()) @map("comment_date")
+  showId      Int      @map("show_id")
+  userId      Int      @map("user_id")
+  
+  // Relations
+  video       Video    @relation(fields: [showId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("reviews")
+}
+
+model UserLike {
+  id      Int @id @default(autoincrement())
+  videoId Int @map("video_id")
+  userId  Int @map("user_id")
+  
+  // Relations
+  video   Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([videoId, userId])
+  @@map("user_likes")
+}
+
+model UserWatching {
+  id          Int    @id @default(autoincrement())
+  showId      Int    @map("show_id")
+  userId      Int    @map("user_id")
+  season      Int?
+  episode     Int?
+  timeWatched Float  @map("time_watched")
+  
+  // Relations
+  video       Video  @relation(fields: [showId], references: [id], onDelete: Cascade)
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([showId, userId])
+  @@map("user_watching")
+}
+
+model SeriesEpisode {
+  id          Int    @id @default(autoincrement())
+  showId      Int    @map("show_id")
+  season      Int
+  episode     Int
+  episodeName String @map("episode_name")
+  description String
+  thumbnail   String?
+  videoUrl    String? @map("video_url")
+  
+  // Relations
+  video       Video  @relation(fields: [showId], references: [id], onDelete: Cascade)
+  
+  @@unique([showId, season, episode])
+  @@map("series_episodes")
+}
+
+model Subscription {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique @map("user_id")
+  status     String   @default("none") // 'active', 'cancelled', 'expired', 'none'
+  providerId String?  @map("provider_id")
+  planType   String?  @map("plan_type")
+  startDate  DateTime? @map("start_date")
+  endDate    DateTime? @map("end_date")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  
+  @@map("subscriptions")
+}

@@ -2,7 +2,7 @@ import { useVideosStore } from '../../state/videosStore';
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { HorizontalVideo } from '../VideoViews/HorizontalVideo';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Navigation, Scrollbar } from 'swiper';
+import { Autoplay, Navigation, Scrollbar } from 'swiper/modules';
 import { Video } from '../../types/videos.types';
 import { capitalizeFirstLetter } from '../../helpers/capitalizeFirstLetter';
 
@@ -34,19 +34,19 @@ export const VideoList = ({ type }: { type: 'film' | 'series' }) => {
               : `Series of genre ${capitalizeFirstLetter(genre)}`}
           </Typography>
 
-            <Swiper
-              modules={[Navigation, Scrollbar, Autoplay]}
-              slidesPerView={isMobile ? 1 : 3}
-              draggable
-              navigation
-              style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}
-            >
-              {videos.map(video => (
-                <SwiperSlide key={`video-${type}-${video.id}`}>
-                  <HorizontalVideo video={video} />
-                </SwiperSlide>
-              ))}
-            </Swiper>
+          <Swiper
+            modules={[Navigation, Scrollbar, Autoplay]}
+            slidesPerView={isMobile ? 1 : 3}
+            draggable
+            navigation
+            style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}
+          >
+            {videos.map(video => (
+              <SwiperSlide key={`video-${type}-${video.id}`}>
+                <HorizontalVideo video={video} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
         </Box>
       ))}
     </>

@@ -6,6 +6,7 @@ import { Review } from '../../../types/reviews.types';
 import axios from 'axios';
 import { api } from '../../../constants';
 import { AvatarResponse } from '../../../hooks/useGetUserInfo';
+import DOMPurify from 'dompurify';
 
 export const SingleReview = ({ review, profileView }: { review: SingleUserReview | Review; profileView?: boolean }) => {
   const maxDefaultCommentLength = review.comment.length <= 200 ? review.comment.length : 200;
@@ -58,13 +59,18 @@ export const SingleReview = ({ review, profileView }: { review: SingleUserReview
       </Box>
       {review.grade ? <Typography sx={{ color: 'white' }}>Reviewed with grade {review.grade} / 10</Typography> : null}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <Typography className="comment">
-          {showFullComment
-            ? review.comment
-            : `${review.comment.substring(0, maxDefaultCommentLength)}${
-                maxDefaultCommentLength < review.comment.length ? '...' : ''
-              }`}
-        </Typography>
+        <Typography
+          className="comment"
+          dangerouslySetInnerHTML={{
+            __html: showFullComment
+              ? DOMPurify.sanitize(review.comment)
+              : DOMPurify.sanitize(
+                  `${review.comment.substring(0, maxDefaultCommentLength)}${
+                    maxDefaultCommentLength < review.comment.length ? '...' : ''
+                  }`
+                ),
+          }}
+        />
         {review.comment.length > 200 && !showFullComment && (
           <Button
             variant="text"

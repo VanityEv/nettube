@@ -1,72 +1,267 @@
-import query from '../db.js';
-import { removeDangerousChars } from '../../helpers/removeDangerousChars.js';
+// SECURITY: Prisma-based Review service to replace vulnerable raw SQL queries
+// This prevents SQL injection attacks through parameterized queries
+
+import prisma from '../prisma.js';
 
 const getReviewByShow = async (show_id, requestCallback) => {
-  const dbQuery = `SELECT reviews.*, username from reviews INNER JOIN users on reviews.user_id=users.id where show_id = ${show_id}`;
-  await query(dbQuery, requestCallback);
+  try {
+    const reviews = await prisma.review.findMany({
+      where: { showId: parseInt(show_id) },
+      include: {
+        user: {
+          select: { username: true }
+        }
+      }
+    });
+    
+    // Transform to match expected format
+    const formattedReviews = reviews.map(review => ({
+      ...review,
+      username: review.user.username
+    }));
+    
+    requestCallback(formattedReviews);
+  } catch (error) {
+    requestCallback({ error: error.message });
+  }
 };
 
-const getAllReviews = async requestCallback => {
-  const dbQuery = `SELECT reviews.*, username from reviews inner join users on reviews.user_id=users.id`;
-  await query(dbQuery, requestCallback);
+const getAllReviews = async (requestCallback) => {
+  try {
+    const reviews = await prisma.review.findMany({
+      include: {
+        user: {
+          select: { username: true }
+        }
+      }
+    });
+    
+    const formattedReviews = reviews.map(review => ({
+      ...review,
+      username: review.user.username
+    }));
+    
+    requestCallback(formattedReviews);
+  } catch (error) {
+    requestCallback({ error: error.message });
+  }
 };
 
 const getReviewsByUser = async (username, requestCallback) => {
-  const dbQuery = `SELECT reviews.comment,reviews.grade, videos.title, reviews.comment_date from reviews JOIN videos ON reviews.show_id = videos.id WHERE user_id = (SELECT id FROM users WHERE username = "${username}") ORDER BY reviews.id DESC`;
-  await query(dbQuery, requestCallback);
+  try {
+    const reviews = await prisma.review.findMany({
+      where: {
+        user: { username: username }
+      },
+      include: {
+        video: {
+          select: { title: true }
+        }
+      },
+      orderBy: { id: 'desc' }
+    });
+    
+    const formattedReviews = reviews.map(review => ({
+      comment: review.comment,
+      grade: review.grade,
+      title: review.video.title,
+      comment_date: review.commentDate
+    }));
+    
+    requestCallback(formattedReviews);
+  } catch (error) {
+    requestCallback({ error: error.message });
+  }
 };
 
 const addComment = async (data, requestCallback) => {
-  const dbQuery = `INSERT INTO reviews (comment, grade, show_id, user_id) values ("${removeDangerousChars(data.comment)}",null, ${data.show_id}, (select id from users where username = "${data.username}"))`;
-  await query(dbQuery, requestCallback);
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username: data.username }
+    });
+    
+    if (!user) {
+      requestCallback({ error: 'User not found' });
+      return;
+    }
+    
+    const comment = await prisma.review.create({
+      data: {
+        comment: data.comment,
+        showId: parseInt(data.show_id),
+        userId: user.id,
+        grade: null
+      }
+    });
+    
+    requestCallback(comment);
+  } catch (error) {
+    requestCallback({ error: error.message });
+  }
 };
 
 const addReview = async (data, requestCallback) => {
-  const dbQuery = `INSERT INTO reviews (comment, grade, comment_date, show_id, user_id) values ("${removeDangerousChars(data.comment)}",${data.grade}, NOW(), ${data.show_id}, (select id from users where username = "${data.username}"))`;
-  await query(dbQuery, requestCallback);
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username: data.username }
+    });
+    
+    if (!user) {
+      requestCallback({ error: 'User not found' });
+      return;
+    }
+    
+    const review = await prisma.review.create({
+      data: {
+        comment: data.comment,
+        grade: parseFloat(data.grade),
+        showId: parseInt(data.show_id),
+        userId: user.id
+      }
+    });
+    
+    requestCallback(review);
+  } catch (error) {
+    requestCallback({ error: error.message });
+  }
 };
 
 const removeReview = async (data, requestCallback) => {
-  const dbQuery = `DELETE FROM reviews WHERE id = ${data.id}`;
-  await query(dbQuery, requestCallback);
+  try {
+    const result = await prisma.review.delete({
+      where: { id: parseInt(data.id) }
+    });
+    requestCallback({ affectedRows: 1 });
+  } catch (error) {
+    requestCallback({ error: error.message });
+  }
 };
 
 const getShowLikes = async (data, requestCallback) => {
-  const dbQuery = `select user_id, username from user_likes inner join users on users.id=user_likes.user_id where video_id=${data.show_id}`;
-  await query(dbQuery, requestCallback);
+  try {
+    const likes = await prisma.userLike.findMany({
+      where: { videoId: parseInt(data.show_id) },
+      include: {
+        user: {
+          select: { username: true }
+        }
+      }
+    });
+    
+    const formattedLikes = likes.map(like => ({
+      username: like.user.username
+    }));
+    
+    requestCallback(formattedLikes);
+  } catch (error) {
+    requestCallback({ error: error.message });
+  }
 };
 
-const setShowLike = async (data, requestCallback) => {
-  let dbQuery = `select *, username from user_likes inner join users on user_likes.user_id=users.id where video_id=${data.video_id} AND username="${data.username}"`;
-  await query(dbQuery, async rows => {
-    if (rows.length === 0) {
-      dbQuery = `insert into user_likes (video_id, user_id) values (${data.video_id}, (select id from users where username = "${data.username}"))`;
-    } else {
-      dbQuery = `DELETE FROM user_likes WHERE user_id = (select id from users where username = "${data.username}")`;
-    }
-    await query(dbQuery, requestCallback);
-  });
+const getUserReviews = async (username, requestCallback) => {
+  try {
+    const reviews = await prisma.review.findMany({
+      where: {
+        user: { username: username }
+      },
+      include: {
+        video: {
+          select: { title: true }
+        }
+      }
+    });
+    
+    const formattedReviews = reviews.map(review => ({
+      ...review,
+      title: review.video.title
+    }));
+    
+    requestCallback(formattedReviews);
+  } catch (error) {
+    requestCallback({ error: error.message });
+  }
 };
 
 const getIsBlocked = async (data, requestCallback) => {
-  const dbQuery = `select blocked_reviews from videos where id=${data.id}`;
-  await query(dbQuery, requestCallback);
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(data.id) },
+      select: { isBlocked: true }
+    });
+    
+    if (user) {
+      requestCallback([{ isBlocked: user.isBlocked }]);
+    } else {
+      requestCallback([{ isBlocked: false }]);
+    }
+  } catch (error) {
+    requestCallback({ error: error.message });
+  }
 };
 
 const setIsBlocked = async (data, requestCallback) => {
-  const dbQuery = `update videos set blocked_reviews=${data.targetStatus} where id=${data.id}`;
-  await query(dbQuery, requestCallback);
+  try {
+    await prisma.user.update({
+      where: { id: parseInt(data.id) },
+      data: { isBlocked: data.targetStatus }
+    });
+    
+    requestCallback({ affectedRows: 1 });
+  } catch (error) {
+    requestCallback({ error: error.message });
+  }
+};
+
+const setShowLike = async (data, requestCallback) => {
+  try {
+    // First get the user ID from username
+    const user = await prisma.user.findUnique({
+      where: { username: data.username },
+      select: { id: true }
+    });
+
+    if (!user) {
+      requestCallback({ error: 'User not found' });
+      return;
+    }
+
+    const existingLike = await prisma.userLike.findFirst({
+      where: {
+        userId: user.id,
+        videoId: parseInt(data.video_id)
+      }
+    });
+
+    if (existingLike) {
+      // For likes, we just delete if it exists (toggle behavior)
+      await prisma.userLike.delete({
+        where: { id: existingLike.id }
+      });
+    } else {
+      await prisma.userLike.create({
+        data: {
+          userId: user.id,
+          videoId: parseInt(data.video_id)
+        }
+      });
+    }
+    
+    requestCallback({ affectedRows: 1 });
+  } catch (error) {
+    requestCallback({ error: error.message });
+  }
 };
 
 export {
-  getAllReviews,
   getReviewByShow,
+  getAllReviews,
   getReviewsByUser,
   addComment,
-  getShowLikes,
-  setShowLike,
   addReview,
   removeReview,
+  getShowLikes,
+  getUserReviews,
   getIsBlocked,
   setIsBlocked,
+  setShowLike,
 };

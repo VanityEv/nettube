@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Button, Tab, Tabs, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { PlayCircleOutline } from '@mui/icons-material';
 import { toKebabCase } from '../../helpers/convertToKebabCase';
@@ -53,8 +53,11 @@ export const VideoPage = () => {
           width: '100%',
         }}
       >
-        <Grid container direction="row" sx={{ alignItems: 'center', height: '80%' }}>
-          <Grid item sx={{ width: { desktop: '40%', mobile: '100%' } }}>
+        {' '}
+        <Box
+          sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', height: '80%', justifyContent: 'center' }}
+        >
+          <Box sx={{ width: { desktop: '40%', mobile: '100%' } }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', ml: '4rem', gap: '3rem' }}>
               <Typography variant="h3" color="white">
                 {video.title}
@@ -74,10 +77,10 @@ export const VideoPage = () => {
                 color="white"
               >
                 {video.descr}
-              </Typography>
+              </Typography>{' '}
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
       <Box>
         <Tabs

@@ -1,5 +1,5 @@
 import { Video } from '../../types/videos.types';
-import { Box, Button, Grid, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import { useVideosStore } from '../../state/videosStore';
 import { createContext, useState } from 'react';
 import { HeadPosterCarousel } from './HeadPosterCarousel';
@@ -33,8 +33,11 @@ export const TopMovies = () => {
           width: '100%',
         }}
       >
-        <Grid container direction="row" sx={{ justifyContent: 'center', alignItems: 'center' }}>
-          <Grid item sx={{ width: '40%' }}>
+        {' '}
+        <Box
+          sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '100%' }}
+        >
+          <Box sx={{ width: '40%' }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', ml: '4rem', gap: '3rem' }}>
               <Typography variant="h3" color="white">
                 {selectedMovie.title}
@@ -55,8 +58,8 @@ export const TopMovies = () => {
                 Play
               </Button>
             </Box>
-          </Grid>
-          <Grid item sx={{ width: '60%', height: '100%' }}>
+          </Box>
+          <Box sx={{ width: '60%', height: '100%' }}>
             <HeadPosterCarousel
               movies={displayVideos}
               carouselTitle="Hot Movies"
@@ -64,8 +67,8 @@ export const TopMovies = () => {
               selectedMovie={selectedMovie}
               setSelectedMovie={handleSelectedMovieChange}
             />
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

@@ -1,30 +1,38 @@
-import { Grid, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { Video } from '../../../types/videos.types';
 
 export const MoreInformation = ({ video }: { video: Video }) => {
   return (
-    <Grid container sx={{ '&>div>p': { color: 'white', fontSize: '18px' }, gap:{mobile:'1rem', desktop:0}, ml: '1rem' }}>
-      <Grid item desktop={6} mobile={6}>
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+        gap: { xs: '1rem', sm: '2rem' },
+        ml: '1rem',
+        '& p': { color: 'white', fontSize: '18px' },
+      }}
+    >
+      <Box>
         <Typography>Title: {video.title}</Typography>
-      </Grid>
-      <Grid item desktop={6} mobile={6}>
+      </Box>
+      <Box>
         <Typography>Director: {video.director}</Typography>
-      </Grid>
-      <Grid item desktop={6} mobile={6}>
+      </Box>
+      <Box>
         <Typography>Production year: {video.production_year}</Typography>
-      </Grid>
-      <Grid item desktop={6} mobile={6}>
+      </Box>
+      <Box>
         <Typography>Production country: {video.production_country}</Typography>
-      </Grid>
-      <Grid item desktop={6} mobile={6}>
+      </Box>
+      <Box>
         <Typography>Genre: {video.genre}</Typography>
-      </Grid>
-      <Grid item desktop={6} mobile={6}>
+      </Box>
+      <Box>
         <Typography>Average grade: {video.grade}</Typography>
-      </Grid>
-      <Grid item desktop={6} mobile={6}>
+      </Box>
+      <Box>
         <Typography>Reviews count: {video.reviews_count}</Typography>
-      </Grid>
-    </Grid>
+      </Box>
+    </Box>
   );
 };

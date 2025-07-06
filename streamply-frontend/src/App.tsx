@@ -1,3 +1,4 @@
+import React, { ReactNode } from 'react';
 import { ThemeProvider } from '@mui/system';
 import { Routes, Route } from 'react-router-dom';
 import './App.css';
@@ -21,6 +22,9 @@ import { Snackbar } from './components/Snackbar';
 import Movies from './pages/Movies';
 import Series from './pages/Series';
 import { EpisodePlayer } from './pages/EpisodePlayer';
+import SubscriptionPage from './pages/SubscriptionPage';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentCancel from './pages/PaymentCancel';
 
 declare module '@mui/material/styles' {
   interface BreakpointOverrides {
@@ -183,73 +187,109 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <SnackbarContext.Provider value={{ showSnackbar }}>
-          <CssBaseline />
-          <AppBar />
-          <Box
-            sx={{
-              mt: '4.5rem',
-              backgroundColor: 'secondary.400',
-              minHeight: 'calc(100vh - 4.5rem)',
-              height: 'calc(100vh - 4.5rem)',
-              width: '100vw',
-              overflowY: 'scroll',
-            }}
-          >
-            {snackbarState !== null && (
-              <Snackbar
-                isOpen={true}
-                message={snackbarState.message}
-                severity={snackbarState.severity}
-                onClose={hideSnackbar}
-              />
-            )}
-            <Routes>
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/confirm-register" element={<ConfirmRegister />} />
+      <ErrorBoundary>
+        <ThemeProvider theme={theme}>
+          <SnackbarContext.Provider value={{ showSnackbar }}>
+            <CssBaseline />
+            <AppBar />
+            <Box
+              sx={{
+                mt: '4.5rem',
+                backgroundColor: 'secondary.400',
+                minHeight: 'calc(100vh - 4.5rem)',
+                height: 'calc(100vh - 4.5rem)',
+                width: '100vw',
+                overflowY: 'scroll',
+              }}
+            >
+              {snackbarState !== null && (
+                <Snackbar
+                  isOpen={true}
+                  message={snackbarState.message}
+                  severity={snackbarState.severity}
+                  onClose={hideSnackbar}
+                />
+              )}
+              <Routes>
+                <Route path="/signin" element={<SignIn />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/confirm-register" element={<ConfirmRegister />} />
 
-              <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<HomePage />} />} path="/" />
+                <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<HomePage />} />} path="/" />
 
-              <Route
-                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Profile />} />}
-                path="/profile"
-              />
-              <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Movies />} />} path="/movies" />
-              <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Series />} />} path="/series" />
-
-              <Route
-                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Dashboard />} />}
-                path="/dashboard"
-              />
-              <Route
-                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
-                path="/series/:title"
-              />
-
-              <Route
-                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
-                path="/movies/:title"
-              />
-
-              <Route
-                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<MoviePlayer />} />}
-                path="/movie/:title"
-              />
-              <Route
-                element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<EpisodePlayer />} />}
-                path="/series/:title/season/:season/episode/:episode"
-              />
-            </Routes>
-          </Box>
-          {/* <Divider sx={{ margin: '24px 0' }} />
-      <Footer /> */}
-        </SnackbarContext.Provider>
-      </ThemeProvider>
+                <Route
+                  path="/profile"
+                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Profile />} />}
+                />
+                <Route
+                  path="/dashboard"
+                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Dashboard />} />}
+                />
+                <Route
+                  path="/movies"
+                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Movies />} />}
+                />
+                <Route
+                  path="/series"
+                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Series />} />}
+                />
+                <Route
+                  path="/movie/:title"
+                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<MoviePlayer />} />}
+                />
+                <Route
+                  path="/series/:title"
+                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<EpisodePlayer />} />}
+                />
+                <Route
+                  path="/video/:title"
+                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
+                />
+                <Route path="/subscription" element={<SubscriptionPage />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/payment-cancel" element={<PaymentCancel />} />
+              </Routes>
+            </Box>
+          </SnackbarContext.Provider>
+        </ThemeProvider>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 };
+
+// --- ERROR BOUNDARY FOR PRODUCTION-GRADE ERROR HANDLING ---
+type ErrorBoundaryProps = { children: ReactNode };
+type ErrorBoundaryState = { hasError: boolean };
+
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error: unknown) {
+    return { hasError: true };
+  }
+  componentDidCatch(error: unknown, errorInfo: unknown) {
+    // TODO: Send error to monitoring service (e.g. Sentry, backend log)
+    // fetch('/api/logError', { method: 'POST', body: JSON.stringify({ error, errorInfo }) });
+  }
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong. Please refresh the page.</h1>;
+    }
+    return this.props.children;
+  }
+}
+
+// --- MONITORING/ALERTING: Integrate Sentry or custom backend logging for all frontend errors ---
+// Example:
+// import * as Sentry from '@sentry/react';
+// Sentry.init({ dsn: process.env.SENTRY_DSN });
+//
+// In ErrorBoundary/componentDidCatch:
+// Sentry.captureException(error, { extra: errorInfo });
+//
+// This ensures all production errors are logged and alertable.
 
 export default App;

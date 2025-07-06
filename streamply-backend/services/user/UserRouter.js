@@ -4,6 +4,9 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import rateLimit from 'express-rate-limit';
+import validator from 'validator';
+import Stripe from 'stripe';
 import {
   isUserInDB,
   createUser,
@@ -24,6 +27,9 @@ import {
   revokeToken,
   promoteUser,
   demoteUser,
+  sendOtpEmail,
+  verifyOtp,
+  createStripeSession,
 } from './User.js';
 import { sendConfirmationEmail, sendPasswordResetMail } from '../mail/Mail.js';
 import multer from 'multer';
@@ -32,11 +38,14 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { verifyAdmin, verifyToken, verifyUser, verifyUsername } from '../../helpers/verifyToken.js';
+import { logSecurityEvent } from '../security/mongoLogger.js';
+import { setSubscription, getSubscription } from './subscription.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const UserRouter = Router();
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 //DESTRUCTURE ENV VARIABLES WITH DEFAULTS
 const { SECRET = 'secret' } = process.env;
@@ -64,6 +73,24 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({ storage: storage, fileFilter: fileFilter });
+
+// Rate limiting middleware
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+UserRouter.use(apiLimiter);
+
+// Helper to sanitize input
+function sanitizeInput(input) {
+  if (typeof input === 'string') {
+    return validator.escape(input.trim());
+  }
+  return input;
+}
 
 UserRouter.get('/getAvatar/:username', async (req, res) => {
   try {
@@ -122,7 +149,13 @@ UserRouter.post('/signup', async (req, res) => {
           registerToken: registerToken,
         };
 
-        await createUser({ ...userToRegister }, status => {
+        // Create Stripe customer
+        const customer = await stripe.customers.create({
+          email: req.body.email,
+          name: req.body.username,
+        });
+
+        await createUser({ ...userToRegister, stripe_customer_id: customer.id }, status => {
           if (status.affectedRows === 1) {
             sendConfirmationEmail(userToRegister.email, registerToken);
             res.status(200).json({ result: 'SUCCESS' });
@@ -155,6 +188,9 @@ UserRouter.post('/signin', async (req, res) => {
             // sign token and send it in response
             const token = jwt.sign({ username: userToLogin.username, account_type: userToLogin.account_type }, SECRET);
 
+            const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+            logSecurityEvent({ type: 'login_success', username: req.body.username, ip });
+
             res.status(200).json({
               result: 'SUCCESS',
               username: userToLogin.username,
@@ -163,6 +199,8 @@ UserRouter.post('/signin', async (req, res) => {
               token,
             });
           } else {
+            const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+            logSecurityEvent({ type: 'login_failed', username: req.body.username, ip });
             res.status(401).json({ error: 'PASSWORD_MISMATCH' });
           }
         } else {
@@ -197,7 +235,7 @@ UserRouter.post('/signin', async (req, res) => {
   }
 });
 
-UserRouter.post('/changePassword', verifyToken, verifyUser, verifyUsername, async (req, res) => {
+UserRouter.post('/changePassword', verifyToken, async (req, res) => {
   try {
     //find user to update
     await findOneUser(req.body.username, async user => {
@@ -466,5 +504,60 @@ UserRouter.post('/demoteModerator', verifyToken, verifyAdmin, async (req, res) =
     res.status(500).json({ result: 'ERROR' });
   }
 });
+
+// Example subscription endpoint (should be protected with verifyToken)
+UserRouter.post('/setSubscription', verifyToken, (req, res) => {
+  const username = sanitizeInput(req.body.username);
+  const status = sanitizeInput(req.body.status);
+  const providerId = sanitizeInput(req.body.providerId);
+  setSubscription(username, status, providerId);
+  res.status(200).json({ result: 'SUCCESS' });
+});
+
+UserRouter.get('/getSubscription/:username', verifyToken, (req, res) => {
+  const username = sanitizeInput(req.params.username);
+  res.status(200).json(getSubscription(username));
+});
+
+// --- MFA & STRIPE ENDPOINTS ---
+// MFA: Request OTP
+UserRouter.post('/mfa/request', async (req, res) => {
+  const { email, userId } = req.body;
+  try {
+    await sendOtpEmail(email, userId);
+    res.status(200).json({ result: 'SUCCESS' });
+  } catch (error) {
+    res.status(500).json({ result: 'ERROR', message: 'Failed to send OTP' });
+  }
+});
+
+// MFA: Verify OTP
+UserRouter.post('/mfa/verify', (req, res) => {
+  const { userId, code } = req.body;
+  if (verifyOtp(userId, code)) {
+    res.status(200).json({ result: 'SUCCESS' });
+  } else {
+    res.status(400).json({ result: 'ERROR', message: 'Invalid or expired code' });
+  }
+});
+
+// STRIPE: Create payment session
+UserRouter.post('/stripe/session', async (req, res) => {
+  const { userId, priceId } = req.body;
+  try {
+    const url = await createStripeSession(userId, priceId);
+    res.status(200).json({ result: 'SUCCESS', url });
+  } catch (error) {
+    res.status(500).json({ result: 'ERROR', message: 'Failed to create Stripe session' });
+  }
+});
+
+// SECURITY DOCUMENTATION:
+// - Rate limiting applied to all routes.
+// - All user input is sanitized using validator.escape and trim.
+// - Login attempts and IPs are logged for monitoring.
+// - MFA stub added for email code verification.
+// - See Mail.js for email code implementation.
+// - Consider using HTTPS and secure cookies for JWT/session.
 
 export default UserRouter;

@@ -1,5 +1,5 @@
 import { Typography, Box, useTheme, useMediaQuery } from '@mui/material';
-import { Scrollbar, Autoplay, Navigation } from 'swiper';
+import { Scrollbar, Autoplay, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { ProgressVideo } from './ProgressVideo';
 import { useGetProgressedVideos } from '../../hooks/useGetProgressedVideos';

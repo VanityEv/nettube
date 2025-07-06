@@ -1,4 +1,4 @@
-import { Grid, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { SingleReview } from '../../VideoPage/contents/SingleReview';
 import { useGetUserReviews } from '../../../hooks/useGetUserReviews';
 import { useUserStore } from '../../../state/userStore';
@@ -17,14 +17,13 @@ export const UserReviews = () => {
   if (data?.reviews.length === 0) {
     return <Typography color="white">This show has no reviews yet.</Typography>;
   }
-
   return (
-    <Grid container>
+    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '2rem' }}>
       {data?.reviews.map((review, idx) => (
-        <Grid item desktop={6} mobile={12} key={`${username}-review-${review.title}-${idx}`}>
+        <Box key={`${username}-review-${review.title}-${idx}`} sx={{ width: { xs: '100%', lg: '45%' } }}>
           <SingleReview profileView review={review} />
-        </Grid>
+        </Box>
       ))}
-    </Grid>
+    </Box>
   );
 };
