@@ -1,5 +1,4 @@
-import { useUserStore } from '../../state/userStore';
-import { useVideosStore } from '../../state/videosStore';
+import { useAppSelector } from '../../store/hooks';
 import { useGetRecommendations } from '../../hooks/useGetRecommendations';
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { HorizontalVideo } from '../VideoViews/HorizontalVideo';
@@ -7,9 +6,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Scrollbar } from 'swiper/modules';
 
 export const MovieSuggestions = () => {
-  const { likes } = useUserStore();
-  const { videos } = useVideosStore();
-  const { username } = useUserStore();
+  const { likes, username } = useAppSelector(state => state.user);
+  const { videos } = useAppSelector(state => state.videos);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
   const isTablet = useMediaQuery(theme.breakpoints.down('tablet'));

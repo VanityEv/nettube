@@ -2,7 +2,7 @@ import { Box, Stack, SxProps, TextField, Button, Select, MenuItem, CircularProgr
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useVideosStore } from '../../state/videosStore';
+import { useAppSelector } from '../../store/hooks';
 import axios from 'axios';
 import { useContext, useState } from 'react';
 import { SnackbarContext } from '../../App';
@@ -10,7 +10,7 @@ import { api } from '../../constants';
 import { getCookie } from 'typescript-cookie';
 
 export const UploadEpisodeForm = () => {
-  const { videos } = useVideosStore();
+  const { videos } = useAppSelector(state => state.videos);
   const { showSnackbar } = useContext(SnackbarContext);
   const availableSeries = videos.filter(video => video.type === 'series');
   const [isLoading, setIsLoading] = useState(false);
@@ -35,10 +35,11 @@ export const UploadEpisodeForm = () => {
       message: 'Please enter a valid title.',
     }),
     description: z.string().min(1),
-    show: z.number(),
+    show: availableSeries.length > 0 ? z.number() : z.number().optional(),
     season: z.string(),
     episode: z.string(),
     video: z.any(),
+    cinematicThumbnail: z.any().optional(),
   });
 
   type Schema = z.infer<typeof AddVideoFormSchema>;
@@ -48,10 +49,11 @@ export const UploadEpisodeForm = () => {
     defaultValues: {
       title: '',
       description: '',
-      show: availableSeries[0].id,
+      show: availableSeries.length > 0 ? availableSeries[0].id : undefined,
       video: '',
       season: '',
       episode: '',
+      cinematicThumbnail: '',
     },
     mode: 'onChange',
   });
@@ -72,6 +74,9 @@ export const UploadEpisodeForm = () => {
       formData.append('episode', data.episode);
       formData.append('show', String(data.show));
       formData.append('episode_file', data.video[0]);
+      if (data.cinematicThumbnail && data.cinematicThumbnail[0]) {
+        formData.append('cinematicThumbnail', data.cinematicThumbnail[0]);
+      }
       setIsLoading(true);
 
       // Send the form data to the backend
@@ -100,6 +105,15 @@ export const UploadEpisodeForm = () => {
       // Never display raw error or stack trace to the user in production.
     }
   };
+
+  // If no series available, show a message
+  if (availableSeries.length === 0) {
+    return (
+      <Box sx={{ mt: 3, pb: 2, width: '100%', textAlign: 'center', color: 'white' }}>
+        <p>No series available. Please create a series first before uploading episodes.</p>
+      </Box>
+    );
+  }
 
   return (
     <Box component="form" noValidate onSubmit={form.handleSubmit(onSubmit)} sx={{ mt: 3, pb: 2, width: '100%' }}>
@@ -223,6 +237,25 @@ export const UploadEpisodeForm = () => {
               <input
                 type="file"
                 accept="video/mp4"
+                onChange={e => onChange(e.target.files)}
+                onBlur={onBlur}
+                ref={ref}
+              />
+            </>
+          )}
+        />
+
+        <Controller
+          name="cinematicThumbnail"
+          control={form.control}
+          render={({ field: { ref, onChange, onBlur } }) => (
+            <>
+              <InputLabel htmlFor="cinematic-thumbnail-upload">
+                Cinematic Thumbnail Upload (16:9 aspect ratio) - Optional
+              </InputLabel>
+              <input
+                type="file"
+                accept="image/png,image/jpeg"
                 onChange={e => onChange(e.target.files)}
                 onBlur={onBlur}
                 ref={ref}

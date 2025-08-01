@@ -29,7 +29,7 @@ const getAllVideos = async (requestCallback) => {
   try {
     const videos = await prisma.video.findMany({
       orderBy: {
-        createdAt: 'desc'
+        created_at: 'desc'
       }
     });
     requestCallback(videos);
@@ -55,21 +55,18 @@ const addVideo = async (video, videoDuration, videoThumbnailExt, resultCallback)
       data: {
         title: video.title,
         type: video.type,
-        seasons: 0,
         genre: video.genre,
-        productionYear: parseInt(video.productionYear),
-        productionCountry: video.productionCountry,
+        production_year: parseInt(video.productionYear),
+        production_country: video.productionCountry,
         director: video.director,
         tags: video.tags,
-        description: video.description,
+        descr: video.description,
         thumbnail: video.thumbnailUrl || `/${toKebabCase(video.title)}/${toKebabCase(video.title)}.${videoThumbnailExt}`,
-        alternativeTitle: video.alternativeTitle,
-        videoLength: videoDuration || 0,
         grade: 0,
-        reviewsCount: 0,
+        reviews_count: 0,
         views: 0,
         link: video.videoUrl || `${toKebabCase(video.title)}/${toKebabCase(video.title)}.m3u8`,
-        blockedReviews: false
+        blocked_reviews: false
       }
     });
     resultCallback({ affectedRows: 1, insertId: newVideo.id });
@@ -140,10 +137,10 @@ const getRecommendations = async (username, genres, resultCallback) => {
       where: {
         user: { username: username }
       },
-      select: { videoId: true }
+      select: { video_id: true }
     });
     
-    const likedVideoIds = userLikes.map(like => like.videoId);
+    const likedVideoIds = userLikes.map(like => like.video_id);
     
     const recommendations = await prisma.video.findMany({
       where: {
@@ -211,7 +208,7 @@ const getPopularMovies = async (resultCallback) => {
         ]
       },
       orderBy: [
-        { productionYear: 'desc' },
+        { production_year: 'desc' },
         { views: 'desc' }
       ],
       take: 15
@@ -232,7 +229,7 @@ const getPopularSeries = async (resultCallback) => {
         ]
       },
       orderBy: [
-        { productionYear: 'desc' },
+        { production_year: 'desc' },
         { views: 'desc' }
       ],
       take: 15

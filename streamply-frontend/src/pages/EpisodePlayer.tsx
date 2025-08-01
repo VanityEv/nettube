@@ -4,7 +4,7 @@ import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
 import VideoJSSecure from '../components/VideoJSSecure';
 import { useLocation, useParams } from 'react-router-dom';
-import { useUserStore } from '../state/userStore';
+import { useAppSelector } from '../store/hooks';
 import { api } from '../constants';
 import axios from 'axios';
 import { getCookie } from 'typescript-cookie';
@@ -16,7 +16,7 @@ import { deviceFingerprinter } from '../services/security/deviceFingerprinting';
 
 export const EpisodePlayer = () => {
   const { title, season, episode } = useParams();
-  const { username } = useUserStore();
+  const { username } = useAppSelector(state => state.user);
   const { showSnackbar } = useContext(SnackbarContext);
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
   const location = useLocation();

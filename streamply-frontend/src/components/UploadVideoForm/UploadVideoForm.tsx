@@ -17,12 +17,13 @@ import axios from 'axios';
 import { api } from '../../constants';
 import { SnackbarContext } from '../../App';
 import { useContext, useState } from 'react';
-import { useVideosStore } from '../../state/videosStore';
+import { useAppDispatch } from '../../store/hooks';
+import { reset, fetchVideos } from '../../store/slices/videosSlice';
 import { getCookie } from 'typescript-cookie';
 
 export const UploadVideoForm = () => {
   const { showSnackbar } = useContext(SnackbarContext);
-  const { setVideos, reset } = useVideosStore();
+  const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
 
   const fieldSx: SxProps = {
@@ -52,6 +53,7 @@ export const UploadVideoForm = () => {
     alternativeTitle: z.string().min(1),
     video: z.any(),
     thumbnail: z.any(),
+    cinematicThumbnail: z.any().optional(),
   });
 
   type Schema = z.infer<typeof AddVideoFormSchema>;
@@ -70,6 +72,7 @@ export const UploadVideoForm = () => {
       alternativeTitle: '',
       video: '',
       thumbnail: '',
+      cinematicThumbnail: '',
     },
     mode: 'onChange',
   });
@@ -88,6 +91,9 @@ export const UploadVideoForm = () => {
       formData.append('alternativeTitle', data.alternativeTitle);
       formData.append('video', data.video[0]);
       formData.append('thumbnail', data.thumbnail[0]);
+      if (data.cinematicThumbnail && data.cinematicThumbnail[0]) {
+        formData.append('cinematicThumbnail', data.cinematicThumbnail[0]);
+      }
       setIsLoading(true);
       const response = await axios.post(`${api}/videos/upload/movie`, formData, {
         headers: { Authorization: `Bearer ${getCookie('userToken')}` },
@@ -96,8 +102,8 @@ export const UploadVideoForm = () => {
       if (response.status === 200) {
         showSnackbar('Movie uploaded successfully', 'success');
         setIsLoading(false);
-        reset();
-        setVideos();
+        dispatch(reset());
+        dispatch(fetchVideos());
       } else {
         showSnackbar('Error uploading file', 'error');
         setIsLoading(false);
@@ -293,10 +299,28 @@ export const UploadVideoForm = () => {
           control={form.control}
           render={({ field: { ref, onChange, onBlur } }) => (
             <>
-              <InputLabel htmlFor="thumbnail-upload">Thumbnail Upload</InputLabel>
+              <InputLabel htmlFor="thumbnail-upload">Poster Thumbnail Upload (2:3 aspect ratio)</InputLabel>
               <input
                 type="file"
-                accept="image/png"
+                accept="image/png,image/jpeg"
+                onChange={e => onChange(e.target.files)}
+                onBlur={onBlur}
+                ref={ref}
+              />
+            </>
+          )}
+        />
+        <Controller
+          name="cinematicThumbnail"
+          control={form.control}
+          render={({ field: { ref, onChange, onBlur } }) => (
+            <>
+              <InputLabel htmlFor="cinematic-thumbnail-upload">
+                Cinematic Thumbnail Upload (16:9 aspect ratio) - Optional
+              </InputLabel>
+              <input
+                type="file"
+                accept="image/png,image/jpeg"
                 onChange={e => onChange(e.target.files)}
                 onBlur={onBlur}
                 ref={ref}

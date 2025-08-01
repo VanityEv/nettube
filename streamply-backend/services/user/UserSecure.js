@@ -19,9 +19,9 @@ const createUser = async (userData, requestCallback) => {
         password: userData.password,
         birthdate: new Date(userData.birthdate),
         email: userData.email,
-        registerToken: userData.registerToken,
+        register_token: userData.registerToken,
         confirmed: false,
-        accountType: 1
+        account_type: 1
       }
     });
     requestCallback(user);
@@ -38,11 +38,11 @@ const getAllUsers = async (requestCallback) => {
         username: true,
         email: true,
         fullname: true,
-        lastLogin: true,
-        accountType: true
+        last_login: true,
+        account_type: true
       },
       orderBy: {
-        lastLogin: 'desc'
+        last_login: 'desc'
       }
     });
     requestCallback(users);
@@ -128,10 +128,10 @@ const userLikes = async (username, requestCallback) => {
         user: { username: username }
       },
       select: {
-        videoId: true
+        video_id: true
       }
     });
-    const videoIds = likes.map(like => ({ video_id: like.videoId }));
+    const videoIds = likes.map(like => ({ video_id: like.video_id }));
     requestCallback(videoIds);
   } catch (error) {
     requestCallback({ error: error.message });
@@ -161,7 +161,7 @@ const deleteLike = async (username, showId, requestCallback) => {
       where: {
         AND: [
           { user: { username: username } },
-          { videoId: parseInt(showId) }
+          { video_id: showId }
         ]
       }
     });
@@ -183,8 +183,8 @@ const addLike = async (username, showId, requestCallback) => {
     
     const result = await prisma.userLike.create({
       data: {
-        userId: user.id,
-        videoId: parseInt(showId)
+        user_id: user.id,
+        video_id: showId
       }
     });
     requestCallback({ affectedRows: 1 });
@@ -220,7 +220,7 @@ const updateUserLoginDate = async (username, requestCallback) => {
   try {
     const result = await prisma.user.update({
       where: { username: username },
-      data: { lastLogin: new Date() }
+      data: { last_login: new Date() }
     });
     requestCallback({ affectedRows: 1 });
   } catch (error) {

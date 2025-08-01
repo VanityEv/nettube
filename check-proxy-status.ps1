@@ -27,21 +27,26 @@ foreach ($service in $services) {
             $response = Invoke-WebRequest -Uri $service.URL -TimeoutSec 10 -UseBasicParsing
             if ($response.StatusCode -eq $service.Expected) {
                 Write-Host " ✅ HEALTHY" -ForegroundColor Green
-            } else {
+            }
+            else {
                 Write-Host " ⚠️ UNEXPECTED STATUS ($($response.StatusCode))" -ForegroundColor Yellow
             }
-        } catch {
+        }
+        catch {
             Write-Host " ❌ FAILED ($($_.Exception.Message))" -ForegroundColor Red
         }
-    } elseif ($service.Command) {
+    }
+    elseif ($service.Command) {
         try {
             $result = Invoke-Expression $service.Command 2>$null
             if ($LASTEXITCODE -eq $service.Expected) {
                 Write-Host " ✅ HEALTHY" -ForegroundColor Green
-            } else {
+            }
+            else {
                 Write-Host " ❌ FAILED (Exit code: $LASTEXITCODE)" -ForegroundColor Red
             }
-        } catch {
+        }
+        catch {
             Write-Host " ❌ FAILED ($($_.Exception.Message))" -ForegroundColor Red
         }
     }
@@ -53,11 +58,13 @@ try {
     $nginxTest = docker exec streamply-nginx nginx -t 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "  ✅ Configuration is valid" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "  ❌ Configuration has errors:" -ForegroundColor Red
         Write-Host "  $nginxTest" -ForegroundColor Red
     }
-} catch {
+}
+catch {
     Write-Host "  ❌ Could not test configuration" -ForegroundColor Red
 }
 

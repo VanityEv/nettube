@@ -1,11 +1,10 @@
 import { Box, Typography } from '@mui/material';
-import { useUserStore } from '../../../state/userStore';
-import { useVideosStore } from '../../../state/videosStore';
+import { useAppSelector } from '../../../store/hooks';
 import { HorizontalVideo } from '../../VideoViews/HorizontalVideo';
 
 export const Watchlist = () => {
-  const { likes } = useUserStore();
-  const { videos } = useVideosStore();
+  const { likes } = useAppSelector(state => state.user);
+  const { videos } = useAppSelector(state => state.videos);
   const videosInWatchlist = videos.filter(video => likes.includes(video.id));
 
   return (

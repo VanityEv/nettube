@@ -18,7 +18,13 @@ export const SingleReview = ({ review, profileView }: { review: SingleUserReview
       const response = await axios.get<AvatarResponse>(`${api}/user/getAvatar/${username}`);
 
       if (response.status === 200) {
-        setAvatarUrl(`${api}${response.data.result}`);
+        // Check if avatar was found and is a valid URL
+        if (response.data.result === 'AVATAR_NOT_FOUND') {
+          setAvatarUrl('');
+          return;
+        }
+        // Use the full B2 signed URL directly (don't prefix with api)
+        setAvatarUrl(response.data.result);
       } else {
         return;
       }
@@ -40,27 +46,52 @@ export const SingleReview = ({ review, profileView }: { review: SingleUserReview
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        ml: '1.5rem',
-        gap: '0.75rem',
+        gap: '1rem',
         '&>div>p.comment': { color: 'white' },
       }}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
-        {!profileView && <Avatar src={avatarUrl} />}
-        <Typography fontWeight={700} color="primary.600">
-          {profileView && 'title' in review ? review.title : (review as Review).username}
-        </Typography>
-        <Typography fontWeight={700} color="white">
-          •
-        </Typography>
-        <Typography fontWeight={300} fontSize={14} color="white">
-          {convertDate(review.comment_date)}
-        </Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '0.75rem' }}>
+        {!profileView && <Avatar src={avatarUrl} sx={{ width: 40, height: 40 }} />}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <Typography fontWeight={600} color="primary.600" fontSize="1rem">
+            {profileView && 'title' in review ? review.title : (review as Review).username}
+          </Typography>
+          <Typography fontWeight={300} fontSize={12} color="rgba(255, 255, 255, 0.7)">
+            {convertDate(review.comment_date)}
+          </Typography>
+        </Box>
       </Box>
-      {review.grade ? <Typography sx={{ color: 'white' }}>Reviewed with grade {review.grade} / 10</Typography> : null}
+
+      {review.grade ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              backgroundColor: 'primary.600',
+              color: 'white',
+              fontWeight: 'bold',
+              fontSize: '1.2rem',
+            }}
+          >
+            {Number(review.grade).toFixed(1)}
+          </Box>
+          <Typography sx={{ color: 'white', fontSize: '0.9rem' }}>out of 10</Typography>
+        </Box>
+      ) : null}
+
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <Typography
           className="comment"
+          sx={{
+            color: 'white',
+            lineHeight: 1.6,
+            fontSize: '0.95rem',
+          }}
           dangerouslySetInnerHTML={{
             __html: showFullComment
               ? DOMPurify.sanitize(review.comment)
@@ -74,7 +105,13 @@ export const SingleReview = ({ review, profileView }: { review: SingleUserReview
         {review.comment.length > 200 && !showFullComment && (
           <Button
             variant="text"
-            sx={{ color: 'primary.600', '&:hover': { backgroundColor: 'transparent' } }}
+            size="small"
+            sx={{
+              color: 'primary.600',
+              '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
+              alignSelf: 'flex-start',
+              textTransform: 'none',
+            }}
             onClick={handleContinueReading}
           >
             Continue Reading
@@ -83,10 +120,16 @@ export const SingleReview = ({ review, profileView }: { review: SingleUserReview
         {showFullComment && (
           <Button
             variant="text"
-            sx={{ color: 'primary.600', '&:hover': { backgroundColor: 'transparent' } }}
+            size="small"
+            sx={{
+              color: 'primary.600',
+              '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
+              alignSelf: 'flex-start',
+              textTransform: 'none',
+            }}
             onClick={() => setShowFullComment(false)}
           >
-            Collapse
+            Show Less
           </Button>
         )}
       </Box>

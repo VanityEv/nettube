@@ -82,17 +82,40 @@ export const VideoPage = () => {
           </Box>
         </Box>
       </Box>
-      <Box>
+      <Box sx={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', minHeight: '60vh' }}>
         <Tabs
           value={tabValue}
           onChange={(event, newValue: number) => setTabValue(newValue)}
-          indicatorColor={undefined}
-          textColor="secondary"
           sx={{
-            p: 3,
-            '&>div>div': { gap: 2 },
-            '.MuiTabs-indicator': {
-              display: 'none',
+            px: 3,
+            pt: 2,
+            '& .MuiTabs-flexContainer': {
+              gap: '1rem',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            },
+            '& .MuiTab-root': {
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontWeight: 500,
+              fontSize: '0.95rem',
+              textTransform: 'none',
+              minHeight: '48px',
+              padding: '12px 20px',
+              borderRadius: '8px 8px 0 0',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                color: 'white',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              },
+              '&.Mui-selected': {
+                color: 'primary.600',
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                fontWeight: 600,
+              },
+            },
+            '& .MuiTabs-indicator': {
+              height: '3px',
+              borderRadius: '3px 3px 0 0',
+              backgroundColor: 'primary.600',
             },
           }}
         >
@@ -100,15 +123,18 @@ export const VideoPage = () => {
           <Tab label="More Information" value={1} />
           <Tab label="Comments & Reviews" value={2} />
         </Tabs>
-        <TabPanel index={0} value={tabValue}>
-          <Episodes show_id={video.id} />
-        </TabPanel>
-        <TabPanel index={1} value={tabValue}>
-          <MoreInformation video={video} />
-        </TabPanel>
-        <TabPanel index={2} value={tabValue}>
-          <ShowReviewList video={video} />
-        </TabPanel>
+
+        <Box sx={{ p: 3 }}>
+          <TabPanel index={0} value={tabValue}>
+            <Episodes show_id={video.id} />
+          </TabPanel>
+          <TabPanel index={1} value={tabValue}>
+            <MoreInformation video={video} />
+          </TabPanel>
+          <TabPanel index={2} value={tabValue}>
+            <ShowReviewList video={video} />
+          </TabPanel>
+        </Box>
       </Box>
     </Box>
   );

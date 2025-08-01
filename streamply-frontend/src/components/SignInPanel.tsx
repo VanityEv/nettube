@@ -4,31 +4,53 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 import { api } from '../constants';
-import { useUserStore } from '../state/userStore';
+import { useAppDispatch } from '../store/hooks';
+import { setUserData } from '../store/slices/userSlice';
+import { fetchAllVideosData } from '../store/slices/videosSlice';
 import { setCookie } from 'typescript-cookie';
 import { useNavigate } from 'react-router-dom';
-import { useVideosStore } from '../state/videosStore';
 import { SnackbarContext } from '../App';
 import { useContext, useState } from 'react';
 import { ResendConfirmationModal } from './ResendConfirmation';
 import { PasswordResetLinkModal } from './PasswordResetLinkModal';
+import TwoFactorVerification from './TwoFactorVerification';
 
 type LoginResponse = {
   username: string;
   token: string;
   account_type: number;
-  confirmed: number;
+  confirmed: boolean;
+  result: string;
+  // New 2FA fields
+  alertType?: 'new_device' | 'suspicious_location';
+  locationInfo?: any;
+  deviceInfo?: any;
+  verificationCodeSent?: boolean;
+  tempToken?: string;
+  message?: string;
+  // Legacy MFA fields
+  mfaRequired?: boolean;
+  email?: string;
+  userId?: string;
 };
 
 export const SignInPanel = () => {
-  const { setUserData } = useUserStore();
-  const { setVideos } = useVideosStore();
+  const dispatch = useAppDispatch();
   const { showSnackbar } = useContext(SnackbarContext);
   const navigate = useNavigate();
   const [mfaStep, setMfaStep] = useState<'none' | 'pending' | 'verifying'>('none');
   const [otp, setOtp] = useState('');
   const [pendingUser, setPendingUser] = useState<{ username: string; email: string; userId: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // New 2FA state
+  const [showTwoFactor, setShowTwoFactor] = useState(false);
+  const [twoFactorData, setTwoFactorData] = useState<{
+    tempToken: string;
+    alertType: 'new_device' | 'suspicious_location';
+    locationInfo: any;
+    deviceInfo: any;
+  } | null>(null);
 
   const FormSchema = z.object({
     username: z.string().min(2, {
@@ -51,12 +73,31 @@ export const SignInPanel = () => {
   const onSubmit = async (data: Schema) => {
     setIsLoading(true);
     try {
-      const loginResponse = await axios.post<
-        LoginResponse & { mfaRequired?: boolean; email?: string; userId?: string }
-      >(`${api}/user/signin`, {
+      const loginResponse = await axios.post<LoginResponse>(`${api}/user/signin`, {
         ...data,
       });
-      // If MFA is required, trigger MFA step
+
+      console.log('🚀 FULL LOGIN RESPONSE:', {
+        status: loginResponse.status,
+        data: loginResponse.data,
+        result: loginResponse.data?.result,
+      });
+
+      // Handle new 2FA verification system
+      if (loginResponse.data.result === 'VERIFICATION_REQUIRED') {
+        setTwoFactorData({
+          tempToken: loginResponse.data.tempToken!,
+          alertType: loginResponse.data.alertType!,
+          locationInfo: loginResponse.data.locationInfo,
+          deviceInfo: loginResponse.data.deviceInfo,
+        });
+        setShowTwoFactor(true);
+        showSnackbar(loginResponse.data.message || 'Security verification required', 'info');
+        setIsLoading(false);
+        return;
+      }
+
+      // Handle old MFA system (if still needed)
       if (loginResponse.data.mfaRequired) {
         setPendingUser({
           username: data.username,
@@ -73,20 +114,35 @@ export const SignInPanel = () => {
         setIsLoading(false);
         return;
       }
-      await setVideos();
-      if (loginResponse.status === 200) {
-        if (!loginResponse.data.confirmed) {
-          showSnackbar('Email not confirmed!', 'error');
+
+      await dispatch(fetchAllVideosData());
+      if (loginResponse.status === 200 && loginResponse.data.result === 'SUCCESS') {
+        // Check confirmed status - all users must have confirmed email
+        const isConfirmed = Boolean(loginResponse.data.confirmed);
+
+        console.log('🔍 LOGIN DEBUG:', {
+          confirmed: loginResponse.data.confirmed,
+          isConfirmed,
+          accountType: loginResponse.data.account_type,
+        });
+
+        if (!isConfirmed) {
+          showSnackbar('Email not confirmed! Please check your email and click the confirmation link.', 'error');
         } else {
           showSnackbar('Logged in!', 'success');
-          await setUserData(loginResponse.data.username);
+          await dispatch(setUserData(loginResponse.data.username));
           setCookie('userToken', loginResponse.data.token);
-          setCookie('userAccountType', loginResponse.data.account_type);
+          setCookie('userAccountType', loginResponse.data.account_type.toString());
           navigate('/');
         }
       }
-    } catch (error) {
-      showSnackbar('Incorrect username / password', 'error');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      if (error.response?.status === 401) {
+        showSnackbar('Incorrect username / password', 'error');
+      } else {
+        showSnackbar('Login failed. Please try again.', 'error');
+      }
     }
     setIsLoading(false);
   };
@@ -111,7 +167,7 @@ export const SignInPanel = () => {
         });
         if (loginResponse.status === 200 && loginResponse.data.confirmed) {
           showSnackbar('Logged in!', 'success');
-          await setUserData(loginResponse.data.username);
+          await dispatch(setUserData(loginResponse.data.username));
           setCookie('userToken', loginResponse.data.token);
           setCookie('userAccountType', loginResponse.data.account_type);
           navigate('/');
@@ -125,6 +181,29 @@ export const SignInPanel = () => {
       showSnackbar('Invalid or expired OTP code.', 'error');
     }
     setMfaStep('pending');
+  };
+
+  // Handle 2FA verification success
+  const handle2FASuccess = async (token: string, userInfo: any) => {
+    try {
+      showSnackbar('Login verified successfully!', 'success');
+      await dispatch(setUserData(userInfo.username));
+      setCookie('userToken', token);
+      setCookie('userAccountType', userInfo.account_type.toString());
+      await dispatch(fetchAllVideosData());
+      setShowTwoFactor(false);
+      navigate('/');
+    } catch (error) {
+      console.error('Error completing login:', error);
+      showSnackbar('Login completion failed', 'error');
+    }
+  };
+
+  // Handle 2FA verification cancel
+  const handle2FACancel = () => {
+    setShowTwoFactor(false);
+    setTwoFactorData(null);
+    showSnackbar('Login cancelled', 'info');
   };
 
   return (
@@ -278,6 +357,18 @@ export const SignInPanel = () => {
             <ResendConfirmationModal />
           </Stack>
         </Box>
+      )}
+
+      {/* 2FA Verification Modal */}
+      {showTwoFactor && twoFactorData && (
+        <TwoFactorVerification
+          tempToken={twoFactorData.tempToken}
+          alertType={twoFactorData.alertType}
+          locationInfo={twoFactorData.locationInfo}
+          deviceInfo={twoFactorData.deviceInfo}
+          onVerificationSuccess={handle2FASuccess}
+          onCancel={handle2FACancel}
+        />
       )}
     </Box>
   );

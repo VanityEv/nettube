@@ -10,12 +10,16 @@ import fs from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
+// Get the actual binary paths
+const ffmpegPath = ffmpegStatic;
+const ffprobePath = ffprobeStatic.path;
+
 /**
  * Execute FFmpeg command with promise-based interface
  */
 function executeFFmpeg(args, inputBuffer = null) {
   return new Promise((resolve, reject) => {
-    const ffmpeg = spawn(ffmpegStatic, args);
+    const ffmpeg = spawn(ffmpegPath, args);
     let stdout = '';
     let stderr = '';
 
@@ -52,7 +56,7 @@ function executeFFmpeg(args, inputBuffer = null) {
  */
 function executeFFprobe(args) {
   return new Promise((resolve, reject) => {
-    const ffprobe = spawn(ffprobeStatic, args);
+    const ffprobe = spawn(ffprobePath, args);
     let stdout = '';
     let stderr = '';
 
@@ -184,15 +188,21 @@ export async function convertToHLS(inputPath, outputDir, options = {}) {
 }
 
 /**
- * Generate video thumbnail
+ * Generate video thumbnail with compression options
  */
-export async function generateThumbnail(inputPath, outputPath, timeStamp = '00:00:01') {
+export async function generateThumbnail(inputPath, outputPath, timeStamp = '00:00:01', options = {}) {
   try {
+    const {
+      width = 1280,   // Default width
+      quality = 85    // JPEG quality (1-100, lower = smaller file)
+    } = options;
+
     const args = [
       '-i', inputPath,
       '-ss', timeStamp,
       '-vframes', '1',
-      '-q:v', '2',
+      '-vf', `scale=${width}:-2`,  // Scale to specified width, maintain aspect ratio
+      '-q:v', Math.round((100 - quality) / 10), // Convert quality % to FFmpeg scale (1-10)
       '-f', 'image2',
       outputPath
     ];
@@ -201,6 +211,31 @@ export async function generateThumbnail(inputPath, outputPath, timeStamp = '00:0
     return outputPath;
   } catch (error) {
     throw new Error(`Failed to generate thumbnail: ${error.message}`);
+  }
+}
+
+/**
+ * Compress an existing image using FFmpeg
+ */
+export async function compressImage(inputPath, outputPath, options = {}) {
+  try {
+    const {
+      width = 800,    // Default width
+      quality = 80    // JPEG quality
+    } = options;
+
+    const args = [
+      '-i', inputPath,
+      '-vf', `scale=${width}:-2`,  // Scale to specified width, maintain aspect ratio
+      '-q:v', Math.round((100 - quality) / 10), // Convert quality % to FFmpeg scale (1-10)
+      '-f', 'image2',
+      outputPath
+    ];
+
+    await executeFFmpeg(args);
+    return outputPath;
+  } catch (error) {
+    throw new Error(`Failed to compress image: ${error.message}`);
   }
 }
 

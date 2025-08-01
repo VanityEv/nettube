@@ -12,10 +12,7 @@ export const LinkedSlide = ({ movie }: LinkedSlideProps) => (
   <ConditionalWrapper
     condition={true}
     wrapper={children => (
-      <Link
-        style={{ textDecoration: 'none' }}
-        to={`/${movie.type === 'film' ? 'movies' : 'series'}/${toKebabCase(movie.title)}`}
-      >
+      <Link style={{ textDecoration: 'none' }} to={`/video/${toKebabCase(movie.title)}`}>
         {children}
       </Link>
     )}

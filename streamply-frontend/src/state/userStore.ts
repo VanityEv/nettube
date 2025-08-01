@@ -28,12 +28,22 @@ const getUserLikes = async (username: string) => {
   try {
     const response = await axios.get<LikeResponse>(`${api}/user/userLikes/${username}`);
     if (response.status === 200) {
-      return response.data.map(video => video.video_id);
+      // Safe handling of response data
+      const data = response.data as any;
+      if (Array.isArray(data)) {
+        return data.map((video: any) => video.video_id);
+      } else if (data && Array.isArray(data.likes)) {
+        return data.likes.map((video: any) => video.video_id);
+      } else {
+        console.warn('User likes response is not in expected format:', data);
+        return [];
+      }
     } else {
       throw new Error(`Request failed with status ${response.status}`);
     }
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching user likes:', error);
+    return [];
   }
 };
 
@@ -42,6 +52,11 @@ const getUserAvatar = async (username: string) => {
     const response = await axios.get<AvatarResponse>(`${api}/user/getAvatar/${username}`);
 
     if (response.status === 200) {
+      // Check if avatar was found and is a valid URL
+      if (response.data.result === 'AVATAR_NOT_FOUND') {
+        return '';
+      }
+      // Return the full B2 signed URL directly (don't prefix with api)
       return response.data.result;
     } else {
       return '';
@@ -66,7 +81,7 @@ export const useUserStore = create<UserState & UserActions>()(
           const userAvatarPath = await getUserAvatar(username);
           set(() => ({
             likes: userLikes,
-            avatarUrl: `${api}${userAvatarPath}`,
+            avatarUrl: userAvatarPath, // Use the full B2 URL directly
           }));
         } catch (error) {
           console.error(error);

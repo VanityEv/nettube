@@ -13,29 +13,75 @@ import {
   setIsBlocked,
 } from './Review.js';
 import { verifyAdmin, verifyModerator, verifyToken, verifyUser } from '../../helpers/verifyToken.js';
+import cors from 'cors';
+import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import validator from 'validator';
 import { logSecurityEvent } from '../security/mongoLogger.js';
 
 const ReviewsRouter = Router(); // create router to create route bundle
 
-//DESTRUCTURE ENV VARIABLES WITH DEFAULTS
-// const { SECRET = "secret" } = process.env;
+// Production CORS configuration
+const allowedOrigins = [
+  // Production domains (replace with your actual Vercel URLs)
+  'https://your-streamply-app.vercel.app',
+  'https://your-admin-panel.vercel.app',
+  // Development domains
+  'http://localhost:3000',
+  'http://localhost',
+];
 
-// Rate limiting middleware
-const apiLimiter = rateLimit({
+ReviewsRouter.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Check exact matches
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Allow any *.vercel.app subdomain for preview deployments
+    if (origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
+
+// Security middleware
+ReviewsRouter.use(helmet());
+
+// Rate limiting
+const reviewLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: { error: 'Too many requests, please try again later.' },
+  max: 20, // limit each IP to 20 requests per windowMs for reviews
+  message: { error: 'Too many review requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
-ReviewsRouter.use(apiLimiter);
+
+ReviewsRouter.use(reviewLimiter);
 
 // Helper to sanitize input
 function sanitizeInput(input) {
   if (typeof input === 'string') {
     return validator.escape(input.trim());
+  }
+  return input;
+}
+
+// Helper to sanitize UUID without escaping
+function sanitizeUUID(input) {
+  if (typeof input === 'string') {
+    const trimmed = input.trim();
+    // Validate UUID format
+    if (validator.isUUID(trimmed)) {
+      return trimmed;
+    }
+    throw new Error('Invalid UUID format');
   }
   return input;
 }
@@ -56,14 +102,19 @@ ReviewsRouter.use((req, res, next) => {
 
 // Log suspicious body payloads (e.g., attempts at SQLi/XSS)
 ReviewsRouter.use((req, res, next) => {
-  if (JSON.stringify(req.body).match(/(\$ne|\$or|\$gt|\$lt|<script|--|;)/i)) {
-    logSecurityEvent({
-      type: 'suspicious_body',
-      ip: req.ip,
-      url: req.originalUrl,
-      body: req.body,
-      userAgent: req.headers['user-agent'],
-    });
+  try {
+    const bodyStr = req.body ? JSON.stringify(req.body) : '';
+    if (bodyStr && bodyStr.match(/(\$ne|\$or|\$gt|\$lt|<script|--|;)/i)) {
+      logSecurityEvent({
+        type: 'suspicious_body',
+        ip: req.ip,
+        url: req.originalUrl,
+        body: req.body,
+        userAgent: req.headers['user-agent'],
+      });
+    }
+  } catch (error) {
+    // Silently ignore JSON.stringify errors for security middleware
   }
   next();
 });
@@ -79,13 +130,14 @@ ReviewsRouter.get('/all', async (req, res) => {
 });
 
 ReviewsRouter.get('/:showId', async (req, res) => {
-  const show_id = sanitizeInput(req.params.showId);
   try {
+    const show_id = sanitizeUUID(req.params.showId);
     await getReviewByShow(show_id, reviews => {
       res.status(200).json({ result: 'success', reviews: [...reviews] });
     });
   } catch (error) {
-    res.status(400).json({ error });
+    console.error('Get reviews error:', error);
+    res.status(400).json({ error: error.message || 'Invalid request parameters' });
   }
 });
 

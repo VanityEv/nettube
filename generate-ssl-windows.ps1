@@ -23,14 +23,16 @@ foreach ($path in $opensslPaths) {
         if (Test-Path $path -ErrorAction SilentlyContinue) {
             $opensslCmd = $path
             break
-        } elseif ($path -eq "openssl") {
+        }
+        elseif ($path -eq "openssl") {
             & $path version 2>$null
             if ($LASTEXITCODE -eq 0) {
                 $opensslCmd = $path
                 break
             }
         }
-    } catch {
+    }
+    catch {
         continue
     }
 }
@@ -48,10 +50,12 @@ if ($opensslCmd) {
         Write-Host "✅ SSL certificates generated successfully!" -ForegroundColor Green
         Write-Host "📁 Certificate: $sslPath/server.crt" -ForegroundColor White
         Write-Host "🔑 Private Key: $sslPath/server.key" -ForegroundColor White
-    } else {
+    }
+    else {
         Write-Host "❌ Failed to generate SSL certificates" -ForegroundColor Red
     }
-} else {
+}
+else {
     Write-Host "⚠️ OpenSSL not found. Creating placeholder certificates..." -ForegroundColor Yellow
     Write-Host "For production, please install OpenSSL or use proper certificates" -ForegroundColor Red
     

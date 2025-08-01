@@ -1,5 +1,6 @@
 import { Box, Divider, Stack, Typography, Zoom } from '@mui/material';
 import { api } from '../../constants';
+import { useRefreshableThumbnail } from '../../hooks/useRefreshableThumbnail';
 
 type PosterProps = {
   posterURL: string;
@@ -9,7 +10,11 @@ type PosterProps = {
 };
 
 export const Poster = ({ posterURL, title, variant, active }: PosterProps) => {
-  const url = posterURL.includes('http') ? posterURL : `${api}/images/thumbnails${posterURL}`;
+  const initialUrl = posterURL.includes('http') ? posterURL : `${api}/images/thumbnails${posterURL}`;
+  const { thumbnailUrl } = useRefreshableThumbnail(initialUrl);
+
+  // Use the refreshable URL if available, otherwise fall back to the initial URL
+  const url = thumbnailUrl || initialUrl;
   return (
     <>
       {variant === 'caption' ? (

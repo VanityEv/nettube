@@ -140,7 +140,7 @@ const removeReview = async (data, requestCallback) => {
 const getShowLikes = async (data, requestCallback) => {
   try {
     const likes = await prisma.userLike.findMany({
-      where: { videoId: parseInt(data.show_id) },
+      where: { video_id: data.show_id },
       include: {
         user: {
           select: { username: true }

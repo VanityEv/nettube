@@ -1,0 +1,137 @@
+.video-card {
+  background: #1a1a2e;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 20px;
+  max-width: 300px;
+}
+
+.video-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.video-card__thumbnail {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+}
+
+.video-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.video-card:hover .video-card__image {
+  transform: scale(1.05);
+}
+
+.video-card__rating {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #ffd700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.video-card__content {
+  padding: 15px;
+  color: #ffffff;
+}
+
+.video-card__title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin: 0 0 10px 0;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.video-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: #b0b0b0;
+}
+
+.video-card__year {
+  color: #ffd700;
+  font-weight: 500;
+}
+
+.video-card__type {
+  color: #4a9eff;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.video-card__genre {
+  color: #c0c0c0;
+}
+
+.video-card__director {
+  font-size: 0.8rem;
+  color: #999;
+  margin-bottom: 5px;
+}
+
+.video-card__views {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+/* Loading placeholder styles */
+.video-thumbnail {
+  background: #2a2a3e;
+  transition: all 0.3s ease;
+}
+
+.video-thumbnail[src*="placeholder"] {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .video-card {
+    max-width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  .video-card__thumbnail {
+    height: 300px;
+  }
+  
+  .video-card__content {
+    padding: 12px;
+  }
+  
+  .video-card__title {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .video-card__thumbnail {
+    height: 250px;
+  }
+  
+  .video-card__content {
+    padding: 10px;
+  }
+}

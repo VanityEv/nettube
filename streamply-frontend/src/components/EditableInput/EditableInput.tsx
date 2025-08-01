@@ -6,7 +6,7 @@ import axios from 'axios';
 import dayjs, { Dayjs } from 'dayjs';
 import { HTMLInputTypeAttribute, useContext, useState } from 'react';
 import { api } from '../../constants';
-import { useUserStore } from '../../state/userStore';
+import { useAppSelector } from '../../store/hooks';
 import { getCookie } from 'typescript-cookie';
 import { SnackbarContext } from '../../App';
 
@@ -28,7 +28,7 @@ type EditableInputProps = {
 export const EditableInput = ({ param, value, type, onSuccess }: EditableInputProps) => {
   const [editMode, setEditMode] = useState(false);
   const [editedValue, setEditedValue] = useState(value);
-  const { username } = useUserStore();
+  const { username } = useAppSelector(state => state.user);
   const { showSnackbar } = useContext(SnackbarContext);
 
   const handleInputValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,7 +85,7 @@ export const EditableInput = ({ param, value, type, onSuccess }: EditableInputPr
     <>
       {editMode ? (
         <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-          {type == 'date' ? (
+          {type === 'date' ? (
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 views={['year', 'month', 'day']}

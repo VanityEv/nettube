@@ -44,6 +44,11 @@ const fetchAvatar = async (username: string) => {
     const response = await axios.get<AvatarResponse>(`${api}/user/getAvatar/${username}`);
 
     if (response.status === 200) {
+      // Check if avatar was found and is a valid URL
+      if (response.data.result === 'AVATAR_NOT_FOUND') {
+        return '';
+      }
+      // Return the full B2 signed URL directly (don't prefix with api)
       return response.data.result;
     } else {
       return '';

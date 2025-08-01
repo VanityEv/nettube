@@ -1,4 +1,4 @@
-import { Add, Block, CameraRoll, HighlightOff, LocalMovies, People } from '@mui/icons-material';
+import { Add, Block, CameraRoll, HighlightOff, LocalMovies, People, Security } from '@mui/icons-material';
 import { Box, Tab, Tabs, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useContext, useState } from 'react';
 import { UsersTable } from './AdminPanel/tables/UsersTable';
@@ -6,6 +6,7 @@ import VideosTable from './AdminPanel/tables/VideosTable';
 import { TableConfig, VideoActionsConfigType, tableColumns } from './AdminPanel/tables/VideoTableConfig';
 import { TabPanel } from './TabPanel';
 import { AddVideoForms } from './AdminPanel/AddVIdeoForms';
+import { SecurityDashboard } from './SecurityDashboard';
 import axios from 'axios';
 import { api } from '../constants';
 import { SignalResponse } from '../types/response.types';
@@ -13,6 +14,7 @@ import { SnackbarContext } from '../App';
 import { useGetUsers } from '../hooks/useGetUsers';
 import { useGetVideos } from '../hooks/useGetVideos';
 import { getCookie } from 'typescript-cookie';
+import { safeArray } from '../helpers/safeData';
 
 export type UserEntry = {
   id: number;
@@ -22,12 +24,25 @@ export type UserEntry = {
 };
 
 function AdminTabs() {
-  const { data: videos, refetch: refetchVideos } = useGetVideos();
+  const { data: videos, refetch: refetchVideos, isLoading: videosLoading } = useGetVideos();
   const theme = useTheme();
-  const { data: users, refetch: refetchUsers } = useGetUsers();
+  const { data: users, refetch: refetchUsers, isLoading: usersLoading } = useGetUsers();
   const { showSnackbar } = useContext(SnackbarContext);
   const [tabValue, setTabValue] = useState(0);
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
+
+  // Safe handling of videos and users arrays
+  const safeVideos = safeArray(videos);
+  const safeUsers = safeArray(users);
+
+  // Show loading state while data is being fetched
+  if (videosLoading || usersLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <Typography sx={{ color: 'white' }}>Loading admin dashboard...</Typography>
+      </Box>
+    );
+  }
 
   const sendUserDeleteQuery = async (id: number) => {
     const response = await axios.post<SignalResponse>(
@@ -106,13 +121,6 @@ function AdminTabs() {
     sendBlockReviewsQuery(id, targetStatus);
   };
 
-  if (!users) {
-    return <Typography>'Error fetching users or no users on list...'</Typography>;
-  }
-  if (!videos) {
-    return <Typography>'Error fetching videos or no videos on list...'</Typography>;
-  }
-
   //actions for each entry
   const VideoActionsConfig: VideoActionsConfigType[] = [
     {
@@ -128,13 +136,13 @@ function AdminTabs() {
   ];
 
   const MoviesTableConfig: TableConfig = {
-    data: videos.filter(video => video.type === 'film'),
+    data: safeVideos.filter((video: any) => video?.type === 'film') as any[],
     columnNames: tableColumns,
     actions: VideoActionsConfig,
   };
 
   const SeriesTableConfig: TableConfig = {
-    data: videos.filter(video => video.type === 'series'),
+    data: safeVideos.filter((video: any) => video?.type === 'series') as any[],
     columnNames: tableColumns,
     actions: VideoActionsConfig,
   };
@@ -157,9 +165,10 @@ function AdminTabs() {
         <Tab icon={<LocalMovies />} iconPosition="start" label="Movies" value={1} />
         <Tab icon={<CameraRoll />} iconPosition="start" label="Series" value={2} />
         <Tab icon={<Add />} iconPosition="start" label="Add Video" value={3} />
+        <Tab icon={<Security />} iconPosition="start" label="Security" value={4} />
       </Tabs>
       <TabPanel index={0} value={tabValue}>
-        <UsersTable users={users} onDelete={handleUserDelete} refetch={refetchUsers} />
+        <UsersTable users={safeUsers as any[]} onDelete={handleUserDelete} refetch={refetchUsers} />
       </TabPanel>
       <TabPanel index={1} value={tabValue}>
         <VideosTable {...MoviesTableConfig} />
@@ -169,6 +178,9 @@ function AdminTabs() {
       </TabPanel>
       <TabPanel index={3} value={tabValue}>
         <AddVideoForms />
+      </TabPanel>
+      <TabPanel index={4} value={tabValue}>
+        <SecurityDashboard />
       </TabPanel>
     </Box>
   );

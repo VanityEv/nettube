@@ -6,7 +6,7 @@ import prisma from '../prisma.js';
 const getReviewByShow = async (show_id, requestCallback) => {
   try {
     const reviews = await prisma.review.findMany({
-      where: { showId: parseInt(show_id) },
+      where: { video_id: show_id }, // Use video_id (UUID string) instead of showId (integer)
       include: {
         user: {
           select: { username: true }
@@ -88,8 +88,8 @@ const addComment = async (data, requestCallback) => {
     const comment = await prisma.review.create({
       data: {
         comment: data.comment,
-        showId: parseInt(data.show_id),
-        userId: user.id,
+        video_id: data.show_id, // Use video_id (UUID string)
+        user_id: user.id,       // Use user_id (UUID string)
         grade: null
       }
     });
@@ -115,8 +115,8 @@ const addReview = async (data, requestCallback) => {
       data: {
         comment: data.comment,
         grade: parseFloat(data.grade),
-        showId: parseInt(data.show_id),
-        userId: user.id
+        video_id: data.show_id, // Use video_id (UUID string)
+        user_id: user.id        // Use user_id (UUID string)
       }
     });
     
@@ -129,7 +129,7 @@ const addReview = async (data, requestCallback) => {
 const removeReview = async (data, requestCallback) => {
   try {
     const result = await prisma.review.delete({
-      where: { id: parseInt(data.id) }
+      where: { id: data.id } // Review ID is already a UUID string
     });
     requestCallback({ affectedRows: 1 });
   } catch (error) {
@@ -140,7 +140,7 @@ const removeReview = async (data, requestCallback) => {
 const getShowLikes = async (data, requestCallback) => {
   try {
     const likes = await prisma.userLike.findMany({
-      where: { videoId: parseInt(data.show_id) },
+      where: { video_id: data.show_id },
       include: {
         user: {
           select: { username: true }
@@ -185,7 +185,7 @@ const getUserReviews = async (username, requestCallback) => {
 const getIsBlocked = async (data, requestCallback) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(data.id) },
+      where: { id: data.id }, // User ID is already a UUID string
       select: { isBlocked: true }
     });
     
@@ -202,7 +202,7 @@ const getIsBlocked = async (data, requestCallback) => {
 const setIsBlocked = async (data, requestCallback) => {
   try {
     await prisma.user.update({
-      where: { id: parseInt(data.id) },
+      where: { id: data.id }, // User ID is already a UUID string
       data: { isBlocked: data.targetStatus }
     });
     
@@ -227,8 +227,8 @@ const setShowLike = async (data, requestCallback) => {
 
     const existingLike = await prisma.userLike.findFirst({
       where: {
-        userId: user.id,
-        videoId: parseInt(data.video_id)
+        user_id: user.id,
+        video_id: data.video_id
       }
     });
 
@@ -240,8 +240,8 @@ const setShowLike = async (data, requestCallback) => {
     } else {
       await prisma.userLike.create({
         data: {
-          userId: user.id,
-          videoId: parseInt(data.video_id)
+          user_id: user.id,
+          video_id: data.video_id
         }
       });
     }

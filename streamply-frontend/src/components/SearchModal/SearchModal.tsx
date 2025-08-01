@@ -1,12 +1,12 @@
 import { Box, IconButton, InputAdornment, InputBase, Modal } from '@mui/material';
-import { useVideosStore } from '../../state/videosStore';
+import { useAppSelector } from '../../store/hooks';
 import { SingleVideo } from '../VideoViews/SingleVideo';
 import { useState } from 'react';
 import { Close, Search, SearchOutlined } from '@mui/icons-material';
 import { filterDataFromKeys } from '../../helpers/filterDataFromKeys';
 
 export const SearchModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
-  const { videos } = useVideosStore();
+  const { videos } = useAppSelector(state => state.videos);
   const [searchValue, setSearchValue] = useState('');
   const videosToDisplay = filterDataFromKeys(videos, ['title', 'production_year', 'genre', 'tags'], searchValue);
 

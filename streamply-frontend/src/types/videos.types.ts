@@ -10,6 +10,7 @@ export type Video = {
   tags: string;
   descr: string;
   thumbnail: string;
+  cinematic_thumbnail?: string;
   alt: string;
   video_length: number;
   grade: number;
@@ -20,7 +21,7 @@ export type Video = {
   blocked_reviews: number;
 };
 
-export type ProgressedVideo = Pick<Video,'id' | 'title' | 'type' | 'thumbnail' | 'video_length'> & {
+export type ProgressedVideo = Pick<Video,'id' | 'title' | 'type' | 'thumbnail' | 'cinematic_thumbnail' | 'video_length'> & {
   season: number;
   episode: number | null;
   time_watched: number;
@@ -33,5 +34,6 @@ export type Episode = {
   episode_name: string;
   description: string;
   thumbnail: string;
+  cinematic_thumbnail?: string;
   show_name: string;
 };

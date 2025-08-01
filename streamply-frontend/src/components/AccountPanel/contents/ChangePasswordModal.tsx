@@ -6,12 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Close } from '@mui/icons-material';
 import { api } from '../../../constants';
 import axios, { AxiosError } from 'axios';
-import { useUserStore } from '../../../state/userStore';
+import { useAppSelector } from '../../../store/hooks';
 import { getCookie } from 'typescript-cookie';
 import { SnackbarContext } from '../../../App';
 
 export const ChangePasswordModal = () => {
-  const { username } = useUserStore();
+  const { username } = useAppSelector(state => state.user);
   const [open, setOpen] = useState(false);
   const { showSnackbar } = useContext(SnackbarContext);
   const handleOpenChange = () => {

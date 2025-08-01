@@ -1,66 +1,78 @@
 import { getSubscription } from '../services/user/subscription.js';
-import jwt from 'jsonwebtoken';
 import { logSecurityEvent } from '../services/security/mongoLogger.js';
-
-const { SECRET = 'secret' } = process.env;
 
 /**
  * Middleware to verify user has active subscription for video content access
+ * ENABLED FOR PRODUCTION - ENFORCING SUBSCRIPTION CHECKS
+ * 
+ * NOTE: This middleware should run AFTER verifyToken middleware to ensure req.user is populated
  */
-export const verifySubscription = (req, res, next) => {
+export const verifySubscription = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
+    // Ensure this runs after verifyToken middleware
+    if (!req.user) {
       return res.status(401).json({ 
         result: 'ERROR', 
-        message: 'Authentication required',
+        message: 'Authentication required - verifyToken middleware must run first',
         requiresSubscription: true 
       });
     }
 
-    const decoded = jwt.verify(token, SECRET);
-    const username = decoded.username;
-    
-    // Check subscription status
-    const subscription = getSubscription(username);
-    
-    // Allow access for admins and moderators
-    if (decoded.account_type === 2 || decoded.account_type === 3) {
+    // Allow access for admins and moderators (account_type 2 or 3)
+    if (req.user.accountType === 2 || req.user.accountType === 3) {
+      console.log('✅ ADMIN/MODERATOR ACCESS - User:', req.user.username);
       return next();
     }
+
+    // Check subscription status for regular users
+    const subscription = await getSubscription(req.user.username);
+    console.log('🔔 SUBSCRIPTION CHECK - User:', req.user.username, 'Status:', subscription?.status);
     
-    // Check if user has active subscription
     if (!subscription || subscription.status !== 'active') {
-      // Log unauthorized access attempt
-      logSecurityEvent({
+      await logSecurityEvent({
         type: 'unauthorized_content_access',
-        username: username,
+        severity: 'warning',
+        message: 'User attempted to access premium content without active subscription',
+        metadata: { 
+          username: req.user.username, 
+          subscriptionStatus: subscription?.status || 'none',
+          endpoint: req.path
+        },
         ip: req.ip,
-        userAgent: req.headers['user-agent'],
-        endpoint: req.originalUrl
+        userAgent: req.headers['user-agent']
       });
       
       return res.status(403).json({ 
         result: 'ERROR', 
-        message: 'Active subscription required for video access',
+        message: 'Active subscription required for premium content',
         requiresSubscription: true,
         subscriptionStatus: subscription?.status || 'none'
       });
     }
+
+    // Log successful subscription verification
+    await logSecurityEvent({
+      type: 'subscription_check',
+      severity: 'info',
+      message: 'Subscription verified successfully',
+      metadata: { 
+        username: req.user.username, 
+        subscriptionStatus: subscription.status
+      }
+    });
     
-    req.user = decoded;
     next();
   } catch (error) {
-    logSecurityEvent({
+    await logSecurityEvent({
       type: 'subscription_verification_error',
       error: error.message,
       ip: req.ip,
       userAgent: req.headers['user-agent']
     });
     
-    return res.status(401).json({ 
+    return res.status(500).json({ 
       result: 'ERROR', 
-      message: 'Invalid token',
+      message: 'Subscription verification failed',
       requiresSubscription: true 
     });
   }
@@ -68,8 +80,15 @@ export const verifySubscription = (req, res, next) => {
 
 /**
  * Helper function to check subscription status
+ * ENABLED FOR PRODUCTION - PROPER SUBSCRIPTION CHECKING
  */
-export const hasActiveSubscription = (username) => {
-  const subscription = getSubscription(username);
-  return subscription && subscription.status === 'active';
+export const hasActiveSubscription = async (username) => {
+  try {
+    const subscription = await getSubscription(username);
+    console.log('� SUBSCRIPTION STATUS CHECK - User:', username, 'Status:', subscription?.status);
+    return subscription && subscription.status === 'active';
+  } catch (error) {
+    console.error('❌ Error checking subscription:', error);
+    return false;
+  }
 };

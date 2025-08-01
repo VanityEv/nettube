@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -17,128 +14,158 @@ datasource db {
 // This prevents SQL injection attacks through parameterized queries
 
 model User {
-  id            Int      @id @default(autoincrement())
-  username      String   @unique
-  fullname      String
-  password      String
-  birthdate     DateTime
-  confirmed     Boolean  @default(false)
-  email         String   @unique
-  registerToken String?  @map("register_token")
-  accountType   Int      @default(1) @map("account_type")
-  registerDate  DateTime @default(now()) @map("register_date")
-  lastLogin     DateTime @default(now()) @map("last_login")
-  resetToken    String?  @map("reset_token")
-  
+  id                 String    @id @default(uuid()) @db.Uuid
+  username           String    @unique
+  fullname           String?
+  password           String
+  email              String    @unique
+  birthdate          DateTime?
+  confirmed          Boolean   @default(false)
+  register_token     String?   @map("register_token")
+  register_date      DateTime  @default(now()) @map("register_date")
+  last_login         DateTime? @map("last_login")
+  account_type       Int       @default(1) @map("account_type")
+  stripe_customer_id String?   @map("stripe_customer_id")
+  avatar_url         String?   @map("avatar_url") // B2 cloud storage URL for user avatar
+  created_at         DateTime  @default(now()) @map("created_at")
+
   // Relations
-  reviews       Review[]
-  userLikes     UserLike[]
-  userWatching  UserWatching[]
-  
+  reviews        Review[]
+  userLikes      UserLike[]      @relation("UserLikes")
+  userWatching   UserWatching[]  @relation("UserWatching")
+  trustedDevices TrustedDevice[] @relation("UserTrustedDevices")
+  refreshTokens  RefreshToken[]  @relation("UserRefreshTokens")
+
   @@map("users")
 }
 
 model Video {
-  id                Int      @id @default(autoincrement())
-  title             String
-  type              String   // 'film' or 'series'
-  seasons           Int      @default(0)
-  genre             String
-  productionYear    Int      @map("production_year")
-  productionCountry String   @map("production_country")
-  director          String
-  tags              String
-  description       String   @map("descr")
-  thumbnail         String
-  alternativeTitle  String   @map("alt")
-  videoLength       Float    @map("video_length")
-  grade             Float    @default(0)
-  reviewsCount      Int      @default(0) @map("reviews_count")
-  views             Int      @default(0)
-  link              String
-  blockedReviews    Boolean  @default(false) @map("blocked_reviews")
-  createdAt         DateTime @default(now()) @map("created_at")
-  
+  id                  String   @id @default(uuid()) @db.Uuid
+  title               String
+  type                String // 'film' or 'series'
+  genre               String?
+  production_year     Int?     @map("production_year")
+  production_country  String?  @map("production_country")
+  director            String?
+  tags                String?
+  descr               String?
+  thumbnail           String?
+  cinematic_thumbnail String?  @map("cinematic_thumbnail") // B2 cloud storage URL for 16:9 cinematic thumbnail
+  video_url           String?  @map("video_url") // B2 cloud storage URL for video file
+  thumbnail_url       String?  @map("thumbnail_url") // B2 cloud storage URL for thumbnail
+  grade               Decimal? @db.Decimal(3, 1)
+  reviews_count       Int      @default(0) @map("reviews_count")
+  views               Int      @default(0)
+  link                String?
+  blocked_reviews     Boolean  @default(false) @map("blocked_reviews")
+  created_at          DateTime @default(now()) @map("created_at")
+
   // Relations
-  reviews          Review[]
-  userLikes        UserLike[]
-  userWatching     UserWatching[]
-  seriesEpisodes   SeriesEpisode[]
-  
+  reviews        Review[]
+  userLikes      UserLike[]      @relation("VideoLikes")
+  seriesEpisodes SeriesEpisode[]
+  userWatching   UserWatching[]  @relation("VideoWatching")
+
   @@map("videos")
 }
 
 model Review {
-  id          Int      @id @default(autoincrement())
-  comment     String
-  grade       Float?
-  commentDate DateTime @default(now()) @map("comment_date")
-  showId      Int      @map("show_id")
-  userId      Int      @map("user_id")
-  
+  id           String   @id @default(uuid()) @db.Uuid
+  user_id      String   @map("user_id") @db.Uuid
+  video_id     String   @map("video_id") @db.Uuid
+  comment      String?
+  grade        Decimal? @db.Decimal(3, 1)
+  comment_date DateTime @default(now()) @map("comment_date")
+
   // Relations
-  video       Video    @relation(fields: [showId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user  User  @relation(fields: [user_id], references: [id])
+  video Video @relation(fields: [video_id], references: [id])
+
   @@map("reviews")
 }
 
 model UserLike {
-  id      Int @id @default(autoincrement())
-  videoId Int @map("video_id")
-  userId  Int @map("user_id")
-  
+  id       String @id @default(uuid()) @db.Uuid
+  user_id  String @map("user_id") @db.Uuid
+  video_id String @map("video_id") @db.Uuid
+
   // Relations
-  video   Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([videoId, userId])
+  user  User  @relation("UserLikes", fields: [user_id], references: [id])
+  video Video @relation("VideoLikes", fields: [video_id], references: [id])
+
+  @@unique([user_id, video_id])
   @@map("user_likes")
 }
 
-model UserWatching {
-  id          Int    @id @default(autoincrement())
-  showId      Int    @map("show_id")
-  userId      Int    @map("user_id")
-  season      Int?
-  episode     Int?
-  timeWatched Float  @map("time_watched")
-  
-  // Relations
-  video       Video  @relation(fields: [showId], references: [id], onDelete: Cascade)
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([showId, userId])
-  @@map("user_watching")
-}
-
 model SeriesEpisode {
-  id          Int    @id @default(autoincrement())
-  showId      Int    @map("show_id")
-  season      Int
-  episode     Int
-  episodeName String @map("episode_name")
-  description String
-  thumbnail   String?
-  videoUrl    String? @map("video_url")
-  
+  id                  String  @id @default(uuid()) @db.Uuid
+  show_id             String  @map("show_id") @db.Uuid
+  season              Int
+  episode             Int
+  episode_name        String? @map("episode_name")
+  description         String?
+  video_url           String? @map("video_url") // B2 cloud storage URL for episode video
+  thumbnail_url       String? @map("thumbnail_url") // B2 cloud storage URL for episode thumbnail
+  cinematic_thumbnail String? @map("cinematic_thumbnail") // B2 cloud storage URL for 16:9 cinematic thumbnail
+
   // Relations
-  video       Video  @relation(fields: [showId], references: [id], onDelete: Cascade)
-  
-  @@unique([showId, season, episode])
+  show Video @relation(fields: [show_id], references: [id])
+
   @@map("series_episodes")
 }
 
-model Subscription {
-  id         Int      @id @default(autoincrement())
-  userId     Int      @unique @map("user_id")
-  status     String   @default("none") // 'active', 'cancelled', 'expired', 'none'
-  providerId String?  @map("provider_id")
-  planType   String?  @map("plan_type")
-  startDate  DateTime? @map("start_date")
-  endDate    DateTime? @map("end_date")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  
-  @@map("subscriptions")
+model UserWatching {
+  id           String   @id @default(uuid()) @db.Uuid
+  user_id      String   @map("user_id") @db.Uuid
+  show_id      String   @map("show_id") @db.Uuid
+  time_watched Int      @map("time_watched") // Progress in seconds
+  season       Int? // For series - which season
+  episode      Int? // For series - which episode
+  updated_at   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  user  User  @relation("UserWatching", fields: [user_id], references: [id])
+  video Video @relation("VideoWatching", fields: [show_id], references: [id])
+
+  @@unique([user_id, show_id])
+  @@map("user_watching")
+}
+
+model TrustedDevice {
+  id                 String   @id @default(uuid()) @db.Uuid
+  user_id            String   @map("user_id") @db.Uuid
+  device_fingerprint String   @map("device_fingerprint")
+  device_name        String   @map("device_name") // e.g., "Chrome on Windows"
+  device_type        String   @map("device_type") // e.g., "desktop", "mobile", "tablet"
+  browser_name       String?  @map("browser_name") // e.g., "Chrome", "Firefox"
+  os_name            String?  @map("os_name") // e.g., "Windows", "macOS", "Android"
+  last_used          DateTime @default(now()) @map("last_used")
+  first_seen         DateTime @default(now()) @map("first_seen")
+  last_ip            String?  @map("last_ip")
+  last_location      String?  @map("last_location") // City, Country
+  is_active          Boolean  @default(true) @map("is_active")
+
+  // Relations
+  user User @relation("UserTrustedDevices", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, device_fingerprint])
+  @@map("trusted_devices")
+}
+
+model RefreshToken {
+  id                 String    @id @default(uuid()) @db.Uuid
+  user_id            String    @db.Uuid
+  token_hash         String
+  jti                String    @unique
+  device_fingerprint String?
+  user_agent         String?
+  ip_address         String?
+  expires_at         DateTime
+  revoked_at         DateTime?
+  replaced_by        String?
+  created_at         DateTime  @default(now())
+  user               User      @relation("UserRefreshTokens", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("refresh_tokens")
 }

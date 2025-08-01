@@ -19,13 +19,15 @@ const createUser = async (userData, requestCallback) => {
         password: userData.password,
         birthdate: new Date(userData.birthdate),
         email: userData.email,
-        registerToken: userData.registerToken,
+        register_token: userData.registerToken,
+        stripe_customer_id: userData.stripe_customer_id,
         confirmed: false,
-        accountType: 1
+        account_type: 1
       }
     });
     requestCallback(user);
   } catch (error) {
+    console.error('Database error in createUser:', error);
     requestCallback({ error: error.message });
   }
 };
@@ -38,11 +40,11 @@ const getAllUsers = async (requestCallback) => {
         username: true,
         email: true,
         fullname: true,
-        lastLogin: true,
-        accountType: true
+        last_login: true,
+        account_type: true
       },
       orderBy: {
-        lastLogin: 'desc'
+        last_login: 'desc'
       }
     });
     requestCallback(users);
@@ -91,12 +93,15 @@ const isUserInDB = async (username, email, requestCallback) => {
 
 const confirmUser = async (token, requestCallback) => {
   try {
+    console.log('Attempting to confirm user with token:', token);
     const result = await prisma.user.updateMany({
-      where: { registerToken: token },
+      where: { register_token: token },
       data: { confirmed: true }
     });
+    console.log('Confirmation result:', result);
     requestCallback(result);
   } catch (error) {
+    console.error('Database error in confirmUser:', error);
     requestCallback({ error: error.message });
   }
 };
@@ -104,7 +109,7 @@ const confirmUser = async (token, requestCallback) => {
 const updateUser = async (param, value, username, requestCallback) => {
   try {
     // Validate allowed parameters to prevent injection
-    const allowedParams = ['fullname', 'birthdate', 'email'];
+    const allowedParams = ['fullname', 'birthdate', 'email', 'avatar_url'];
     if (!allowedParams.includes(param)) {
       throw new Error('Invalid parameter');
     }
@@ -128,10 +133,10 @@ const userLikes = async (username, requestCallback) => {
         user: { username: username }
       },
       select: {
-        videoId: true
+        video_id: true
       }
     });
-    const videoIds = likes.map(like => ({ video_id: like.videoId }));
+    const videoIds = likes.map(like => ({ video_id: like.video_id }));
     requestCallback(videoIds);
   } catch (error) {
     requestCallback({ error: error.message });
@@ -161,7 +166,7 @@ const deleteLike = async (username, showId, requestCallback) => {
       where: {
         AND: [
           { user: { username: username } },
-          { videoId: parseInt(showId) }
+          { video_id: showId }
         ]
       }
     });
@@ -183,8 +188,8 @@ const addLike = async (username, showId, requestCallback) => {
     
     const result = await prisma.userLike.create({
       data: {
-        userId: user.id,
-        videoId: parseInt(showId)
+        user_id: user.id,
+        video_id: showId
       }
     });
     requestCallback({ affectedRows: 1 });
@@ -220,7 +225,7 @@ const updateUserLoginDate = async (username, requestCallback) => {
   try {
     const result = await prisma.user.update({
       where: { username: username },
-      data: { lastLogin: new Date() }
+      data: { last_login: new Date() }
     });
     requestCallback({ affectedRows: 1 });
   } catch (error) {
@@ -320,24 +325,25 @@ const setSubscription = async (username, status, providerId) => {
 const getSubscription = async (username) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { username: username },
-      include: {
-        subscriptions: true
-      }
+      where: { username: username }
     });
     
-    if (!user || !user.subscriptions) {
+    if (!user) {
       return { status: 'none' };
     }
     
-    return {
-      status: user.subscriptions.status,
-      providerId: user.subscriptions.providerId,
-      updated: user.subscriptions.updatedAt
+    // Check account type for subscription status
+    // Assuming: 1 = free, 2 = premium, 3 = admin
+    const accountTypeToSubscription = {
+      1: { status: 'free', plan: 'free' },
+      2: { status: 'active', plan: 'premium' },
+      3: { status: 'active', plan: 'admin' }
     };
+    
+    return accountTypeToSubscription[user.account_type] || { status: 'none' };
   } catch (error) {
     console.error('Error getting subscription:', error);
-    return { status: 'none' };
+    return { status: 'none', error: error.message };
   }
 };
 

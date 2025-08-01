@@ -2,23 +2,35 @@ import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { TopMovies } from '../components/MainImage/TopMovies';
 import { MoviesCarousel } from '../components/MainImage/MoviesCarousel';
 import { GenreBrowser } from '../components/GenreBrowser/GenreBrowser';
-import { useVideosStore } from '../state/videosStore';
-import { useUserStore } from '../state/userStore';
+import { useAppSelector } from '../store/hooks';
 import { MovieSuggestions } from '../components/MovieSuggestions/MovieSuggestions';
-import { useGetMockData } from '../hooks/useGetMockData';
 import { ContinueWatching } from '../components/ContinueWatching/ContinueWatching';
+import SafeVideoList from '../components/SafeVideoList';
+import { safeArray, isValidArray } from '../helpers/safeData';
+import { Video } from '../types/videos.types';
 
 function HomePage() {
-  const { popularMovies, popularSeries, videos } = useVideosStore();
-  const { likes } = useUserStore();
-  const watchlist = videos.filter(video => likes.includes(video.id));
+  const { popularMovies, popularSeries, videos } = useAppSelector(state => state.videos);
+  const { likes } = useAppSelector(state => state.user);
+  const watchlist = safeArray(videos).filter((video: any) => likes.includes(video.id)) as Video[];
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
   const isTablet = useMediaQuery(theme.breakpoints.down('tablet'));
 
+  // Check if we have any data at all
+  const hasAnyData =
+    isValidArray(safeArray(videos)) || isValidArray(safeArray(popularMovies)) || isValidArray(safeArray(popularSeries));
+
   return (
     <>
       <TopMovies />
+      {!hasAnyData && (
+        <SafeVideoList
+          videos={[]}
+          emptyStateTitle="Welcome to Streamply!"
+          emptyStateDescription="The video database is currently empty. Videos will appear here once they are added to the system."
+        />
+      )}
       <Box
         sx={{
           width: '100%',
@@ -49,7 +61,7 @@ function HomePage() {
           withLink
         />
         <MovieSuggestions />
-        <ContinueWatching/>
+        <ContinueWatching />
         {likes && (
           <MoviesCarousel
             movies={watchlist}

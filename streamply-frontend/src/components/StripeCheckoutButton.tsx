@@ -1,7 +1,7 @@
 import { Button } from '@mui/material';
 import axios from 'axios';
 import { api } from '../constants';
-import { useUserStore } from '../state/userStore';
+import { useAppSelector } from '../store/hooks';
 import { useState } from 'react';
 
 interface StripeCheckoutButtonProps {
@@ -9,7 +9,7 @@ interface StripeCheckoutButtonProps {
 }
 
 export const StripeCheckoutButton = ({ priceId }: StripeCheckoutButtonProps) => {
-  const { username } = useUserStore();
+  const { username } = useAppSelector(state => state.user);
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {

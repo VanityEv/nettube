@@ -1,19 +1,19 @@
 import { Box, Typography, Card, CardContent, CardActions } from '@mui/material';
 import { StripeCheckoutButton } from '../components/StripeCheckoutButton';
 
-// Example plans - replace priceId with your real Stripe price IDs
+// Test plans - $1 each for easy testing
 const plans = [
   {
     name: 'Basic',
-    price: '$9.99/mo',
+    price: '$1.00/mo',
     features: ['HD streaming', '1 device', 'Cancel anytime'],
-    priceId: 'price_basic_123',
+    priceId: 'price_1QZCBh2NdrzPV1EzGkVXDGmV', // Replace with your actual Stripe price ID
   },
   {
     name: 'Premium',
-    price: '$14.99/mo',
+    price: '$1.00/mo',
     features: ['4K streaming', '4 devices', 'Offline access'],
-    priceId: 'price_premium_456',
+    priceId: 'price_1QZCCl2NdrzPV1EzwZpQDctJ', // Replace with your actual Stripe price ID
   },
 ];
 

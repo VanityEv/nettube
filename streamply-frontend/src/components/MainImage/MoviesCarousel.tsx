@@ -6,8 +6,8 @@ import { Navigation, Scrollbar, Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useState } from 'react';
 import { Video } from '../../types/videos.types';
-import { LinkedSlide } from '../LinkedSlide';
-import { StatefulSlide } from '../StatefulSlide';
+import { CinematicLinkedSlide } from '../CinematicLinkedSlide';
+import { StatefulCinematicSlide } from '../StatefulCinematicSlide';
 
 type MoviesCarouselProps = {
   movies: Video[];
@@ -67,9 +67,13 @@ export const MoviesCarousel = ({
           {movies.map((movie, idx) => (
             <SwiperSlide key={`movie-${movie.title}-${movie.id}-${idx}`}>
               {withLink ? (
-                <LinkedSlide movie={movie} />
+                <CinematicLinkedSlide movie={movie} />
               ) : (
-                <StatefulSlide movie={movie} isActive={isActive === movie.title} setActive={handleActiveChange} />
+                <StatefulCinematicSlide
+                  movie={movie}
+                  isActive={isActive === movie.title}
+                  setActive={handleActiveChange}
+                />
               )}
             </SwiperSlide>
           ))}

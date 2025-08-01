@@ -1,10 +1,10 @@
 import { Box, Typography } from '@mui/material';
 import { SingleReview } from '../../VideoPage/contents/SingleReview';
 import { useGetUserReviews } from '../../../hooks/useGetUserReviews';
-import { useUserStore } from '../../../state/userStore';
+import { useAppSelector } from '../../../store/hooks';
 
 export const UserReviews = () => {
-  const { username } = useUserStore();
+  const { username } = useAppSelector(state => state.user);
   const { data, isLoading, error } = useGetUserReviews(username);
 
   if (isLoading) {

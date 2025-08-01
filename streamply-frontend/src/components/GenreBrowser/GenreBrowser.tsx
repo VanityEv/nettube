@@ -1,13 +1,12 @@
 import { Box, Button, Typography } from '@mui/material';
 import { GenreList } from './GenreList';
-import { useExplorationStore } from '../../state/explorationStore';
 import { GenreGrid } from './GenreGrid';
 import { useState } from 'react';
-import { useVideosStore } from '../../state/videosStore';
+import { useAppSelector } from '../../store/hooks';
 
 export const GenreBrowser = () => {
-  const { selectedGenres } = useExplorationStore();
-  const { videos } = useVideosStore();
+  const { selectedGenres } = useAppSelector(state => state.exploration);
+  const { videos } = useAppSelector(state => state.videos);
   const [maxVideosToShow, setMaxVideos] = useState(10);
   const videosToDisplay =
     selectedGenres.length === 0 ? videos : videos.filter(video => selectedGenres.includes(video.genre));
@@ -19,7 +18,7 @@ export const GenreBrowser = () => {
 
   return (
     <Box sx={{ width: '100%', height: 'auto', display: 'flex', flexDirection: 'column' }}>
-      <Typography variant="h4" sx={{ ml: '2rem', mb:{mobile:'2rem'}, fontWeight: '700', color: 'white' }}>
+      <Typography variant="h4" sx={{ ml: '2rem', mb: { mobile: '2rem' }, fontWeight: '700', color: 'white' }}>
         Explore Genres
       </Typography>
       <GenreList />

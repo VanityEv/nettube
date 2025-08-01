@@ -17,6 +17,7 @@ import { filterDataFromKeys } from '../../../helpers/filterDataFromKeys';
 import { Video } from '../../../types/videos.types';
 import { TableConfig, VideoActionsConfigType } from './VideoTableConfig';
 import { api } from '../../../constants';
+import { RefreshableThumbnail } from '../../RefreshableThumbnail/RefreshableThumbnail';
 
 export const VideosTable = ({ columnNames, data, actions }: TableConfig) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -81,45 +82,57 @@ export const VideosTable = ({ columnNames, data, actions }: TableConfig) => {
           </TableRow>
         </TableHead>
         <TableBody sx={{ borderBottom: 0 }}>
-          {pagedData.map(video => (
-            <TableRow key={video.id} sx={{ '&>th,td': { color: 'white' } }}>
-              <TableCell component="th" scope="row">
-                <img
-                  alt={`table-thumbnail-${video.title}`}
-                  src={
-                    video.thumbnail.includes('http') ? video.thumbnail : `${api}/images/thumbnails${video.thumbnail}`
-                  }
-                  style={{ height: 'auto', width: 'auto', maxHeight: '100px' }}
-                />
-              </TableCell>
-              <TableCell align="left">{video.title}</TableCell>
-              <TableCell align="left">{video.genre}</TableCell>
-              <TableCell align="left">
-                {video.grade}/10 ({video.reviews_count} reviews)
-              </TableCell>
-              <TableCell align="left">
-                {actions.map((action, idx) => (
-                  <IconButton
-                    key={`action-${idx}`}
-                    disableRipple
-                    sx={{
-                      fontSize: '12px',
-                      display: 'flex',
-                      gap: 1,
-                    }}
-                    onClick={() => handleAction(action, video)}
-                  >
-                    {action.icon}
-                    <Typography variant="caption" sx={{ color: 'white' }}>
-                      {video.blocked_reviews && action.actionDescription === 'Block Reviews'
-                        ? 'Unblock Reviews'
-                        : action.actionDescription}
-                    </Typography>
-                  </IconButton>
-                ))}
+          {pagedData.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} align="center" sx={{ color: 'white', py: 4 }}>
+                {data.length === 0 ? (
+                  <Typography variant="h6">No videos found in the database</Typography>
+                ) : (
+                  <Typography variant="h6">No videos match your search criteria</Typography>
+                )}
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            pagedData.map(video => (
+              <TableRow key={video.id} sx={{ '&>th,td': { color: 'white' } }}>
+                <TableCell component="th" scope="row">
+                  <RefreshableThumbnail
+                    alt={`table-thumbnail-${video.title}`}
+                    src={
+                      video.thumbnail.includes('http') ? video.thumbnail : `${api}/images/thumbnails${video.thumbnail}`
+                    }
+                    style={{ height: 'auto', width: 'auto', maxHeight: '100px' }}
+                  />
+                </TableCell>
+                <TableCell align="left">{video.title}</TableCell>
+                <TableCell align="left">{video.genre}</TableCell>
+                <TableCell align="left">
+                  {video.grade}/10 ({video.reviews_count} reviews)
+                </TableCell>
+                <TableCell align="left">
+                  {actions.map((action, idx) => (
+                    <IconButton
+                      key={`action-${idx}`}
+                      disableRipple
+                      sx={{
+                        fontSize: '12px',
+                        display: 'flex',
+                        gap: 1,
+                      }}
+                      onClick={() => handleAction(action, video)}
+                    >
+                      {action.icon}
+                      <Typography variant="caption" sx={{ color: 'white' }}>
+                        {video.blocked_reviews && action.actionDescription === 'Block Reviews'
+                          ? 'Unblock Reviews'
+                          : action.actionDescription}
+                      </Typography>
+                    </IconButton>
+                  ))}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
       <Typography sx={{ my: 1, ml: 1, color: 'white' }}>Page:</Typography>

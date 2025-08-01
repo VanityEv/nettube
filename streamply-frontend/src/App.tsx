@@ -7,7 +7,7 @@ import Profile from './pages/Profile';
 import { createContext, useMemo } from 'react';
 import { ResetPassword } from './pages/ResetPassword';
 import ConfirmRegister from './pages/ConfirmRegister';
-import AppBar from './components/AppBar';
+import AppBar from './components/AppBarRedux';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import { MoviePlayer } from './pages/MoviePlayer';
@@ -25,6 +25,11 @@ import { EpisodePlayer } from './pages/EpisodePlayer';
 import SubscriptionPage from './pages/SubscriptionPage';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
+import { SafeDataProvider } from './context/SafeDataContext';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './store';
+import { UserInitializer } from './components/UserInitializer';
 
 declare module '@mui/material/styles' {
   interface BreakpointOverrides {
@@ -186,75 +191,85 @@ const App = () => {
   const [snackbarState, showSnackbar, hideSnackbar] = useSnackbar();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
-        <ThemeProvider theme={theme}>
-          <SnackbarContext.Provider value={{ showSnackbar }}>
-            <CssBaseline />
-            <AppBar />
-            <Box
-              sx={{
-                mt: '4.5rem',
-                backgroundColor: 'secondary.400',
-                minHeight: 'calc(100vh - 4.5rem)',
-                height: 'calc(100vh - 4.5rem)',
-                width: '100vw',
-                overflowY: 'scroll',
-              }}
-            >
-              {snackbarState !== null && (
-                <Snackbar
-                  isOpen={true}
-                  message={snackbarState.message}
-                  severity={snackbarState.severity}
-                  onClose={hideSnackbar}
-                />
-              )}
-              <Routes>
-                <Route path="/signin" element={<SignIn />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/confirm-register" element={<ConfirmRegister />} />
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <SafeDataProvider>
+          <QueryClientProvider client={queryClient}>
+            <ErrorBoundary>
+              <ThemeProvider theme={theme}>
+                <UserInitializer />
+                <SnackbarContext.Provider value={{ showSnackbar }}>
+                  <CssBaseline />
+                  <AppBar />
+                  <Box
+                    sx={{
+                      mt: '4.5rem',
+                      backgroundColor: 'secondary.400',
+                      minHeight: 'calc(100vh - 4.5rem)',
+                      height: 'calc(100vh - 4.5rem)',
+                      width: '100vw',
+                      overflowY: 'scroll',
+                    }}
+                  >
+                    {snackbarState !== null && (
+                      <Snackbar
+                        isOpen={true}
+                        message={snackbarState.message}
+                        severity={snackbarState.severity}
+                        onClose={hideSnackbar}
+                      />
+                    )}
+                    <Routes>
+                      <Route path="/signin" element={<SignIn />} />
+                      <Route path="/signup" element={<SignUp />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route path="/confirm-register" element={<ConfirmRegister />} />
 
-                <Route element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<HomePage />} />} path="/" />
+                      <Route
+                        element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<HomePage />} />}
+                        path="/"
+                      />
 
-                <Route
-                  path="/profile"
-                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Profile />} />}
-                />
-                <Route
-                  path="/dashboard"
-                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Dashboard />} />}
-                />
-                <Route
-                  path="/movies"
-                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Movies />} />}
-                />
-                <Route
-                  path="/series"
-                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Series />} />}
-                />
-                <Route
-                  path="/movie/:title"
-                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<MoviePlayer />} />}
-                />
-                <Route
-                  path="/series/:title"
-                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<EpisodePlayer />} />}
-                />
-                <Route
-                  path="/video/:title"
-                  element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
-                />
-                <Route path="/subscription" element={<SubscriptionPage />} />
-                <Route path="/payment-success" element={<PaymentSuccess />} />
-                <Route path="/payment-cancel" element={<PaymentCancel />} />
-              </Routes>
-            </Box>
-          </SnackbarContext.Provider>
-        </ThemeProvider>
-      </ErrorBoundary>
-    </QueryClientProvider>
+                      <Route
+                        path="/profile"
+                        element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Profile />} />}
+                      />
+                      <Route
+                        path="/dashboard"
+                        element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Dashboard />} />}
+                      />
+                      <Route
+                        path="/movies"
+                        element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Movies />} />}
+                      />
+                      <Route
+                        path="/series"
+                        element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Series />} />}
+                      />
+                      <Route
+                        path="/movie/:title"
+                        element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<MoviePlayer />} />}
+                      />
+                      <Route
+                        path="/series/:title"
+                        element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<EpisodePlayer />} />}
+                      />
+                      <Route
+                        path="/video/:title"
+                        element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<VideoPage />} />}
+                      />
+                      <Route path="/subscription" element={<SubscriptionPage />} />
+                      <Route path="/payment-success" element={<PaymentSuccess />} />
+                      <Route path="/payment-cancel" element={<PaymentCancel />} />
+                    </Routes>
+                  </Box>
+                </SnackbarContext.Provider>
+              </ThemeProvider>
+            </ErrorBoundary>
+          </QueryClientProvider>
+        </SafeDataProvider>
+      </PersistGate>
+    </Provider>
   );
 };
 

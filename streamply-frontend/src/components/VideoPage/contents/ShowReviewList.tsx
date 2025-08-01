@@ -1,8 +1,8 @@
-import { Box, Button, Divider, IconButton, Typography } from '@mui/material';
+import { Box, Button, IconButton, Typography } from '@mui/material';
 import { useGetReviews } from '../../../hooks/useGetReviews';
 import { Video } from '../../../types/videos.types';
 import { SingleReview } from './SingleReview';
-import { AddReviewField } from './AddReviewField';
+import { AddReviewField } from './AddReviewFieldRedux';
 import { Fragment, useContext, useState } from 'react';
 import axios from 'axios';
 import { SignalResponse } from '../../../types/response.types';
@@ -10,7 +10,6 @@ import { api } from '../../../constants';
 import { getCookie } from 'typescript-cookie';
 import { Delete } from '@mui/icons-material';
 import { SnackbarContext } from '../../../App';
-import DOMPurify from 'dompurify';
 
 export const ShowReviewList = ({ video }: { video: Video }) => {
   const { data, isLoading, error, refetch } = useGetReviews(video.id);
@@ -37,8 +36,6 @@ export const ShowReviewList = ({ video }: { video: Video }) => {
     setDisplayedReviews(prev => prev + 10);
   };
 
-  const safeReview = (review: string) => ({ __html: DOMPurify.sanitize(review) });
-
   if (isLoading) {
     return <Typography color="white">Loading...</Typography>;
   }
@@ -63,29 +60,36 @@ export const ShowReviewList = ({ video }: { video: Video }) => {
           <Box
             sx={{
               display: 'flex',
-              flexDirection: { mobile: 'column', desktop: 'row' },
-              gap: '2rem',
-              justifyContent: 'space-between',
+              flexDirection: 'column',
+              gap: '1rem',
+              mb: '2rem',
+              p: '1.5rem',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '8px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
             }}
           >
-            {' '}
-            {/* Sanitize review comment before rendering (anti-XSS) */}
-            <SingleReview review={{ ...review, comment: '' }} />
-            <Typography
-              color="white"
-              sx={{ flex: 1, wordBreak: 'break-word' }}
-              dangerouslySetInnerHTML={safeReview(review.comment)}
-            />
+            {/* Render the complete review with proper comment */}
+            <SingleReview review={review} />
+
+            {/* Admin/Moderator delete button */}
             {(Number(getCookie('userAccountType')) === 2 || Number(getCookie('userAccountType')) === 3) && (
-              <IconButton onClick={() => handleReviewDelete(review.id)}>
-                <Delete sx={{ color: 'white' }} />
-                <Typography fontWeight={500} color="white">
-                  Delete review
-                </Typography>
-              </IconButton>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: '1rem' }}>
+                <IconButton
+                  onClick={() => handleReviewDelete(review.id)}
+                  sx={{
+                    color: 'error.main',
+                    '&:hover': { backgroundColor: 'rgba(255, 0, 0, 0.1)' },
+                  }}
+                >
+                  <Delete />
+                  <Typography fontWeight={500} color="error.main" sx={{ ml: '0.5rem' }}>
+                    Delete review
+                  </Typography>
+                </IconButton>
+              </Box>
             )}
           </Box>
-          <Divider sx={{ my: '1rem' }} />
         </Fragment>
       ))}
       {data?.reviews.length && data?.reviews.length > displayedReviews && (

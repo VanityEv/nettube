@@ -24,10 +24,10 @@ export const SignUpPanel = () => {
     width: {
       mobile: '75%',
       desktop: '50%',
-      '& .MuiOutlinedInput-root:hover': {
-        '& > fieldset': {
-          borderColor: 'white',
-        },
+    },
+    '& .MuiOutlinedInput-root:hover': {
+      '& > fieldset': {
+        borderColor: 'white',
       },
     },
   };
@@ -197,40 +197,73 @@ export const SignUpPanel = () => {
                   {...field}
                   sx={fieldSx}
                   slotProps={{
-                    inputAdornment: {
+                    textField: {
                       sx: {
-                        '.MuiSvgIcon-root': {
-                          color: 'white',
+                        ...fieldSx,
+                        '& .MuiInputBase-input': {
+                          color: 'white !important',
+                        },
+                        '& .MuiInputLabel-root': {
+                          color: 'white !important',
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': {
+                          color: 'white !important',
+                        },
+                        '& .MuiOutlinedInput-root': {
+                          color: 'white !important',
+                        },
+                        '& .MuiInputAdornment-root .MuiIconButton-root': {
+                          color: 'white !important',
+                        },
+                        '& .MuiInputAdornment-root .MuiSvgIcon-root': {
+                          color: 'white !important',
+                        },
+                        // Target the specific DatePicker section content classes
+                        '& .MuiPickersSectionList-sectionContent': {
+                          color: 'white !important',
+                        },
+                        '& .MuiPickersInputBase-sectionContent': {
+                          color: 'white !important',
+                        },
+                        // Also target the container
+                        '& .MuiPickersSectionList-root': {
+                          color: 'white !important',
+                        },
+                        '& .MuiPickersInputBase-sectionsContainer': {
+                          color: 'white !important',
+                        },
+                        input: {
+                          color: 'white !important',
                         },
                       },
                     },
                     layout: {
                       sx: {
-                        '.MuiDateCalendar-root': {
+                        '& .MuiDateCalendar-root': {
                           color: '#e51445',
                           borderRadius: '40px',
                           border: '1px solid #e51445',
                           mt: 1,
                         },
-                        '.MuiPickersDay-root': {
+                        '& .MuiPickersDay-root': {
                           color: 'white',
                         },
-                        '.MuiPickersDay-root:focus': {
+                        '& .MuiPickersDay-root:focus': {
                           backgroundColor: '#e51445',
                         },
-                        '.MuiPickersLayout-root': {
+                        '& .MuiPickersLayout-root': {
                           p: 2,
                         },
-                        '.Mui-selected:hover': {
+                        '& .Mui-selected:hover': {
                           backgroundColor: '#e51445',
                         },
-                        '.Mui-selected': {
+                        '& .Mui-selected': {
                           backgroundColor: '#e51445',
                         },
-                        '.MuiSvgIcon-root': {
+                        '& .MuiSvgIcon-root': {
                           color: 'white',
                         },
-                        '.MuiTypography-root': {
+                        '& .MuiTypography-root': {
                           color: 'white',
                         },
                       },

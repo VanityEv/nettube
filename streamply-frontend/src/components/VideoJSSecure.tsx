@@ -15,14 +15,28 @@ interface VideoJSProps {
   onReady?: (player: Player) => void;
   videoId?: string;
   sessionId?: string;
+  watermarkConfig?: any;
 }
 
 //@ts-ignore
-export const VideoJS = ({ options, onReady, videoId, sessionId }: VideoJSProps) => {
+export const VideoJS = ({
+  options,
+  onReady,
+  videoId,
+  sessionId,
+  watermarkConfig: externalWatermarkConfig,
+}: VideoJSProps) => {
   const videoRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<Player | null>(null);
-  const [watermarkConfig, setWatermarkConfig] = useState<any>(null);
+  const [watermarkConfig, setWatermarkConfig] = useState<any>(externalWatermarkConfig || null);
   const [detectionEnabled] = useState(true);
+
+  console.log('🎬 VideoJSSecure component props:', {
+    videoId: videoId ? videoId.substring(0, 8) + '...' : 'None',
+    sessionId: sessionId ? sessionId.substring(0, 8) + '...' : 'None',
+    watermarkConfig: !!externalWatermarkConfig,
+    streamingSrc: options?.sources?.[0]?.src ? options.sources[0].src.substring(0, 50) + '...' : 'None',
+  });
 
   // Handle security events
   const handleSecurityEvent = useCallback(
@@ -70,29 +84,28 @@ export const VideoJS = ({ options, onReady, videoId, sessionId }: VideoJSProps) 
     [watermarkConfig, sessionId]
   );
 
-  // Initialize security features
+  // Initialize security features - simplified since watermark config comes from parent
   const initializeSecurity = useCallback(async () => {
     if (!videoId || !sessionId) return;
 
     try {
-      // Generate device fingerprint and send to backend
+      // Generate device fingerprint for backend logging
       const fingerprint = await deviceFingerprinter.generateFingerprint();
 
-      // Get watermark configuration from backend
-      const response = await axios.get(`${api}/videos/video/stream/${videoId}`, {
-        headers: {
-          Authorization: `Bearer ${getCookie('userToken')}`,
-          'X-Device-Fingerprint': fingerprint,
-        },
+      // Log security initialization
+      await handleSecurityEvent('security_initialized', {
+        fingerprint: fingerprint.substring(0, 16), // Only send truncated fingerprint for privacy
+        timestamp: Date.now(),
       });
 
-      if (response.data.result === 'SUCCESS') {
-        setWatermarkConfig(response.data.watermark);
+      // Use external watermark config if available, otherwise keep existing config
+      if (externalWatermarkConfig && !watermarkConfig) {
+        setWatermarkConfig(externalWatermarkConfig);
       }
     } catch (error) {
       console.error('Failed to initialize video security:', error);
     }
-  }, [videoId, sessionId]);
+  }, [videoId, sessionId, externalWatermarkConfig, watermarkConfig, handleSecurityEvent]);
 
   // Initialize player with anti-piracy controls
   useEffect(() => {
@@ -151,16 +164,7 @@ export const VideoJS = ({ options, onReady, videoId, sessionId }: VideoJSProps) 
       });
 
       // Monitor for suspicious activity
-      player.on('pause', () => {
-        handleSecurityEvent('video_paused', { timestamp: Date.now() });
-      });
-
-      player.on('seeking', () => {
-        handleSecurityEvent('video_seeking', {
-          currentTime: player.currentTime(),
-          timestamp: Date.now(),
-        });
-      });
+      // Removed obsolete video_paused and video_seeking events
 
       // Prevent right-click context menu
       player.el().addEventListener('contextmenu', e => {

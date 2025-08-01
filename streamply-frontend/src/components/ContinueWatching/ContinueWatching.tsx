@@ -3,7 +3,7 @@ import { Scrollbar, Autoplay, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { ProgressVideo } from './ProgressVideo';
 import { useGetProgressedVideos } from '../../hooks/useGetProgressedVideos';
-import { useUserStore } from '../../state/userStore';
+import { useAppSelector } from '../../store/hooks';
 import axios from 'axios';
 import { SignalResponse } from '../../types/response.types';
 import { api } from '../../constants';
@@ -12,7 +12,7 @@ import { useContext } from 'react';
 import { SnackbarContext } from '../../App';
 
 export const ContinueWatching = () => {
-  const { username } = useUserStore();
+  const { username } = useAppSelector(state => state.user);
   const { data: progressedVideos, refetch } = useGetProgressedVideos(username);
   const { showSnackbar } = useContext(SnackbarContext);
   const theme = useTheme();
@@ -34,7 +34,7 @@ export const ContinueWatching = () => {
     }
   };
 
-  if (!progressedVideos) {
+  if (!progressedVideos || !Array.isArray(progressedVideos)) {
     return <></>;
   }
   return (

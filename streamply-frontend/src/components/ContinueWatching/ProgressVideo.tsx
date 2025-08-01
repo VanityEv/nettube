@@ -5,6 +5,7 @@ import { api } from '../../constants';
 import { NotInterested, PlayArrow } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { toKebabCase } from '../../helpers/convertToKebabCase';
+import { useRefreshableThumbnail } from '../../hooks/useRefreshableThumbnail';
 
 export const ProgressVideo = ({
   watched,
@@ -17,7 +18,12 @@ export const ProgressVideo = ({
 }) => {
   const watchedPercent = watched / 60 / video.video_length;
   const [isHovered, setIsHovered] = useState(false);
-  const url = video.thumbnail.includes('http') ? video.thumbnail : `${api}/images/thumbnails${video.thumbnail}`;
+
+  // Use refreshable thumbnail for B2 URLs, prefer cinematic thumbnail for horizontal display
+  const thumbnailToUse = video.cinematic_thumbnail || video.thumbnail;
+  const initialUrl = thumbnailToUse.includes('http') ? thumbnailToUse : `${api}/images/thumbnails${thumbnailToUse}`;
+  const { thumbnailUrl } = useRefreshableThumbnail(initialUrl);
+  const url = thumbnailUrl || initialUrl;
 
   const destinationRoute =
     video.type === 'film'
@@ -26,7 +32,7 @@ export const ProgressVideo = ({
 
   const queryParams = new URLSearchParams();
   queryParams.append('timestamp', watched.toString());
-  queryParams.append('id', video.id.toString())
+  queryParams.append('id', video.id.toString());
 
   const routeWithParams = `${destinationRoute}?${queryParams.toString()}`;
 

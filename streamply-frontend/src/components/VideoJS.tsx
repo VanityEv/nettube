@@ -149,18 +149,7 @@ export const VideoJS = ({ options, onReady, videoId, sessionId }: VideoJSProps) 
       });
 
       // Monitor for suspicious activity
-      player.on('pause', () => {
-        // User paused - could be switching to recording software
-        handleSecurityEvent('video_paused', { timestamp: Date.now() });
-      });
-
-      player.on('seeking', () => {
-        // Seeking behavior analysis
-        handleSecurityEvent('video_seeking', {
-          currentTime: player.currentTime(),
-          timestamp: Date.now(),
-        });
-      });
+      // Removed obsolete video_paused and video_seeking events
 
       // Prevent right-click context menu
       player.el().addEventListener('contextmenu', e => {
@@ -239,7 +228,7 @@ export const VideoJS = ({ options, onReady, videoId, sessionId }: VideoJSProps) 
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [handleSecurityViolation]);
 
   return (
     <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>

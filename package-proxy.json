@@ -1,0 +1,32 @@
+{
+  "name": "streamply-proxy",
+  "version": "1.0.0",
+  "description": "Express proxy server for Streamply on Windows (alternative to Nginx)",
+  "main": "proxy-server.js",
+  "scripts": {
+    "start": "node proxy-server.js",
+    "dev": "nodemon proxy-server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "proxy",
+    "express",
+    "streamply", 
+    "cors",
+    "rate-limiting"
+  ],
+  "dependencies": {
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^6.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "author": "Streamply Team",
+  "license": "MIT"
+}

@@ -23,7 +23,15 @@ import { api } from '../../../constants';
 import { SnackbarContext } from '../../../App';
 import { getCookie } from 'typescript-cookie';
 
-export const UsersTable = ({ users, onDelete, refetch }: { users: UserEntry[]; onDelete: (id: number) => void, refetch: () => void }) => {
+export const UsersTable = ({
+  users,
+  onDelete,
+  refetch,
+}: {
+  users: UserEntry[];
+  onDelete: (id: number) => void;
+  refetch: () => void;
+}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState('');
   const filterableFields: string[] = ['username', 'email'];
@@ -65,7 +73,7 @@ export const UsersTable = ({ users, onDelete, refetch }: { users: UserEntry[]; o
         refetch();
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       showSnackbar('Error while demoting user', 'error');
     }
   };
@@ -86,7 +94,7 @@ export const UsersTable = ({ users, onDelete, refetch }: { users: UserEntry[]; o
         refetch();
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       showSnackbar('Error while promoting user', 'error');
     }
   };
@@ -128,64 +136,76 @@ export const UsersTable = ({ users, onDelete, refetch }: { users: UserEntry[]; o
           </TableRow>
         </TableHead>
         <TableBody sx={{ borderBottom: 0 }}>
-          {pagedData.map(user => (
-            <TableRow key={user.id} sx={{ '&>th,td': { color: 'white' } }}>
-              <TableCell component="th" scope="row">
-                {user.username}
-              </TableCell>
-              <TableCell align="left">{user.email}</TableCell>
-              <TableCell align="left">{user.last_login.substring(0, 10)}</TableCell>
-              <TableCell align="left">
-                {user.account_type === 3 ? (
-                  <Typography variant="body2" sx={{ color: 'white' }}>
-                    Admin Account
-                  </Typography>
+          {pagedData.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} align="center" sx={{ color: 'white', py: 4 }}>
+                {users.length === 0 ? (
+                  <Typography variant="h6">No users found in the database</Typography>
                 ) : (
-                  <IconButton
-                    disableRipple
-                    sx={{ fontSize: '12px', display: 'flex', gap: 1 }}
-                    onClick={() => {
-                      if (user.account_type === 2) {
-                        onDemote(user.username);
-                      } else {
-                        onPromote(user.username);
-                      }
-                    }}
-                  >
-                    {user.account_type === 2 ? (
-                      <ArrowCircleDown sx={{ color: 'orange' }} />
-                    ) : (
-                      <ArrowCircleUp sx={{ color: 'green' }} />
-                    )}
-                    <Typography variant="body2" sx={{ color: 'white' }}>
-                      {user.account_type === 2
-                        ? isMobile
-                          ? 'Demote'
-                          : 'Demote to User'
-                        : isMobile
-                        ? 'Promote'
-                        : 'Promote to Moderator'}
-                    </Typography>
-                  </IconButton>
-                )}
-
-                {user.account_type === 3 ? null : (
-                  <IconButton
-                    disableRipple
-                    sx={{ fontSize: '12px', display: 'flex', gap: 1 }}
-                    onClick={() => {
-                      onDelete(user.id);
-                    }}
-                  >
-                    <HighlightOff sx={{ color: 'red' }} />
-                    <Typography variant="body2" sx={{ color: 'white' }}>
-                      Ban
-                    </Typography>
-                  </IconButton>
+                  <Typography variant="h6">No users match your search criteria</Typography>
                 )}
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            pagedData.map(user => (
+              <TableRow key={user.id} sx={{ '&>th,td': { color: 'white' } }}>
+                <TableCell component="th" scope="row">
+                  {user.username}
+                </TableCell>
+                <TableCell align="left">{user.email}</TableCell>
+                <TableCell align="left">{user.last_login ? user.last_login.substring(0, 10) : 'Never'}</TableCell>
+                <TableCell align="left">
+                  {user.account_type === 3 ? (
+                    <Typography variant="body2" sx={{ color: 'white' }}>
+                      Admin Account
+                    </Typography>
+                  ) : (
+                    <IconButton
+                      disableRipple
+                      sx={{ fontSize: '12px', display: 'flex', gap: 1 }}
+                      onClick={() => {
+                        if (user.account_type === 2) {
+                          onDemote(user.username);
+                        } else {
+                          onPromote(user.username);
+                        }
+                      }}
+                    >
+                      {user.account_type === 2 ? (
+                        <ArrowCircleDown sx={{ color: 'orange' }} />
+                      ) : (
+                        <ArrowCircleUp sx={{ color: 'green' }} />
+                      )}
+                      <Typography variant="body2" sx={{ color: 'white' }}>
+                        {user.account_type === 2
+                          ? isMobile
+                            ? 'Demote'
+                            : 'Demote to User'
+                          : isMobile
+                          ? 'Promote'
+                          : 'Promote to Moderator'}
+                      </Typography>
+                    </IconButton>
+                  )}
+
+                  {user.account_type === 3 ? null : (
+                    <IconButton
+                      disableRipple
+                      sx={{ fontSize: '12px', display: 'flex', gap: 1 }}
+                      onClick={() => {
+                        onDelete(user.id);
+                      }}
+                    >
+                      <HighlightOff sx={{ color: 'red' }} />
+                      <Typography variant="body2" sx={{ color: 'white' }}>
+                        Ban
+                      </Typography>
+                    </IconButton>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
       <Typography sx={{ my: 1, ml: 1, color: 'white' }}>Page:</Typography>

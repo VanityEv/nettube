@@ -1,12 +1,13 @@
 import { Box, Button, Menu, MenuItem, Zoom } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { useState } from 'react';
-import { useVideosStore } from '../../state/videosStore';
-import { useExplorationStore } from '../../state/explorationStore';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { setGenres } from '../../store/slices/explorationSlice';
 
 export const GenreList = () => {
-  const { genres } = useVideosStore();
-  const { selectedGenres, setGenres } = useExplorationStore();
+  const { genres } = useAppSelector(state => state.videos);
+  const { selectedGenres } = useAppSelector(state => state.exploration);
+  const dispatch = useAppDispatch();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [displayedGenres, setDisplayedGenres] = useState<string[]>(genres.slice(0, 3));
   const [restGenres, setRestGenres] = useState<string[]>(genres.slice(3));
@@ -14,18 +15,18 @@ export const GenreList = () => {
 
   const handleGenreClick = (genre: string) => {
     if (selectedGenres.includes(genre)) {
-      setGenres(selectedGenres.filter(selectedGenre => selectedGenre !== genre));
+      dispatch(setGenres(selectedGenres.filter((selectedGenre: string) => selectedGenre !== genre)));
     } else {
-      setGenres([...selectedGenres, genre]);
+      dispatch(setGenres([...selectedGenres, genre]));
     }
   };
 
   const handleMenuGenreAdd = (genre: string) => {
     if (selectedGenres.includes(genre)) {
-      setGenres(selectedGenres.filter(selectedGenre => selectedGenre !== genre));
+      dispatch(setGenres(selectedGenres.filter((selectedGenre: string) => selectedGenre !== genre)));
       setRestGenres(prev => [...prev, genre]);
     } else {
-      setGenres([...selectedGenres, genre]);
+      dispatch(setGenres([...selectedGenres, genre]));
       setDisplayedGenres(prev => [...prev, genre]);
       setRestGenres(prev => [...prev.filter(options => options !== genre)]);
       setAnchorEl(null);

@@ -2,23 +2,36 @@ import { Box, IconButton, Typography } from '@mui/material';
 import { Video } from '../../types/videos.types';
 import { Bookmark, BookmarkBorder, PlayCircleOutline } from '@mui/icons-material';
 import { getRatingColor } from '../../helpers/getRatingColors';
-import { useUserStore } from '../../state/userStore';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { fetchUserLikes } from '../../store/slices/userSlice';
+import { useRefreshableThumbnail } from '../../hooks/useRefreshableThumbnail';
 import axios from 'axios';
 import { api } from '../../constants';
 import { useState } from 'react';
 import { toKebabCase } from '../../helpers/convertToKebabCase';
 import { getCookie } from 'typescript-cookie';
 import { SubscriptionModal } from '../SubscriptionModal';
+import { Link } from 'react-router-dom';
 
 type UpdateResponse = { result: string };
 
 export const SingleVideo = ({ video }: { video: Video }) => {
-  const { likes, username, setLikes } = useUserStore();
+  const { likes, username } = useAppSelector(state => state.user);
+  const dispatch = useAppDispatch();
   const [liked, setLiked] = useState(likes.includes(video.id));
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
+
+  // Link to the video detail page
+  const detailPageRoute = `/video/${toKebabCase(video.title)}`;
+
+  // Keep the original player route for the play button
   const destinationRoute =
-    video.type === 'film' ? `/movies/${toKebabCase(video.title)}` : `/series/${toKebabCase(video.title)}`;
-  const url = video.thumbnail.includes('http') ? video.thumbnail : `${api}/images/thumbnails${video.thumbnail}`;
+    video.type === 'film' ? `/movie/${toKebabCase(video.title)}` : `/series/${toKebabCase(video.title)}`;
+
+  // Use refreshable thumbnail for B2 URLs
+  const initialUrl = video.thumbnail.includes('http') ? video.thumbnail : `${api}/images/thumbnails${video.thumbnail}`;
+  const { thumbnailUrl } = useRefreshableThumbnail(initialUrl);
+  const url = thumbnailUrl || initialUrl;
 
   const queryParams = new URLSearchParams();
   queryParams.append('id', video.id.toString());
@@ -41,8 +54,9 @@ export const SingleVideo = ({ video }: { video: Video }) => {
     try {
       const result = await updateUserLike(id, mode);
       if (result === 'SUCCESS') {
-        setLiked(prevLiked => !prevLiked);
-        await setLikes(username);
+        setLiked((prevLiked: boolean) => !prevLiked);
+        // Update Redux state by refetching user likes
+        await dispatch(fetchUserLikes(username));
       }
     } catch (error) {
       console.error(error);
@@ -52,6 +66,7 @@ export const SingleVideo = ({ video }: { video: Video }) => {
   // Check subscription before navigation
   const handlePlayClick = async (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
 
     try {
       const response = await axios.get(`${api}/user/getSubscription/${username}`, {
@@ -70,71 +85,93 @@ export const SingleVideo = ({ video }: { video: Video }) => {
     }
   };
 
+  const handleLikeClick = (e: React.MouseEvent, id: number, mode: 'add' | 'delete') => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleLikeChange(id, mode);
+  };
+
   return (
     <>
-      <Box
-        sx={{
-          position: 'relative',
-          height: '40vh',
-          aspectRatio: '3 / 2',
-          width: { desktop: 'auto', mobile: '100vw' },
-          maxWidth: '100vw',
-          background: `url(${url})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      >
+      <Link style={{ textDecoration: 'none' }} to={detailPageRoute}>
         <Box
           sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
+            position: 'relative',
+            height: '40vh',
+            aspectRatio: '2 / 3',
+            width: { desktop: 'auto', mobile: '100vw' },
+            maxWidth: '100vw',
+            background: `url(${url})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center center',
+            backgroundRepeat: 'no-repeat',
           }}
         >
-          <Box sx={{ display: 'flex', flexDirection: 'column', ml: '2rem', mb: '1rem' }}>
-            <Typography
-              variant="body1"
-              color="white"
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.8) 100%)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <Box
               sx={{
-                fontSize: '14px',
-                textTransform: 'capitalize',
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'flex-end',
+                mb: '1rem',
+                mx: '0.5rem',
               }}
             >
-              {`${video.title}`}
-            </Typography>
-            <Typography
-              variant="body1"
-              color={getRatingColor(video.grade)}
-              sx={{
-                fontSize: '12px',
-                textTransform: 'capitalize',
-              }}
-            >
-              Rating: {video.grade}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', mb: '1rem', mr: '0.5rem' }}>
-            {liked ? (
-              <IconButton onClick={() => handleLikeChange(video.id, 'delete')}>
-                <Bookmark color="error" />
-              </IconButton>
-            ) : (
-              <IconButton onClick={() => handleLikeChange(video.id, 'add')}>
-                <BookmarkBorder color="error" />
-              </IconButton>
-            )}
-            <IconButton onClick={handlePlayClick} sx={{ color: 'white' }}>
-              <PlayCircleOutline />
-            </IconButton>
+              <Box sx={{ display: 'flex', flexDirection: 'row', gap: '0.5rem' }}>
+                {liked ? (
+                  <IconButton onClick={e => handleLikeClick(e, video.id, 'delete')}>
+                    <Bookmark color="error" />
+                  </IconButton>
+                ) : (
+                  <IconButton onClick={e => handleLikeClick(e, video.id, 'add')}>
+                    <BookmarkBorder color="error" />
+                  </IconButton>
+                )}
+                <IconButton onClick={handlePlayClick} sx={{ color: 'white' }}>
+                  <PlayCircleOutline />
+                </IconButton>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', mr: '1rem' }}>
+                <Typography
+                  variant="body1"
+                  color="white"
+                  sx={{
+                    fontSize: '14px',
+                    textTransform: 'capitalize',
+                    textAlign: 'right',
+                  }}
+                >
+                  {`${video.title}`}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  color={getRatingColor(video.grade)}
+                  sx={{
+                    fontSize: '12px',
+                    textTransform: 'capitalize',
+                    textAlign: 'right',
+                  }}
+                >
+                  Rating: {video.grade}
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </Box>
-      </Box>
+      </Link>
 
       <SubscriptionModal
         open={subscriptionModalOpen}

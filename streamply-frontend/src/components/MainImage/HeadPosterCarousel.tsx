@@ -5,7 +5,7 @@ import 'swiper/css/scrollbar';
 import { Navigation, Scrollbar, Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Video } from '../../types/videos.types';
-import { StatefulSlide } from '../StatefulSlide';
+import { StatefulPosterSlide } from '../StatefulPosterSlide';
 
 type MoviesCarouselProps = {
   movies: Video[];
@@ -50,7 +50,7 @@ export const HeadPosterCarousel = ({
         >
           {movies.map((movie, idx) => (
             <SwiperSlide key={`movie-${movie.title}-${movie.id}-${idx}`}>
-              <StatefulSlide
+              <StatefulPosterSlide
                 movie={movie}
                 isActive={selectedMovie.title === movie.title}
                 setActive={() => setSelectedMovie(movie)}
