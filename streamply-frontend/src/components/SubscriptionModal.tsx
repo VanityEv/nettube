@@ -17,15 +17,15 @@ import { StripeCheckoutButton } from './StripeCheckoutButton';
 const plans = [
   {
     name: 'Basic',
-    price: '$9.99/mo',
-    features: ['HD streaming', '1 device', 'Cancel anytime'],
-    priceId: 'price_basic_123',
+    price: '2 PLN',
+    features: ['HD streaming', '1 device', 'Lifetime access'],
+    priceId: 'price_1RxdnE2NdrzPV1Ezt9XXJDIy', // Basic - 2 PLN one-time
   },
   {
     name: 'Premium',
-    price: '$14.99/mo',
-    features: ['4K streaming', '4 devices', 'Offline access'],
-    priceId: 'price_premium_456',
+    price: '2 PLN',
+    features: ['4K streaming', '4 devices', 'Lifetime access'],
+    priceId: 'price_1RxdnE2NdrzPV1EzZMoGgY3R', // Premium - 2 PLN one-time
   },
 ];
 
@@ -36,6 +36,8 @@ interface SubscriptionModalProps {
 }
 
 export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ open, onClose, videoTitle }) => {
+  console.log('SubscriptionModal render - open:', open, 'videoTitle:', videoTitle);
+  
   return (
     <Dialog
       open={open}

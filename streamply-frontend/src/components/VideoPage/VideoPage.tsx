@@ -9,17 +9,30 @@ import { ShowReviewList } from './contents/ShowReviewList';
 import { Episodes } from './contents/Episodes';
 import { useGetVideos } from '../../hooks/useGetVideos';
 import { api } from '../../constants';
+import { useRefreshableThumbnail } from '../../hooks/useRefreshableThumbnail';
 
 export const VideoPage = () => {
   const { data: videos } = useGetVideos();
   const { title } = useParams();
   const [tabValue, setTabValue] = useState(1);
 
+  // Find the video first for thumbnail processing
+  const video = videos?.find(video => toKebabCase(video.title) === title);
+
+  // Use cinematic thumbnail for background if available, fallback to regular thumbnail
+  const preferredThumbnail = video?.cinematic_thumbnail || video?.thumbnail || '';
+  const initialUrl = preferredThumbnail.includes('http')
+    ? preferredThumbnail
+    : video
+    ? `${api}/images/thumbnails/${toKebabCase(video.thumbnail)}`
+    : '';
+
+  const { thumbnailUrl: refreshableThumbnailUrl } = useRefreshableThumbnail(initialUrl);
+  const thumbnailURL = refreshableThumbnailUrl || initialUrl;
+
   if (!videos) {
     return <></>;
   }
-
-  const video = videos.find(video => toKebabCase(video.title) === title);
 
   if (!video) {
     return <></>;
@@ -34,10 +47,6 @@ export const VideoPage = () => {
   const queryParams = new URLSearchParams();
   queryParams.append('id', video.id.toString());
   const routeWithParams = `${destinationRoute}?${queryParams.toString()}`;
-
-  const thumbnailURL = video.thumbnail.includes('http')
-    ? video.thumbnail
-    : `${api}/images/thumbnails/${toKebabCase(video.thumbnail)}`;
 
   return (
     <Box sx={{ height: 'calc(100vh - 4.5rem)' }}>

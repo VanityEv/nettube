@@ -1,7 +1,7 @@
 // Video Watermarking Component
 // Dynamic user-specific watermarks with forensic tracking
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
 
 interface WatermarkConfig {
@@ -33,7 +33,7 @@ interface WatermarkConfig {
 interface VideoWatermarkProps {
   config: WatermarkConfig;
   sessionId: string;
-  onViolation?: (violation: string) => void;
+  onViolation?: (violation: string, data?: any) => void;
 }
 
 export const VideoWatermark: React.FC<VideoWatermarkProps> = ({ config, sessionId, onViolation }) => {
@@ -44,19 +44,64 @@ export const VideoWatermark: React.FC<VideoWatermarkProps> = ({ config, sessionI
   const watermarkRef = useRef<HTMLDivElement>(null);
   const mutationObserverRef = useRef<MutationObserver>();
 
-  // Positions for dynamic movement
-  const positions = [
-    { top: '10%', left: '10%', opacity: 0.3 },
-    { top: '10%', right: '10%', opacity: 0.3 },
-    { bottom: '10%', left: '10%', opacity: 0.3 },
-    { bottom: '10%', right: '10%', opacity: 0.3 },
-    { top: '50%', left: '50%', opacity: 0.2, transform: 'translate(-50%, -50%)' },
-    { top: '20%', left: '80%', opacity: 0.25 },
-    { bottom: '20%', right: '20%', opacity: 0.25 },
-  ];
+  // Rate limiting for violation reporting with better structure
+  const violationCooldowns = useRef<Map<string, number>>(new Map());
+  const VIOLATION_COOLDOWN = 10000; // 10 seconds cooldown per violation type
+  const isUpdatingPosition = useRef<boolean>(false); // Track legitimate updates
+
+  // Enhanced violation reporting with more context
+  const reportViolation = useCallback(
+    (violationType: string, additionalData?: any) => {
+      const now = Date.now();
+      const lastViolation = violationCooldowns.current.get(violationType) || 0;
+
+      // Skip if we've reported this violation type recently
+      if (now - lastViolation < VIOLATION_COOLDOWN) {
+        return;
+      }
+
+      // Don't report violations during legitimate watermark updates
+      if (isUpdatingPosition.current && violationType === 'watermark_style_modified') {
+        return;
+      }
+
+      violationCooldowns.current.set(violationType, now);
+      
+      // Enhanced violation data
+      const violationData = {
+        violationType,
+        timestamp: now,
+        watermarkId: config.watermarkId,
+        sessionId,
+        userAgent: navigator.userAgent,
+        windowSize: {
+          width: window.innerWidth,
+          height: window.innerHeight
+        },
+        ...additionalData
+      };
+
+      onViolation?.(violationType, violationData);
+    },
+    [onViolation, VIOLATION_COOLDOWN, config.watermarkId, sessionId]
+  );
+
+  // Positions for dynamic movement with subtle visibility - contained within video
+  const positions = useMemo(
+    () => [
+      { top: '8%', left: '8%', opacity: 0.15 }, // Much more subtle
+      { top: '8%', right: '8%', opacity: 0.15 }, // Much more subtle
+      { bottom: '20%', left: '8%', opacity: 0.15 }, // Account for video controls, more subtle
+      { bottom: '20%', right: '8%', opacity: 0.15 }, // Account for video controls, more subtle
+      { top: '50%', left: '50%', opacity: 0.1, transform: 'translate(-50%, -50%)' }, // Very subtle center
+      { top: '20%', left: '70%', opacity: 0.12 }, // Very subtle
+      { bottom: '30%', right: '20%', opacity: 0.12 }, // Very subtle, well above controls
+    ],
+    []
+  );
 
   // Generate timestamp-based variations
-  const generateTimestampText = () => {
+  const generateTimestampText = useCallback(() => {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-US', {
       hour12: false,
@@ -64,14 +109,18 @@ export const VideoWatermark: React.FC<VideoWatermarkProps> = ({ config, sessionI
       minute: '2-digit',
     });
     return `${config.text} • ${timeStr}`;
-  };
+  }, [config.text]);
 
   // Update watermark position and text dynamically
-  const updateWatermark = () => {
+  const updateWatermark = useCallback(() => {
     if (!config.enabled) return;
 
-    // Rotate through positions
-    const positionIndex = Math.floor(Date.now() / config.updateInterval) % positions.length;
+    // Mark as legitimate update
+    isUpdatingPosition.current = true;
+
+    // Rotate through positions more frequently for short videos
+    const effectiveInterval = Math.min(config.updateInterval, 15000); // Max 15 seconds for position changes
+    const positionIndex = Math.floor(Date.now() / effectiveInterval) % positions.length;
     const newPosition = { ...config.style, ...positions[positionIndex] };
 
     // Update text with timestamp
@@ -80,17 +129,25 @@ export const VideoWatermark: React.FC<VideoWatermarkProps> = ({ config, sessionI
     setCurrentPosition(newPosition);
     setCurrentText(newText);
 
-    // Brief fade effect
+    // Brief fade effect for visibility
     setIsVisible(false);
-    setTimeout(() => setIsVisible(true), config.fadeTransition / 4);
-  };
+    
+    setTimeout(() => {
+      setIsVisible(true);
+      // Clear legitimate update flag after transition
+      setTimeout(() => {
+        isUpdatingPosition.current = false;
+      }, 500); // Give enough time for DOM updates
+    }, Math.min(config.fadeTransition / 4, 200)); // Max 200ms fade
+  }, [config.enabled, config.updateInterval, config.style, config.fadeTransition, positions, generateTimestampText]);
 
-  // Detect tampering attempts
-  const detectTampering = () => {
+  // Enhanced tampering detection with better context
+  const detectTampering = useCallback(() => {
     if (!watermarkRef.current) return;
 
     const element = watermarkRef.current;
     const computedStyle = window.getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
 
     // Check for hidden watermark
     if (
@@ -98,36 +155,97 @@ export const VideoWatermark: React.FC<VideoWatermarkProps> = ({ config, sessionI
       computedStyle.visibility === 'hidden' ||
       parseFloat(computedStyle.opacity) === 0
     ) {
-      onViolation?.('watermark_hidden');
+      reportViolation('watermark_hidden', {
+        computedStyle: {
+          display: computedStyle.display,
+          visibility: computedStyle.visibility,
+          opacity: computedStyle.opacity
+        },
+        detectionMethod: 'computed_style_check'
+      });
     }
 
-    // Check for moved watermark
-    const rect = element.getBoundingClientRect();
+    // Check for removed/moved watermark
     if (rect.width === 0 || rect.height === 0) {
-      onViolation?.('watermark_removed');
+      reportViolation('watermark_removed', {
+        boundingRect: {
+          width: rect.width,
+          height: rect.height,
+          top: rect.top,
+          left: rect.left
+        },
+        detectionMethod: 'bounding_rect_check'
+      });
     }
 
     // Check for modified content
     if (element.textContent !== currentText) {
-      onViolation?.('watermark_modified');
+      reportViolation('watermark_content_modified', {
+        expectedText: currentText,
+        actualText: element.textContent,
+        textLength: element.textContent?.length || 0,
+        detectionMethod: 'content_comparison'
+      });
     }
-  };
 
-  // Set up mutation observer to detect DOM tampering
+    // Check for suspicious positioning (outside video area)
+    const videoElement = element.closest('video') || element.closest('.video-js');
+    if (videoElement) {
+      const videoRect = videoElement.getBoundingClientRect();
+      if (
+        rect.left < videoRect.left ||
+        rect.top < videoRect.top ||
+        rect.right > videoRect.right ||
+        rect.bottom > videoRect.bottom
+      ) {
+        reportViolation('watermark_repositioned_outside_video', {
+          watermarkRect: rect,
+          videoRect: videoRect,
+          detectionMethod: 'position_boundary_check'
+        });
+      }
+    }
+  }, [reportViolation, currentText]);
+
+  // Enhanced mutation observer with smart filtering
   useEffect(() => {
     if (!watermarkRef.current || !config.enabled) return;
 
     const observer = new MutationObserver(mutations => {
+      // Skip if we're doing legitimate updates
+      if (isUpdatingPosition.current) return;
+
       mutations.forEach(mutation => {
         if (mutation.type === 'attributes') {
-          // Check for style modifications
+          // Only report unauthorized style modifications
           if (mutation.attributeName === 'style' || mutation.attributeName === 'class') {
-            onViolation?.('watermark_style_modified');
+            const target = mutation.target as HTMLElement;
+            const oldValue = mutation.oldValue;
+            const newValue = mutation.attributeName === 'style' 
+              ? target.getAttribute('style') 
+              : target.getAttribute('class');
+            
+            reportViolation('watermark_unauthorized_style_change', {
+              attributeName: mutation.attributeName,
+              oldValue,
+              newValue,
+              detectionMethod: 'mutation_observer',
+              suspiciousChange: true
+            });
           }
         } else if (mutation.type === 'childList') {
-          // Check for content modifications
+          // Report content removal/addition
           if (mutation.removedNodes.length > 0) {
-            onViolation?.('watermark_content_removed');
+            reportViolation('watermark_content_removed', {
+              removedNodesCount: mutation.removedNodes.length,
+              detectionMethod: 'mutation_observer'
+            });
+          }
+          if (mutation.addedNodes.length > 0) {
+            reportViolation('watermark_content_added', {
+              addedNodesCount: mutation.addedNodes.length,
+              detectionMethod: 'mutation_observer'
+            });
           }
         }
       });
@@ -143,23 +261,24 @@ export const VideoWatermark: React.FC<VideoWatermarkProps> = ({ config, sessionI
     mutationObserverRef.current = observer;
 
     return () => observer.disconnect();
-  }, [config.enabled, onViolation]);
+  }, [config.enabled, reportViolation]);
 
   // Set up periodic updates and tampering detection
   useEffect(() => {
     if (!config.enabled) return;
 
-    // Initial update
+    // Initial update - show watermark immediately
     updateWatermark();
 
-    // Set up periodic updates
+    // Set up periodic updates - more frequent for short videos
+    const effectiveInterval = Math.min(config.updateInterval, 15000); // Update at least every 15 seconds
     intervalRef.current = setInterval(() => {
       updateWatermark();
       detectTampering();
-    }, config.updateInterval);
+    }, effectiveInterval);
 
-    // Set up tampering detection
-    const tamperingInterval = setInterval(detectTampering, 5000);
+    // Set up tampering detection (less frequent to reduce spam)
+    const tamperingInterval = setInterval(detectTampering, 60000); // Every 60 seconds instead of 30
 
     return () => {
       if (intervalRef.current) {
@@ -167,18 +286,18 @@ export const VideoWatermark: React.FC<VideoWatermarkProps> = ({ config, sessionI
       }
       clearInterval(tamperingInterval);
     };
-  }, [config.enabled, config.updateInterval]);
+  }, [config.enabled, config.updateInterval, detectTampering, updateWatermark]);
 
   // Prevent context menu on watermark
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-    onViolation?.('watermark_context_menu');
+    reportViolation('watermark_context_menu');
   };
 
   // Prevent selection
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
-    onViolation?.('watermark_interaction_attempt');
+    reportViolation('watermark_interaction_attempt');
   };
 
   if (!config.enabled) return null;
@@ -188,12 +307,22 @@ export const VideoWatermark: React.FC<VideoWatermarkProps> = ({ config, sessionI
       ref={watermarkRef}
       onContextMenu={handleContextMenu}
       onMouseDown={handleMouseDown}
+      className="video-watermark"
+      data-watermark="true"
+      data-watermark-id={config.watermarkId}
+      data-session-id={sessionId}
       sx={{
-        ...currentPosition,
+        position: 'absolute',
+        top: currentPosition.top,
+        left: currentPosition.left,
+        right: currentPosition.right,
+        bottom: currentPosition.bottom,
+        transform: `${currentPosition.transform || ''} rotate(${config.rotation}deg)`,
         transition: `opacity ${config.fadeTransition / 1000}s ease-in-out`,
         opacity: isVisible ? currentPosition.opacity : 0,
-        transform: `${currentPosition.transform || ''} rotate(${config.rotation}deg)`,
         cursor: 'default',
+        pointerEvents: 'auto',
+        zIndex: 1001,
         WebkitUserSelect: 'none',
         MozUserSelect: 'none',
         msUserSelect: 'none',
@@ -218,8 +347,6 @@ export const VideoWatermark: React.FC<VideoWatermarkProps> = ({ config, sessionI
           pointerEvents: 'none',
         },
       }}
-      data-watermark-id={config.watermarkId}
-      data-session-id={sessionId}
     >
       <Typography
         component="span"

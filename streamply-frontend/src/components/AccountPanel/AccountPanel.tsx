@@ -1,6 +1,6 @@
 import { Box, Paper } from '@mui/material';
 import { AccountSection } from './AccountSection';
-import { PersonalData } from './contents/PersonalDataRedux';
+import { PersonalData } from './contents/PersonalData';
 import { Security } from './contents/Security';
 
 export const AccountPanel = () => {

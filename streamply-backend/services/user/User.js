@@ -2,7 +2,6 @@
 // This prevents SQL injection attacks through parameterized queries
 
 import prisma from '../prisma.js';
-import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import Stripe from 'stripe';
 
@@ -55,8 +54,13 @@ const getAllUsers = async (requestCallback) => {
 
 const findOneUser = async (username, requestCallback) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { username: username }
+    const user = await prisma.user.findFirst({
+      where: { 
+        username: {
+          equals: username,
+          mode: 'insensitive'
+        }
+      }
     });
     requestCallback(user ? [user] : []);
   } catch (error) {
@@ -66,8 +70,13 @@ const findOneUser = async (username, requestCallback) => {
 
 const findOneUserByEmail = async (email, requestCallback) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { email: email }
+    const user = await prisma.user.findFirst({
+      where: { 
+        email: {
+          equals: email,
+          mode: 'insensitive'
+        }
+      }
     });
     requestCallback(user ? [user] : []);
   } catch (error) {
@@ -80,8 +89,8 @@ const isUserInDB = async (username, email, requestCallback) => {
     const count = await prisma.user.count({
       where: {
         OR: [
-          { username: username },
-          { email: email }
+          { username: { equals: username, mode: 'insensitive' } },
+          { email: { equals: email, mode: 'insensitive' } }
         ]
       }
     });
@@ -117,7 +126,12 @@ const updateUser = async (param, value, username, requestCallback) => {
     const updateData = { [param]: value };
     
     const result = await prisma.user.update({
-      where: { username: username },
+      where: { 
+        username: {
+          equals: username,
+          mode: 'insensitive'
+        }
+      },
       data: updateData
     });
     requestCallback({ changedRows: 1 });
@@ -130,7 +144,12 @@ const userLikes = async (username, requestCallback) => {
   try {
     const likes = await prisma.userLike.findMany({
       where: {
-        user: { username: username }
+        user: { 
+          username: {
+            equals: username,
+            mode: 'insensitive'
+          }
+        }
       },
       select: {
         video_id: true
@@ -151,8 +170,12 @@ const checkOccurency = async (param, value, requestCallback) => {
       throw new Error('Invalid parameter');
     }
     
+    const whereClause = param === 'username' || param === 'email' 
+      ? { [param]: { equals: value, mode: 'insensitive' } }
+      : { [param]: value };
+    
     const count = await prisma.user.count({
-      where: { [param]: value }
+      where: whereClause
     });
     requestCallback([{ exists: count }]);
   } catch (error) {
@@ -165,7 +188,12 @@ const deleteLike = async (username, showId, requestCallback) => {
     const result = await prisma.userLike.deleteMany({
       where: {
         AND: [
-          { user: { username: username } },
+          { user: { 
+            username: {
+              equals: username,
+              mode: 'insensitive'
+            }
+          }},
           { video_id: showId }
         ]
       }
@@ -178,8 +206,13 @@ const deleteLike = async (username, showId, requestCallback) => {
 
 const addLike = async (username, showId, requestCallback) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { username: username }
+    const user = await prisma.user.findFirst({
+      where: { 
+        username: {
+          equals: username,
+          mode: 'insensitive'
+        }
+      }
     });
     
     if (!user) {
@@ -212,7 +245,12 @@ const deleteUser = async (id, requestCallback) => {
 const changePassword = async (username, password, requestCallback) => {
   try {
     const result = await prisma.user.update({
-      where: { username: username },
+      where: { 
+        username: {
+          equals: username,
+          mode: 'insensitive'
+        }
+      },
       data: { password: password }
     });
     requestCallback({ affectedRows: 1 });
@@ -223,10 +261,27 @@ const changePassword = async (username, password, requestCallback) => {
 
 const updateUserLoginDate = async (username, requestCallback) => {
   try {
+    // First find the user with case-insensitive search
+    const user = await prisma.user.findFirst({
+      where: { 
+        username: {
+          equals: username,
+          mode: 'insensitive'
+        }
+      }
+    });
+    
+    if (!user) {
+      requestCallback({ error: 'User not found' });
+      return;
+    }
+    
+    // Then update using the exact username
     const result = await prisma.user.update({
-      where: { username: username },
+      where: { id: user.id },  // Use ID for update
       data: { last_login: new Date() }
     });
+    
     requestCallback({ affectedRows: 1 });
   } catch (error) {
     requestCallback({ error: error.message });
@@ -236,7 +291,12 @@ const updateUserLoginDate = async (username, requestCallback) => {
 const addPasswordResetToken = async (email, token, requestCallback) => {
   try {
     const result = await prisma.user.update({
-      where: { email: email },
+      where: { 
+        email: {
+          equals: email,
+          mode: 'insensitive'
+        }
+      },
       data: { resetToken: token }
     });
     requestCallback({ affectedRows: 1 });
@@ -296,8 +356,13 @@ const demoteUser = async (id, requestCallback) => {
 // SECURE: Subscription management with Prisma
 const setSubscription = async (username, status, providerId) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { username: username }
+    const user = await prisma.user.findFirst({
+      where: { 
+        username: {
+          equals: username,
+          mode: 'insensitive'
+        }
+      }
     });
     
     if (!user) {
@@ -324,8 +389,13 @@ const setSubscription = async (username, status, providerId) => {
 
 const getSubscription = async (username) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { username: username }
+    const user = await prisma.user.findFirst({
+      where: { 
+        username: {
+          equals: username,
+          mode: 'insensitive'
+        }
+      }
     });
     
     if (!user) {
@@ -347,45 +417,65 @@ const getSubscription = async (username) => {
   }
 };
 
-// MFA (EMAIL OTP) PRODUCTION IMPLEMENTATION
-const otpStore = new Map(); // In production, use Redis or DB
-
-export async function sendOtpEmail(email, userId) {
-  const otp = (Math.floor(100000 + Math.random() * 900000)).toString();
-  const expires = Date.now() + 5 * 60 * 1000; // 5 min
-  otpStore.set(userId, { otp, expires });
-  const transporter = nodemailer.createTransporter({
-    service: 'SendGrid',
-    auth: { user: process.env.SENDGRID_USER, pass: process.env.SENDGRID_PASS },
-  });
-  await transporter.sendMail({
-    from: 'no-reply@streamply.com',
-    to: email,
-    subject: 'Your Streamply OTP',
-    text: `Your one-time code: ${otp}`,
-  });
-}
-
-export function verifyOtp(userId, code) {
-  const entry = otpStore.get(userId);
-  if (!entry) return false;
-  if (Date.now() > entry.expires) return false;
-  if (entry.otp !== code) return false;
-  otpStore.delete(userId);
-  return true;
-}
-
 // STRIPE PRODUCTION INTEGRATION
 export async function createStripeSession(userId, priceId) {
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    mode: 'subscription',
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: process.env.FRONTEND_URL + '/payment-success',
-    cancel_url: process.env.FRONTEND_URL + '/payment-cancel',
-    client_reference_id: userId,
-  });
-  return session.url;
+  try {
+    console.log('Creating Stripe session with:', { userId, priceId });
+    console.log('Stripe key configured:', !!process.env.STRIPE_SECRET_KEY);
+    console.log('Frontend URL:', process.env.FRONTEND_URL);
+    
+    // Get user from database by ID (userId is a UUID string)
+    const user = await prisma.user.findUnique({
+      where: { id: userId }  // Use userId directly as string/UUID
+    });
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    let customerId = user.stripe_customer_id;
+    
+    // If user doesn't have a Stripe customer ID, create one
+    if (!customerId) {
+      console.log('Creating new Stripe customer for user:', userId);
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          userId: user.id,
+          username: user.username
+        }
+      });
+      
+      customerId = customer.id;
+      
+      // Update user with the new Stripe customer ID
+      await prisma.user.update({
+        where: { id: userId },  // Use userId directly
+        data: { stripe_customer_id: customerId }
+      });
+      
+      console.log('Created Stripe customer:', customerId);
+    } else {
+      console.log('Using existing Stripe customer:', customerId);
+    }
+    
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'payment', // One-time payment instead of subscription
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: process.env.FRONTEND_URL + '/payment-success',
+      cancel_url: process.env.FRONTEND_URL + '/payment-cancel',
+      client_reference_id: user.id,
+    });
+    
+    console.log('Stripe session created successfully:', session.id);
+    return session.url;
+  } catch (error) {
+    console.error('Stripe session creation failed:', error.message);
+    console.error('Error details:', error);
+    throw error;
+  }
 }
 
 export {

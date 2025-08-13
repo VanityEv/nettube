@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { HttpClient } from '../../utils/httpClient';
 import { api } from '../../constants';
 import { Video } from '../../types/videos.types';
 
@@ -16,11 +16,6 @@ export interface VideosState {
   };
   error: string | null;
 }
-
-type VideosResponse = {
-  result: string;
-  data: Video[];
-};
 
 type VideosEndpoint = 'all' | 'top-movies' | 'top-series';
 
@@ -41,9 +36,9 @@ const initialState: VideosState = {
 // Helper function
 const getVideos = async (endpoint: VideosEndpoint): Promise<Video[]> => {
   try {
-    const response = await axios.get<VideosResponse>(`${api}/videos/${endpoint}`);
-    if (response.data.result === 'SUCCESS') {
-      return response.data.data;
+    const response = await HttpClient.get(`${api}/videos/${endpoint}`);
+    if (response.result === 'SUCCESS') {
+      return response.data;
     } else {
       return [];
     }
@@ -100,9 +95,14 @@ const videosSlice = createSlice({
   reducers: {
     setVideos: (state, action: PayloadAction<Video[]>) => {
       state.videos = action.payload;
-      // Update genres when videos change
-      const uniqueGenres = new Set(action.payload?.map(video => video.genre));
-      state.genres = Array.from(uniqueGenres);
+      // Update genres when videos change - split comma-separated genres and normalize case
+      const allGenres = action.payload?.flatMap(video => 
+        (video.genre || '').split(',').map(g => g.trim()).filter(Boolean)
+      ) || [];
+      const uniqueGenres = new Set(allGenres.map(genre => 
+        genre.charAt(0).toUpperCase() + genre.slice(1).toLowerCase()
+      ));
+      state.genres = Array.from(uniqueGenres).sort();
     },
     setPopularMovies: (state, action: PayloadAction<Video[]>) => {
       state.popularMovies = action.payload;
@@ -130,9 +130,14 @@ const videosSlice = createSlice({
       .addCase(fetchVideos.fulfilled, (state, action) => {
         state.loading.videos = false;
         state.videos = action.payload;
-        // Update genres when videos are fetched
-        const uniqueGenres = new Set(action.payload?.map(video => video.genre));
-        state.genres = Array.from(uniqueGenres);
+        // Update genres when videos are fetched - split comma-separated genres and normalize case
+        const allGenres = action.payload?.flatMap(video => 
+          (video.genre || '').split(',').map(g => g.trim()).filter(Boolean)
+        ) || [];
+        const uniqueGenres = new Set(allGenres.map(genre => 
+          genre.charAt(0).toUpperCase() + genre.slice(1).toLowerCase()
+        ));
+        state.genres = Array.from(uniqueGenres).sort();
       })
       .addCase(fetchVideos.rejected, (state, action) => {
         state.loading.videos = false;

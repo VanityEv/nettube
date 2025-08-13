@@ -13,7 +13,7 @@ if (!JWT_SECRET) {
 }
 
 /**
- * Generate a short-lived access token (15 minutes)
+ * Generate a access token (1 hour)
  */
 export const generateAccessToken = (user) => {
   return jwt.sign(
@@ -27,7 +27,7 @@ export const generateAccessToken = (user) => {
     JWT_SECRET,
     {
       algorithm: 'HS256',
-      expiresIn: '15m'
+      expiresIn: '1h'
     }
   );
 };

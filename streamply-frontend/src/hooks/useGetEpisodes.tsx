@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { HttpClient } from '../utils/httpClient';
 import { api } from '../constants';
 import { useQuery } from '@tanstack/react-query';
 import { Episode } from '../types/videos.types';
@@ -10,9 +10,9 @@ type EpisodesResponse = {
 
 const fetchEpisodes = async (id: number) => {
   try {
-    const response = await axios.get<EpisodesResponse>(`${api}/videos/episodes/${id}`);
-    if (response.data.result === 'SUCCESS') {
-      return response.data.episodes;
+    const response = await HttpClient.get(`${api}/videos/episodes/${id}`) as EpisodesResponse;
+    if (response.result === 'SUCCESS') {
+      return response.episodes;
     } else {
       console.error(response);
       return [];

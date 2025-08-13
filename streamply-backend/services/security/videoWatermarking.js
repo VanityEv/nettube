@@ -31,11 +31,11 @@ export function generateWatermarkPosition(watermarkData) {
   const hash = parseInt(watermarkData.hash, 16);
   
   const positions = [
-    { top: '10%', left: '10%', opacity: 0.3 },
-    { top: '10%', right: '10%', opacity: 0.3 },
-    { bottom: '10%', left: '10%', opacity: 0.3 },
-    { bottom: '10%', right: '10%', opacity: 0.3 },
-    { top: '50%', left: '50%', opacity: 0.2, transform: 'translate(-50%, -50%)' }
+    { top: '10%', left: '10%', opacity: 0.6 }, // Increased from 0.3
+    { top: '10%', right: '10%', opacity: 0.6 }, // Increased from 0.3
+    { bottom: '10%', left: '10%', opacity: 0.6 }, // Increased from 0.3
+    { bottom: '10%', right: '10%', opacity: 0.6 }, // Increased from 0.3
+    { top: '50%', left: '50%', opacity: 0.4, transform: 'translate(-50%, -50%)' } // Increased from 0.2
   ];
   
   const positionIndex = hash % positions.length;
@@ -55,19 +55,19 @@ export function createWatermarkConfig(userId, username, videoId, sessionId, opti
     text: watermarkData.displayText,
     style: {
       ...position,
-      fontSize: options.fontSize || '14px',
-      color: options.color || 'rgba(255, 255, 255, 0.7)',
+      fontSize: options.fontSize || '12px', // Smaller font
+      color: options.color || 'rgba(255, 255, 255, 0.25)', // Much more subtle
       fontFamily: 'Arial, sans-serif',
-      fontWeight: 'bold',
-      textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
+      fontWeight: 'normal', // Less bold
+      textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)', // Softer shadow
       pointerEvents: 'none',
       userSelect: 'none',
       zIndex: 1000,
       position: 'absolute'
     },
     rotation: (parseInt(watermarkData.hash, 16) % 360) - 180, // -180 to 180 degrees
-    updateInterval: options.updateInterval || 30000, // Update every 30 seconds
-    fadeTransition: options.fadeTransition || 2000 // 2 second fade
+    updateInterval: options.updateInterval || 15000, // Update every 15 seconds instead of 30
+    fadeTransition: options.fadeTransition || 1000 // 1 second fade instead of 2
   };
 }
 

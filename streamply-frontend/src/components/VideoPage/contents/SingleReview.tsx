@@ -3,7 +3,7 @@ import { convertDate } from '../../../helpers/convertDate';
 import { useEffect, useState } from 'react';
 import { SingleUserReview } from '../../../hooks/useGetUserReviews';
 import { Review } from '../../../types/reviews.types';
-import axios from 'axios';
+import { HttpClient } from '../../../utils/httpClient';
 import { api } from '../../../constants';
 import { AvatarResponse } from '../../../hooks/useGetUserInfo';
 import DOMPurify from 'dompurify';
@@ -15,19 +15,15 @@ export const SingleReview = ({ review, profileView }: { review: SingleUserReview
 
   const fetchAvatar = async (username: string) => {
     try {
-      const response = await axios.get<AvatarResponse>(`${api}/user/getAvatar/${username}`);
+      const response = await HttpClient.get(`${api}/user/getAvatar/${username}`) as AvatarResponse;
 
-      if (response.status === 200) {
-        // Check if avatar was found and is a valid URL
-        if (response.data.result === 'AVATAR_NOT_FOUND') {
-          setAvatarUrl('');
-          return;
-        }
-        // Use the full B2 signed URL directly (don't prefix with api)
-        setAvatarUrl(response.data.result);
-      } else {
+      // Check if avatar was found and is a valid URL
+      if (response.result === 'AVATAR_NOT_FOUND') {
+        setAvatarUrl('');
         return;
       }
+      // Use the full B2 signed URL directly (don't prefix with api)
+      setAvatarUrl(response.result);
     } catch (error) {
       return;
     }

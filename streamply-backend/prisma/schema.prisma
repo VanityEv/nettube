@@ -35,6 +35,7 @@ model User {
   userWatching   UserWatching[]  @relation("UserWatching")
   trustedDevices TrustedDevice[] @relation("UserTrustedDevices")
   refreshTokens  RefreshToken[]  @relation("UserRefreshTokens")
+  subscription   Subscription?   @relation("UserSubscription")
 
   @@map("users")
 }
@@ -168,4 +169,25 @@ model RefreshToken {
 
   @@index([user_id])
   @@map("refresh_tokens")
+}
+
+// Subscription model for Stripe integration
+model Subscription {
+  id                   String    @id @default(uuid()) @db.Uuid
+  user_id              String    @unique @db.Uuid
+  stripe_subscription_id String?  @unique @map("stripe_subscription_id")
+  stripe_customer_id   String   @map("stripe_customer_id")
+  status               String   // active, canceled, past_due, etc.
+  current_period_start DateTime @map("current_period_start")
+  current_period_end   DateTime @map("current_period_end")
+  cancel_at_period_end Boolean  @default(false) @map("cancel_at_period_end")
+  created_at           DateTime @default(now()) @map("created_at")
+  updated_at           DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation("UserSubscription", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([stripe_subscription_id])
+  @@map("subscriptions")
 }

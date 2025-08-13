@@ -4,10 +4,8 @@ import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
 import VideoJSSecure from '../components/VideoJSSecure';
 import { useLocation, useParams } from 'react-router-dom';
-import axios from 'axios';
-import { getCookie } from 'typescript-cookie';
+import { HttpClient } from '../utils/httpClient';
 import { api } from '../constants';
-import { SignalResponse } from '../types/response.types';
 import { SnackbarContext } from '../App';
 import { useAppSelector } from '../store/hooks';
 import { SubscriptionModal } from '../components/SubscriptionModal';
@@ -35,37 +33,22 @@ export const MoviePlayer = () => {
   const showIDFromQuery = queryParams.get('id');
   const showID = showIDFromQuery || videoData?.id;
 
-  console.log('MoviePlayer state:', {
-    title,
-    showIDFromQuery,
-    videoData: videoData ? { id: videoData.id, title: videoData.title } : null,
-    showID,
-    loading,
-    streamingUrl: streamingUrl ? 'Available' : 'Not loaded',
-    currentOrigin: window.location.origin,
-    apiEndpoint: api,
-  });
-
   useEffect(() => {
     // If we already have showID from query params, no need to fetch by title
     if (showIDFromQuery) {
-      console.log('Using showID from query params:', showIDFromQuery);
       setLoading(false);
       return;
     }
 
     // If we have a title but no ID, fetch the video data by title
     if (title) {
-      console.log('Fetching video data for title:', title);
       const fetchVideoByTitle = async () => {
         try {
-          const response = await axios.get(`${api}/videos/titles/${title}`);
-          console.log('API response:', response.data);
-          if (response.data.result === 'success') {
-            setVideoData(response.data);
-            console.log('Video data set:', response.data);
+          const response = await HttpClient.get(`${api}/videos/titles/${title}`);
+          if (response.result === 'success') {
+            setVideoData(response);
           } else {
-            console.error('API returned unsuccessful result:', response.data);
+            console.error('API returned unsuccessful result:', response);
             showSnackbar('Video not found', 'error');
           }
         } catch (error) {
@@ -78,14 +61,12 @@ export const MoviePlayer = () => {
 
       fetchVideoByTitle();
     } else {
-      console.log('No title provided');
       setLoading(false);
     }
   }, [title, showIDFromQuery, showSnackbar]);
 
   // Reset error state only when showID changes (new video)
   useEffect(() => {
-    console.log('🆕 Video ID changed, resetting error states for:', showID);
     sessionErrorRef.current = false;
     setSessionError('');
   }, [showID]);
@@ -93,72 +74,31 @@ export const MoviePlayer = () => {
   // Set up streaming URL when we have a video ID
   useEffect(() => {
     const requestId = Math.random().toString(36).substring(7);
-    console.log(`🔄 useEffect triggered for streaming URL [${requestId}]:`, {
-      showID,
-      sessionRequestInProgress: sessionRequestRef.current,
-      sessionErrorOccurred: sessionErrorRef.current,
-      retryTrigger,
-    });
 
     if (!showID || sessionRequestRef.current || sessionErrorRef.current) {
-      console.log(`🚫 Skipping request [${requestId}] - conditions not met`);
       return;
     }
 
     // Prevent duplicate requests
     sessionRequestRef.current = true;
 
-    // Get user token for authentication
-    const userToken = getCookie('userToken');
-    if (!userToken) {
-      const errorMsg = 'Authentication required - please log in';
-      showSnackbar(errorMsg, 'error');
-      setSessionError(errorMsg);
-      sessionErrorRef.current = true; // Prevent retries on auth error
-      sessionRequestRef.current = false; // Reset request flag
-      return;
-    }
-
     // Fetch the secure streaming URL from our backend
     const fetchStreamingUrl = async () => {
       try {
-        console.log(`📡 Fetching streaming URL [${requestId}] for video ID:`, showID);
-        console.log(`🔧 API endpoint:`, `${api}/videos/video/stream/${showID}`);
-        console.log(`🔧 User token:`, userToken ? `${userToken.substring(0, 20)}...` : 'No token');
-
-        const response = await axios.get(`${api}/videos/video/stream/${showID}?t=${Date.now()}`, {
+        const response = await HttpClient.get(`${api}/videos/video/stream/${showID}?t=${Date.now()}`, {
           headers: {
-            Authorization: `Bearer ${userToken}`,
-            'Content-Type': 'application/json',
             'Cache-Control': 'no-cache',
             Pragma: 'no-cache',
-            'ngrok-skip-browser-warning': 'true', // Skip ngrok browser warning
           },
         });
 
-        if (response.data.result === 'SUCCESS') {
-          console.log(`🎬 Backend response [${requestId}]:`, {
-            streamingUrl: response.data.streamingUrl,
-            sessionId: response.data.sessionId,
-            antiPiracySessionId: response.data.antiPiracySessionId,
-            watermark: response.data.watermark ? 'Present' : 'None',
-          });
-
-          // Extract session ID from the streaming URL for verification
-          const urlSessionMatch = response.data.streamingUrl.match(/session=([^&]+)/);
-          const urlSessionId = urlSessionMatch ? urlSessionMatch[1] : 'Not found';
-          console.log(`🔍 Session ID verification [${requestId}]:`, {
-            'Backend sessionId': response.data.sessionId,
-            'URL sessionId': urlSessionId,
-            Match: response.data.sessionId === urlSessionId,
-          });
-
-          setStreamingUrl(response.data.streamingUrl);
-          setSessionId(response.data.sessionId);
-          setWatermarkConfig(response.data.watermark);
+        if (response.result === 'SUCCESS') {
+          setStreamingUrl(response.streamingUrl);
+          setSessionId(response.sessionId);
+          setWatermarkConfig(response.watermark);
         } else {
           const errorMsg = 'Failed to get video stream';
-          console.error(`❌ Failed to get streaming URL [${requestId}]:`, response.data.message);
+          console.error(`❌ Failed to get streaming URL [${requestId}]:`, response.message);
           showSnackbar(errorMsg, 'error');
           setSessionError(errorMsg);
           sessionErrorRef.current = true; // Prevent retries on API error
@@ -168,17 +108,21 @@ export const MoviePlayer = () => {
 
         let errorMsg = 'Failed to authenticate video stream';
 
-        // Check if it's the ngrok warning page
-        if (
-          error.response?.data &&
-          typeof error.response.data === 'string' &&
-          error.response.data.includes('ngrok-free.app')
-        ) {
-          errorMsg = 'Ngrok warning page detected - API configuration issue';
-          console.error('Ngrok warning page detected:', error.response.data.substring(0, 200));
+        // Check if it's a subscription required error (403)
+        if (error.response?.status === 403 || error.status === 403) {
+          console.log('🔒 Subscription required - opening subscription modal');
+          console.log('Error details:', error);
+          console.log('Current subscriptionModalOpen state:', subscriptionModalOpen);
+          setSubscriptionModalOpen(true);
+          console.log('Setting subscriptionModalOpen to true');
+          
+          // Set a specific error to prevent loading screen
+          setSessionError('SUBSCRIPTION_REQUIRED');
+          sessionErrorRef.current = true;
+          return; // Don't show error snackbar, just open modal
         }
         // Check if it's a rate limit error
-        else if (error.response?.status === 429) {
+        else if (error.response?.status === 429 || error.status === 429) {
           errorMsg = 'Too many requests - please wait before retrying';
         }
         // Check for CORS errors
@@ -198,15 +142,13 @@ export const MoviePlayer = () => {
 
     // Cleanup function
     return () => {
-      console.log(`🧹 Cleanup streaming URL effect [${requestId}]`);
       sessionRequestRef.current = false;
       // Note: Don't reset sessionErrorRef here to prevent retries on component re-mount
     };
-  }, [showID, showSnackbar, retryTrigger]);
+  }, [showID, showSnackbar, retryTrigger, subscriptionModalOpen]);
 
   // Manual retry function for when session loading fails
   const retrySessionLoading = useCallback(() => {
-    console.log('🔄 Manual retry triggered - resetting all error states');
     sessionErrorRef.current = false;
     sessionRequestRef.current = false;
     setSessionError('');
@@ -214,16 +156,16 @@ export const MoviePlayer = () => {
     setRetryTrigger(prev => prev + 1); // Trigger useEffect to run again
   }, []);
 
-  if (loading || (!streamingUrl && !sessionError)) {
+  if (loading || (!streamingUrl && !sessionError && !subscriptionModalOpen)) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>
         Loading video stream...
       </Box>
     );
   }
 
-  // Show error state with retry option
-  if (sessionError && !streamingUrl) {
+  // Show error state with retry option (but not for subscription errors)
+  if (sessionError && !streamingUrl && sessionError !== 'SUBSCRIPTION_REQUIRED') {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <Box sx={{ textAlign: 'center' }}>
@@ -259,7 +201,34 @@ export const MoviePlayer = () => {
     );
   }
 
-  console.log('Creating options with showID and streamingUrl:', showID, streamingUrl);
+  // If subscription modal is open but no streaming URL, show placeholder
+  if (subscriptionModalOpen && !streamingUrl) {
+    return (
+      <>
+        <Box
+          sx={{
+            height: { mobile: 'auto', desktop: '50vmin' },
+            width: { mobile: '100vmin', desktop: '70vmax' },
+            m: 'auto',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: '#000',
+            color: 'white',
+            fontSize: '1.2em'
+          }}
+        >
+          Premium content requires subscription
+        </Box>
+
+        <SubscriptionModal
+          open={subscriptionModalOpen}
+          onClose={() => setSubscriptionModalOpen(false)}
+          videoTitle={title}
+        />
+      </>
+    );
+  }
 
   const options = {
     controls: true,
@@ -285,12 +254,11 @@ export const MoviePlayer = () => {
       if (!timestamp) {
         return;
       }
-      const response = await axios.post<SignalResponse>(
-        `${api}/videos/setProgress/${username}`,
-        { showID: showID, timeWatched: timestamp },
-        { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
-      );
-      if (response.data.result === 'SUCCESS') {
+      const response = await HttpClient.post(`${api}/videos/setProgress/${username}`, {
+        showID: showID,
+        timeWatched: timestamp,
+      });
+      if (response.result === 'SUCCESS') {
         return;
       }
     } catch (error) {
@@ -300,11 +268,9 @@ export const MoviePlayer = () => {
 
   const checkSubscriptionAndPlay = async () => {
     try {
-      const response = await axios.get(`${api}/user/getSubscription/${username}`, {
-        headers: { Authorization: `Bearer ${getCookie('userToken')}` },
-      });
+      const response = await HttpClient.get(`${api}/user/getSubscription/${username}`);
 
-      if (response.data.status !== 'active') {
+      if (response.status !== 'active') {
         setSubscriptionModalOpen(true);
         return false;
       }

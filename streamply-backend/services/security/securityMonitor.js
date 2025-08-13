@@ -2,7 +2,6 @@
 import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-const dbName = 'streamply_logs';
 const collectionName = 'security_events';
 
 let client, collection;
@@ -76,7 +75,8 @@ async function connectToMongo() {
     try {
       client = new MongoClient(uri, { useUnifiedTopology: true });
       await client.connect();
-      collection = client.db(dbName).collection(collectionName);
+      // Explicitly use 'streamply' database
+      collection = client.db('streamply').collection(collectionName);
       console.log('✅ MongoDB connected for security monitoring');
       return true;
     } catch (error) {
@@ -243,6 +243,32 @@ export async function getEventsSummary(timeRange = '24h') {
       { $sort: { _id: 1 } }
     ]).toArray();
 
+    // Get daily timeline for weekly/monthly views
+    const dailyEvents = await collection.aggregate([
+      { $match: timeFilter },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$timestamp'
+            }
+          },
+          count: { $sum: 1 },
+          critical: {
+            $sum: { $cond: [{ $eq: ['$severity', 'critical'] }, 1, 0] }
+          },
+          warning: {
+            $sum: { $cond: [{ $eq: ['$severity', 'warning'] }, 1, 0] }
+          },
+          info: {
+            $sum: { $cond: [{ $eq: ['$severity', 'info'] }, 1, 0] }
+          }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]).toArray();
+
     // Get top event types
     const topEventTypes = await collection.aggregate([
       { $match: timeFilter },
@@ -259,12 +285,30 @@ export async function getEventsSummary(timeRange = '24h') {
       severityBreakdown: severityBreakdown.reduce((acc, item) => {
         acc[item._id] = item.count;
         return acc;
-      }, {}),
+      }, { critical: 0, warning: 0, info: 0, debug: 0 }),
       categoryBreakdown: categoryBreakdown.reduce((acc, item) => {
         acc[item._id] = item.count;
         return acc;
       }, {}),
       hourlyTimeline: hourlyEvents,
+      trends: {
+        hourly: hourlyEvents.map(event => ({
+          hour: event._id,
+          count: event.count,
+          severity: 'mixed',
+          critical: event.critical,
+          warning: event.warning,
+          info: event.info
+        })),
+        daily: dailyEvents.map(event => ({
+          date: event._id,
+          count: event.count,
+          severity: 'mixed',
+          critical: event.critical,
+          warning: event.warning,
+          info: event.info
+        }))
+      },
       topEventTypes,
       timeRange,
       lastUpdated: new Date()

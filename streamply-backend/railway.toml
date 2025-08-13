@@ -1,0 +1,21 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+
+[environment]
+NODE_ENV = "production"
+PORT = "3001"
+
+# NGINX Proxy Configuration (handled by Railway automatically)
+[services.backend]
+command = "npm start"
+port = 3001
+
+[services.proxy]
+# Railway automatically provides HTTPS termination and proxy
+# No additional NGINX configuration needed

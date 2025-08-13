@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { api } from '../../constants';
+import { HttpClient } from '../../utils/httpClient';
 
 interface SecurityEvent {
   _id: string;
@@ -61,10 +63,9 @@ export const useSecurityData = (
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get the backend URL from environment or use localhost
+  // Get the backend URL from configured API
   const getBaseUrl = () => {
-    //process.env.REACT_APP_BACKEND_URL ||
-    return  'http://localhost:3001';
+    return api; // unified with simplified constants (always '/api' or explicit REACT_APP_API_URL)
   };
 
   const fetchSecurityData = useCallback(async () => {
@@ -82,7 +83,6 @@ export const useSecurityData = (
       // Decode token to check user info (for debugging)
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        console.log('Current user:', payload);
         if (payload.account_type !== 3) {
           throw new Error(`Access denied - Admin privileges required. Current account type: ${payload.account_type} (need type 3)`);
         }
@@ -90,12 +90,6 @@ export const useSecurityData = (
         console.warn('Could not decode token:', tokenError);
       }
 
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      };
-
-      console.log('Fetching security data with token:', token?.substring(0, 20) + '...');
 
       // Build query params for filtering
       const queryParams = new URLSearchParams({
@@ -118,52 +112,17 @@ export const useSecurityData = (
       }
 
       // Fetch summary data
-      const summaryResponse = await fetch(`${baseUrl}/admin/security/summary?${queryParams}`, {
-        headers
-      });
-
-      console.log('Summary response status:', summaryResponse.status);
-      
-      if (!summaryResponse.ok) {
-        const errorText = await summaryResponse.text();
-        console.log('Summary error response:', errorText);
-        if (summaryResponse.status === 401) {
-          throw new Error('Authentication failed - Please log in again');
-        }
-        if (summaryResponse.status === 403) {
-          throw new Error('Access denied - Admin privileges required (account_type: 3)');
-        }
-        throw new Error(`Summary API error: ${summaryResponse.status} ${summaryResponse.statusText} - ${errorText}`);
-      }
-
-      const summaryResult = await summaryResponse.json();
-      console.log('Summary result:', summaryResult);
+      const summaryResult = await HttpClient.get(`${baseUrl}/admin/security/summary?${queryParams}`);
       // Backend returns {result: 'SUCCESS', data: summary}
       setSummary(summaryResult.data || summaryResult);
 
       // Fetch events
-      const eventsResponse = await fetch(`${baseUrl}/admin/security/events?${queryParams}`, {
-        headers
-      });
-
-      if (!eventsResponse.ok) {
-        throw new Error(`Events API error: ${eventsResponse.status} ${eventsResponse.statusText}`);
-      }
-
-      const eventsResult = await eventsResponse.json();
+      const eventsResult = await HttpClient.get(`${baseUrl}/admin/security/events?${queryParams}`);
       // Backend returns {result: 'SUCCESS', events: [...], total: n, ...}
       setEvents(eventsResult.events || eventsResult.data?.events || []);
 
       // Fetch alerts (critical and warning events from last 24h)
-      const alertsResponse = await fetch(`${baseUrl}/admin/security/alerts`, {
-        headers
-      });
-
-      if (!alertsResponse.ok) {
-        throw new Error(`Alerts API error: ${alertsResponse.status} ${alertsResponse.statusText}`);
-      }
-
-      const alertsResult = await alertsResponse.json();
+      const alertsResult = await HttpClient.get(`${baseUrl}/admin/security/alerts`);
       // Backend returns {result: 'SUCCESS', data: [...]}
       setAlerts(alertsResult.data || alertsResult.alerts || []);
 

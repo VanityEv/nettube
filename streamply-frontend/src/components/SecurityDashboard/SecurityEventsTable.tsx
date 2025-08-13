@@ -28,11 +28,36 @@ interface SecurityEvent {
   severity?: 'critical' | 'warning' | 'info' | 'debug';
   category?: string;
   source?: string;
+  // Attack detection properties
+  attackTypes?: string[];
+  payloadSamples?: Array<{
+    type: string;
+    payload: string;
+    source: string;
+    fullContext?: string;
+  }>;
+  statusCode?: number;
+  detections?: Array<{
+    source: string;
+    attacks: string[];
+    sample: string;
+  }>;
+  alertType?: string;
   metadata?: {
     ipAddress?: string;
     userAgent?: string;
     userId?: string;
     endpoint?: string;
+    attackVector?: string;
+    blocked?: boolean;
+    riskLevel?: string;
+    environment?: string;
+    processId?: string;
+    nodeVersion?: string;
+    success?: boolean;
+    authMethod?: string;
+    failureReason?: string;
+    attemptCount?: number;
     [key: string]: any;
   };
 }
@@ -738,6 +763,109 @@ export const SecurityEventsTable: React.FC<SecurityEventsTableProps> = ({
                                 sx={{
                                   bgcolor: 'rgba(245, 158, 11, 0.2)',
                                   color: '#fbbf24',
+                                }}
+                              />
+                            )}
+                          </Box>
+                        </Box>
+                      )}
+
+                      {/* Attack Details Section */}
+                      {(event.type === 'attack_attempt' || event.type === 'attack_success' || event.type === 'injection_attack_detected') && (
+                        <Box sx={{ mb: 2 }}>
+                          <Typography variant="caption" color="error.400" display="block" gutterBottom>
+                            🚨 Attack Details
+                          </Typography>
+                          
+                          {/* Attack Types */}
+                          {event.attackTypes && (
+                            <Box sx={{ mb: 1 }}>
+                              <Typography variant="caption" color="white" display="block" gutterBottom>
+                                Attack Types:
+                              </Typography>
+                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+                                {event.attackTypes.map((attackType: string, index: number) => (
+                                  <Chip
+                                    key={index}
+                                    label={attackType.replace('_', ' ').toUpperCase()}
+                                    size="small"
+                                    sx={{
+                                      bgcolor: attackType.includes('sql') ? 'rgba(220, 38, 38, 0.3)' :
+                                               attackType.includes('xss') ? 'rgba(245, 158, 11, 0.3)' :
+                                               attackType.includes('command') ? 'rgba(147, 51, 234, 0.3)' :
+                                               'rgba(239, 68, 68, 0.2)',
+                                      color: attackType.includes('sql') ? '#fca5a5' :
+                                             attackType.includes('xss') ? '#fbbf24' :
+                                             attackType.includes('command') ? '#c4b5fd' :
+                                             '#fca5a5',
+                                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                                    }}
+                                  />
+                                ))}
+                              </Box>
+                            </Box>
+                          )}
+
+                          {/* Payload Samples */}
+                          {event.payloadSamples && (
+                            <Box sx={{ mb: 1 }}>
+                              <Typography variant="caption" color="white" display="block" gutterBottom>
+                                Attack Payloads:
+                              </Typography>
+                              {event.payloadSamples.slice(0, 3).map((sample: any, index: number) => (
+                                <Box key={index} sx={{ mb: 1 }}>
+                                  <Chip
+                                    label={`${sample.source}: ${sample.type}`}
+                                    size="small"
+                                    sx={{
+                                      bgcolor: 'rgba(75, 85, 99, 0.3)',
+                                      color: 'rgba(255, 255, 255, 0.7)',
+                                      mb: 0.5
+                                    }}
+                                  />
+                                  <Box
+                                    sx={{
+                                      bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                      p: 1,
+                                      borderRadius: 1,
+                                      fontFamily: 'monospace',
+                                      fontSize: '10px',
+                                      color: '#ef4444',
+                                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                                      maxHeight: '60px',
+                                      overflow: 'auto'
+                                    }}
+                                  >
+                                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                                      {sample.payload || sample.fullContext || 'No payload details'}
+                                    </pre>
+                                  </Box>
+                                </Box>
+                              ))}
+                            </Box>
+                          )}
+
+                          {/* Attack Status */}
+                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                            <Chip
+                              label={event.type === 'attack_success' ? '🔥 SUCCESSFUL ATTACK' : '🛡️ BLOCKED ATTEMPT'}
+                              size="small"
+                              sx={{
+                                bgcolor: event.type === 'attack_success' ? 
+                                         'rgba(220, 38, 38, 0.4)' : 'rgba(34, 197, 94, 0.3)',
+                                color: event.type === 'attack_success' ? '#fca5a5' : '#86efac',
+                                fontWeight: 'bold',
+                                border: event.type === 'attack_success' ? 
+                                        '1px solid rgba(220, 38, 38, 0.6)' : '1px solid rgba(34, 197, 94, 0.5)'
+                              }}
+                            />
+                            {event.statusCode && (
+                              <Chip
+                                label={`Status: ${event.statusCode}`}
+                                size="small"
+                                sx={{
+                                  bgcolor: event.statusCode >= 400 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(34, 197, 94, 0.2)',
+                                  color: event.statusCode >= 400 ? '#fbbf24' : '#86efac'
                                 }}
                               />
                             )}

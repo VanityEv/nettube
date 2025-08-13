@@ -5,13 +5,14 @@ import { PrismaClient } from '@prisma/client';
 let prisma;
 
 if (process.env.NODE_ENV === 'production') {
-  // In production, create a single instance
+  // In production, create a single instance with SSL support for Supabase
   prisma = new PrismaClient({
     datasources: {
       db: {
         url: process.env.DATABASE_URL,
       },
     },
+    log: ['error', 'warn'],
   });
 } else {
   // In development, prevent hot reloading from creating new instances

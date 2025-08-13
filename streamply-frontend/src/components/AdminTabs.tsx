@@ -7,13 +7,12 @@ import { TableConfig, VideoActionsConfigType, tableColumns } from './AdminPanel/
 import { TabPanel } from './TabPanel';
 import { AddVideoForms } from './AdminPanel/AddVIdeoForms';
 import { SecurityDashboard } from './SecurityDashboard';
-import axios from 'axios';
+import { HttpClient } from '../utils/httpClient';
 import { api } from '../constants';
 import { SignalResponse } from '../types/response.types';
 import { SnackbarContext } from '../App';
 import { useGetUsers } from '../hooks/useGetUsers';
 import { useGetVideos } from '../hooks/useGetVideos';
-import { getCookie } from 'typescript-cookie';
 import { safeArray } from '../helpers/safeData';
 
 export type UserEntry = {
@@ -45,12 +44,8 @@ function AdminTabs() {
   }
 
   const sendUserDeleteQuery = async (id: number) => {
-    const response = await axios.post<SignalResponse>(
-      `${api}/user/deleteUser`,
-      { id: id },
-      { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
-    );
-    if (response.data.result === 'SUCCESS') {
+    const response = await HttpClient.post(`${api}/user/deleteUser`, { id: id }) as SignalResponse;
+    if (response.result === 'SUCCESS') {
       showSnackbar('User deleted!', 'info');
       refetchUsers();
     }
@@ -59,18 +54,10 @@ function AdminTabs() {
   //Delete video from database
   const sendVideoDeleteQuery = async (title: string) => {
     try {
-      const response = await axios.post<SignalResponse>(
-        `${api}/videos/deleteVideo`,
-        {
-          title: title,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${getCookie('userToken')}`,
-          },
-        }
-      );
-      if (response.data.result === 'SUCCESS') {
+      const response = await HttpClient.post(`${api}/videos/deleteVideo`, {
+        title: title,
+      }) as SignalResponse;
+      if (response.result === 'SUCCESS') {
         showSnackbar('Video deleted!', 'info');
         refetchVideos();
       }
@@ -87,19 +74,11 @@ function AdminTabs() {
       } else {
         shouldBeBlocked = 1;
       }
-      const response = await axios.post<SignalResponse>(
-        `${api}/reviews/userReviews/blockReviews`,
-        {
-          id: id,
-          targetStatus: shouldBeBlocked,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${getCookie('userToken')}`,
-          },
-        }
-      );
-      if (response.data.result === 'SUCCESS') {
+      const response = await HttpClient.post(`${api}/reviews/userReviews/blockReviews`, {
+        id: id,
+        targetStatus: shouldBeBlocked,
+      }) as SignalResponse;
+      if (response.result === 'SUCCESS') {
         showSnackbar(`Ratings submission has been (un)locked.`, 'info');
         refetchVideos();
       }

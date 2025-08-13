@@ -107,7 +107,7 @@ export const SecurityAlerts: React.FC<SecurityAlertsProps> = ({ alerts, loading 
               Security Alerts
             </Typography>
           </Box>
-          <Alert severity="success" sx={{ bgcolor: '#065f46', border: '1px solid #10b981' }}>
+          <Alert severity="success" sx={{ bgcolor: '#065f46', color: 'white', border: '1px solid #10b981' }}>
             <AlertTitle>All Clear</AlertTitle>
             No active security alerts at this time.
           </Alert>

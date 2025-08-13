@@ -2,7 +2,7 @@ import { Box, Typography, Stack, TextField, Button, Link, SxProps } from '@mui/m
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import { api } from '../constants';
 import { useNavigate } from 'react-router-dom';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
@@ -10,10 +10,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { useContext } from 'react';
 import { SnackbarContext } from '../App';
-
-type RegisterResponse = {
-  result: string;
-};
+import { HttpClient } from '../utils/httpClient';
 
 export const SignUpPanel = () => {
   const navigate = useNavigate();
@@ -76,7 +73,7 @@ export const SignUpPanel = () => {
   const onSubmit = async (data: Schema) => {
     try {
       const birthdateAsDate = data.birthdate.format('YYYY-MM-DD');
-      const signUpResponse = await axios.post<RegisterResponse>(`${api}/user/signup`, {
+      const signUpResponse = await HttpClient.post(`${api}/user/signup`, {
         ...data,
         birthdate: birthdateAsDate,
       });
@@ -140,6 +137,7 @@ export const SignUpPanel = () => {
                 id="username"
                 label="Username"
                 autoFocus
+                tabIndex={1}
                 sx={fieldSx}
                 inputRef={ref}
                 {...field}
@@ -157,7 +155,7 @@ export const SignUpPanel = () => {
                 error={Boolean(form.formState.errors.fullname)}
                 id="fullname"
                 label="Full Name"
-                autoFocus
+                tabIndex={2}
                 sx={fieldSx}
                 inputRef={ref}
                 {...field}
@@ -175,7 +173,7 @@ export const SignUpPanel = () => {
                 error={Boolean(form.formState.errors.email)}
                 id="email"
                 label="Email"
-                autoFocus
+                tabIndex={3}
                 sx={fieldSx}
                 inputRef={ref}
                 {...field}
@@ -198,6 +196,7 @@ export const SignUpPanel = () => {
                   sx={fieldSx}
                   slotProps={{
                     textField: {
+                      tabIndex: 4,
                       sx: {
                         ...fieldSx,
                         '& .MuiInputBase-input': {
@@ -284,6 +283,7 @@ export const SignUpPanel = () => {
                 label="Password"
                 type="password"
                 id="password"
+                tabIndex={5}
                 sx={fieldSx}
                 inputRef={ref}
                 {...field}
@@ -302,6 +302,7 @@ export const SignUpPanel = () => {
                 label="Confirm Password"
                 type="password"
                 id="confirm-password"
+                tabIndex={6}
                 sx={fieldSx}
                 inputRef={ref}
                 {...field}
@@ -309,7 +310,12 @@ export const SignUpPanel = () => {
               />
             )}
           />
-          <Button type="submit" variant="contained" sx={{ mt: 3, mb: 2, px: 8, backgroundColor: 'primary.600' }}>
+          <Button 
+            type="submit" 
+            variant="contained" 
+            tabIndex={7}
+            sx={{ mt: 3, mb: 2, px: 8, backgroundColor: 'primary.600' }}
+          >
             Sign Up
           </Button>
           <Typography color="white">Already have an account?</Typography>

@@ -7,6 +7,7 @@ import { PlayCircleOutline } from '@mui/icons-material';
 import { toKebabCase } from '../../helpers/convertToKebabCase';
 import { api } from '../../constants';
 import { safeArray, safeString } from '../../helpers/safeData';
+import { useRefreshableThumbnail } from '../../hooks/useRefreshableThumbnail';
 
 export const TopMoviesContext = createContext({});
 
@@ -23,21 +24,27 @@ export const TopMovies = () => {
   const defaultMovie = displayVideos.length > 0 ? displayVideos[0] : null;
   const [selectedMovie, setSelectedMovie] = useState<Video | null>(defaultMovie);
 
+  // Safe thumbnail URL handling - prefer cinematic thumbnail for hero display
+  const cinematicUrl = safeString(selectedMovie?.cinematic_thumbnail || '');
+  const thumbnailUrl = safeString(selectedMovie?.thumbnail || '');
+  const preferredUrl = cinematicUrl || thumbnailUrl;
+
+  // Use refreshable thumbnail for B2 URLs
+  const initialUrl = preferredUrl.includes('http')
+    ? preferredUrl
+    : selectedMovie
+    ? `${api}/images/main-display/${toKebabCase(safeString(selectedMovie.title, 'unknown'))}.jpg`
+    : '';
+
+  const { thumbnailUrl: refreshableUrl } = useRefreshableThumbnail(initialUrl);
+  const url = refreshableUrl || initialUrl;
+
   // If no movies available, don't render anything
   if (!selectedMovie || displayVideos.length === 0) {
     return null;
   }
 
   const handleSelectedMovieChange = (selection: Video) => setSelectedMovie(selection);
-
-  // Safe thumbnail URL handling - prefer cinematic thumbnail for hero display
-  const cinematicUrl = safeString(selectedMovie.cinematic_thumbnail);
-  const thumbnailUrl = safeString(selectedMovie.thumbnail);
-  const url =
-    cinematicUrl ||
-    (thumbnailUrl.includes('http')
-      ? thumbnailUrl
-      : `${api}/images/main-display/${toKebabCase(safeString(selectedMovie.title, 'unknown'))}.jpg`);
 
   return (
     <Box sx={{ height: 'calc(100vh - 4.5rem)', display: { mobile: 'none', desktop: 'block', tablet: 'none' } }}>

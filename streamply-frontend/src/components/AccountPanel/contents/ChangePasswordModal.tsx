@@ -5,9 +5,8 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Close } from '@mui/icons-material';
 import { api } from '../../../constants';
-import axios, { AxiosError } from 'axios';
+import { HttpClient } from '../../../utils/httpClient';
 import { useAppSelector } from '../../../store/hooks';
-import { getCookie } from 'typescript-cookie';
 import { SnackbarContext } from '../../../App';
 
 export const ChangePasswordModal = () => {
@@ -46,21 +45,14 @@ export const ChangePasswordModal = () => {
 
   const onSubmit = async (data: Schema) => {
     try {
-      const response = await axios.post(
-        `${api}/user/changePassword`,
-        {
-          username: username,
-          token: getCookie('userToken'),
-          oldPassword: data.oldPassword,
-          newPassword: data.newPassword,
-        },
-        { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
-      );
-      if (response.status === 200) {
-        showSnackbar('Password changed', 'success');
-      }
+      await HttpClient.post(`${api}/user/changePassword`, {
+        username: username,
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword,
+      });
+      showSnackbar('Password changed', 'success');
     } catch (error) {
-      if (error instanceof AxiosError) showSnackbar(`Error while changing password: ${error.code}`, 'error');
+      showSnackbar(`Error while changing password`, 'error');
     }
   };
 
@@ -114,6 +106,8 @@ export const ChangePasswordModal = () => {
                       label="Old Password"
                       type="password"
                       id="old-password"
+                      tabIndex={1}
+                      autoFocus
                       sx={{
                         width: {
                           mobile: '75%',
@@ -142,6 +136,7 @@ export const ChangePasswordModal = () => {
                       label="New Password"
                       type="password"
                       id="new-password"
+                      tabIndex={2}
                       sx={{
                         width: {
                           mobile: '75%',
@@ -170,6 +165,7 @@ export const ChangePasswordModal = () => {
                       label="Confirm New Password"
                       type="password"
                       id="confirm-password"
+                      tabIndex={3}
                       sx={{
                         width: {
                           mobile: '75%',

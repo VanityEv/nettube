@@ -4,6 +4,7 @@ import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { HorizontalVideo } from '../VideoViews/HorizontalVideo';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Scrollbar } from 'swiper/modules';
+import { parseGenres } from '../../helpers/genreHelpers';
 
 export const MovieSuggestions = () => {
   const { likes, username } = useAppSelector(state => state.user);
@@ -12,7 +13,10 @@ export const MovieSuggestions = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('desktop'));
   const isTablet = useMediaQuery(theme.breakpoints.down('tablet'));
 
-  const likedGenres: string[] = videos.filter(video => likes.includes(video.id)).map(video => video.genre);
+  // Extract all genres from liked videos (handle comma-separated genres)
+  const likedGenres: string[] = videos
+    .filter(video => likes.includes(video.id))
+    .flatMap(video => parseGenres(video.genre || ''));
 
   const genreCount: Record<string, number> = likedGenres.reduce((acc, genre) => {
     acc[genre] = (acc[genre] || 0) + 1;

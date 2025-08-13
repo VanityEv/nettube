@@ -1,23 +1,28 @@
 import { Button } from '@mui/material';
 import axios from 'axios';
 import { api } from '../constants';
-import { useAppSelector } from '../store/hooks';
 import { useState } from 'react';
+import { getCookie } from 'typescript-cookie';
 
 interface StripeCheckoutButtonProps {
   priceId: string; // Stripe price ID for the subscription
 }
 
 export const StripeCheckoutButton = ({ priceId }: StripeCheckoutButtonProps) => {
-  const { username } = useAppSelector(state => state.user);
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {
     setLoading(true);
     try {
-      // You may want to fetch userId from backend or state
+      const userId = getCookie('userId'); // Get actual userId from cookie
+      if (!userId) {
+        alert('Please log in to subscribe.');
+        setLoading(false);
+        return;
+      }
+
       const response = await axios.post(`${api}/user/stripe/session`, {
-        userId: username,
+        userId,
         priceId,
       });
       if (response.data.result === 'SUCCESS' && response.data.url) {
@@ -32,7 +37,20 @@ export const StripeCheckoutButton = ({ priceId }: StripeCheckoutButtonProps) => 
   };
 
   return (
-    <Button variant="contained" color="primary" onClick={handleCheckout} disabled={loading}>
+    <Button
+      variant="outlined"
+      sx={{
+        color: 'white',
+        backgroundColor: '#e51445',
+        borderColor: 'white',
+        '&:hover': {
+          borderColor: 'primary.main',
+          color: 'primary.main',
+        },
+      }}
+      onClick={handleCheckout}
+      disabled={loading}
+    >
       {loading ? 'Redirecting...' : 'Subscribe with Stripe'}
     </Button>
   );

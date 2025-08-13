@@ -44,9 +44,19 @@ export const verifyToken = (req, res, next) => {
 
     next();
   } catch (error) {
-    // Do not leak specifics; keep log minimal
+    // Provide more specific error messages while keeping security in mind
+    let message = 'Unauthorized - Invalid token';
+    
+    if (error.name === 'TokenExpiredError') {
+      message = 'Unauthorized - Token expired';
+    } else if (error.name === 'JsonWebTokenError') {
+      message = 'Unauthorized - Malformed token';
+    } else if (error.name === 'NotBeforeError') {
+      message = 'Unauthorized - Token not active';
+    }
+    
     console.warn('[verifyToken] JWT verification failed:', error.name);
-    return res.status(401).json({ result: 'ERROR', message: 'Unauthorized - Invalid token' });
+    return res.status(401).json({ result: 'ERROR', message });
   }
 };
 

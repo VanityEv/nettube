@@ -142,21 +142,31 @@ const getRecommendations = async (username, genres, resultCallback) => {
     
     const likedVideoIds = userLikes.map(like => like.video_id);
     
-    const recommendations = await prisma.video.findMany({
+    // Get all videos that aren't liked by the user
+    const allVideos = await prisma.video.findMany({
       where: {
-        AND: [
-          { genre: { in: genres } },
-          { id: { notIn: likedVideoIds } }
-        ]
+        id: { notIn: likedVideoIds }
       },
       orderBy: [
         { views: 'desc' },
         { grade: 'desc' }
-      ],
-      take: recordsPerGenre * genres.length
+      ]
     });
     
-    resultCallback(recommendations);
+    // Filter videos by genres (handle comma-separated genres)
+    const recommendations = allVideos.filter(video => {
+      if (!video.genre) return false;
+      
+      const videoGenres = video.genre.split(',').map(g => g.trim().toLowerCase());
+      return genres.some(targetGenre => 
+        videoGenres.some(videoGenre => videoGenre === targetGenre.toLowerCase())
+      );
+    });
+    
+    // Limit results
+    const limitedRecommendations = recommendations.slice(0, recordsPerGenre * genres.length);
+    
+    resultCallback(limitedRecommendations);
   } catch (error) {
     resultCallback({ error: error.message });
   }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { api } from '../constants';
-import axios from 'axios';
+import { HttpClient } from '../utils/httpClient';
 
 interface TwoFactorVerificationProps {
   tempToken: string;
@@ -35,19 +35,19 @@ const TwoFactorVerification: React.FC<TwoFactorVerificationProps> = ({
     setError('');
 
     try {
-      const response = await axios.post(`${api}/user/verifyLoginCode`, {
+      const response = await HttpClient.post(`${api}/user/verifyLoginCode`, {
         tempToken,
         verificationCode,
       });
 
-      if (response.data.result === 'SUCCESS') {
-        onVerificationSuccess(response.data.token, response.data);
+      if (response.result === 'SUCCESS') {
+        onVerificationSuccess(response.accessToken, response);
       } else {
         setError('Verification failed. Please try again.');
       }
     } catch (error: any) {
       console.error('Verification error:', error);
-      setError(error.response?.data?.error || 'Verification failed');
+      setError(error.data?.error || 'Verification failed');
     } finally {
       setIsVerifying(false);
     }

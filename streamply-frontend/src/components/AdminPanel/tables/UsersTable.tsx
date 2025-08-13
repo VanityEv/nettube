@@ -73,7 +73,6 @@ export const UsersTable = ({
         refetch();
       }
     } catch (error) {
-      console.log(error);
       showSnackbar('Error while demoting user', 'error');
     }
   };
@@ -94,7 +93,6 @@ export const UsersTable = ({
         refetch();
       }
     } catch (error) {
-      console.log(error);
       showSnackbar('Error while promoting user', 'error');
     }
   };

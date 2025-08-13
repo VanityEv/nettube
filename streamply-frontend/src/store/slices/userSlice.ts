@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { HttpClient } from '../../utils/httpClient';
 import { api } from '../../constants';
+import { AxiosResponse } from 'axios';
 
 // Types
 export interface UserState {
@@ -18,8 +19,6 @@ export interface UserState {
 export type AvatarResponse = {
   result: string;
 };
-
-type LikeResponse = [{ video_id: number }];
 
 // Initial state
 const initialState: UserState = {
@@ -39,9 +38,9 @@ export const fetchUserLikes = createAsyncThunk(
   'user/fetchLikes',
   async (username: string) => {
     try {
-      const response = await axios.get<LikeResponse>(`${api}/user/userLikes/${username}`);
-      if (response.status === 200) {
-        const data = response.data as any;
+      const response = await HttpClient.get(`${api}/user/userLikes/${username}`);
+      if (response) {
+        const data = response as any;
         if (Array.isArray(data)) {
           return data.map((video: any) => video.video_id);
         } else if (data && Array.isArray(data.likes)) {
@@ -64,7 +63,7 @@ export const fetchUserAvatar = createAsyncThunk(
   'user/fetchAvatar',
   async (username: string) => {
     try {
-      const response = await axios.get<AvatarResponse>(`${api}/user/getAvatar/${username}`);
+      const response = await HttpClient.get(`${api}/user/getAvatar/${username}`) as AxiosResponse<AvatarResponse>;
       
       if (response.status === 200) {
         // Check if avatar was found and is a valid URL

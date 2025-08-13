@@ -3,13 +3,15 @@ import { GenreList } from './GenreList';
 import { GenreGrid } from './GenreGrid';
 import { useState } from 'react';
 import { useAppSelector } from '../../store/hooks';
+import { filterVideosByGenres } from '../../helpers/genreHelpers';
 
 export const GenreBrowser = () => {
   const { selectedGenres } = useAppSelector(state => state.exploration);
   const { videos } = useAppSelector(state => state.videos);
   const [maxVideosToShow, setMaxVideos] = useState(10);
-  const videosToDisplay =
-    selectedGenres.length === 0 ? videos : videos.filter(video => selectedGenres.includes(video.genre));
+
+  // Use the new genre filtering helper
+  const videosToDisplay = filterVideosByGenres(videos, selectedGenres);
   const videosSlice = videosToDisplay.slice(0, maxVideosToShow);
 
   const handleDisplayMore = (value: number) => {

@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { api } from '../constants';
-import axios from 'axios';
+import { HttpClient } from '../utils/httpClient';
 
 const ConfirmRegister = () => {
   const [searchParams] = useSearchParams();
@@ -12,7 +12,6 @@ const ConfirmRegister = () => {
     const sendConfirmRequest = async () => {
       try {
         const token = searchParams.get('token');
-        console.log('Confirming with token:', token);
 
         if (!token) {
           setStatus('error');
@@ -20,8 +19,7 @@ const ConfirmRegister = () => {
           return;
         }
 
-        const response = await axios.post(`${api}/user/confirmRegister`, { token });
-        console.log('Confirmation response:', response.data);
+        const response = await HttpClient.post(`${api}/user/confirmRegister`, { token });
 
         if (response.data.result === 'SUCCESS') {
           setStatus('success');
@@ -55,7 +53,7 @@ const ConfirmRegister = () => {
       {status === 'error' && (
         <div>
           <h2 style={{ color: 'red' }}>✗ Confirmation Failed</h2>
-          <p>{message}</p>
+          <p style={{ color: 'white' }}>{message}</p>
           <a href="/signin" style={{ color: '#007bff', textDecoration: 'underline' }}>
             Go to Sign In
           </a>

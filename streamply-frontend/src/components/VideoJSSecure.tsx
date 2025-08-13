@@ -6,9 +6,8 @@ import { Box } from '@mui/material';
 import { ScreenRecordingDetector } from './security/ScreenRecordingDetector';
 import VideoWatermark from './security/VideoWatermark';
 import { deviceFingerprinter } from '../services/security/deviceFingerprinting';
-import axios from 'axios';
+import { HttpClient } from '../utils/httpClient';
 import { api } from '../constants';
-import { getCookie } from 'typescript-cookie';
 
 interface VideoJSProps {
   options: any;
@@ -31,18 +30,15 @@ export const VideoJS = ({
   const [watermarkConfig, setWatermarkConfig] = useState<any>(externalWatermarkConfig || null);
   const [detectionEnabled] = useState(true);
 
-  console.log('🎬 VideoJSSecure component props:', {
-    videoId: videoId ? videoId.substring(0, 8) + '...' : 'None',
-    sessionId: sessionId ? sessionId.substring(0, 8) + '...' : 'None',
-    watermarkConfig: !!externalWatermarkConfig,
-    streamingSrc: options?.sources?.[0]?.src ? options.sources[0].src.substring(0, 50) + '...' : 'None',
-  });
+  // Rate limiting for security violations to prevent spam
+  const violationCooldowns = useRef<Map<string, number>>(new Map());
+  const VIOLATION_COOLDOWN = 5000; // 5 seconds cooldown per violation type
 
   // Handle security events
   const handleSecurityEvent = useCallback(
     async (eventType: string, data: any) => {
       try {
-        await axios.post(
+        await HttpClient.post(
           `${api}/videos/security/event`,
           {
             eventType,
@@ -50,9 +46,6 @@ export const VideoJS = ({
             videoId,
             sessionId,
             timestamp: Date.now(),
-          },
-          {
-            headers: { Authorization: `Bearer ${getCookie('userToken')}` },
           }
         );
       } catch (error) {
@@ -62,26 +55,35 @@ export const VideoJS = ({
     [videoId, sessionId]
   );
 
-  // Handle security violations
+  // Handle security violations with rate limiting and enhanced data
   const handleSecurityViolation = useCallback(
-    async (violationType: string) => {
+    async (violationType: string, additionalData?: any) => {
+      const now = Date.now();
+      const lastViolation = violationCooldowns.current.get(violationType) || 0;
+
+      // Skip if we've reported this violation type recently
+      if (now - lastViolation < VIOLATION_COOLDOWN) {
+        return;
+      }
+
+      violationCooldowns.current.set(violationType, now);
+
       try {
-        await axios.post(
+        await HttpClient.post(
           `${api}/videos/security/watermark/verify`,
           {
             watermarkId: watermarkConfig?.watermarkId,
             sessionId,
             violations: [violationType],
-          },
-          {
-            headers: { Authorization: `Bearer ${getCookie('userToken')}` },
+            violationData: additionalData,
+            timestamp: now,
           }
         );
       } catch (error) {
         console.error('Failed to report security violation:', error);
       }
     },
-    [watermarkConfig, sessionId]
+    [watermarkConfig, sessionId, violationCooldowns, VIOLATION_COOLDOWN]
   );
 
   // Initialize security features - simplified since watermark config comes from parent
@@ -115,10 +117,15 @@ export const VideoJS = ({
       videoElement.classList.add('vjs-big-play-centered');
       videoElement.classList.add('vjs-16-9');
 
-      // Anti-piracy attributes
-      videoElement.setAttribute('controlsList', 'nodownload nofullscreen noremoteplayback');
+      // Anti-piracy attributes (allow fullscreen but prevent download and remote playback)
+      videoElement.setAttribute('controlsList', 'nodownload noremoteplayback');
       videoElement.setAttribute('disablePictureInPicture', 'true');
       videoElement.addEventListener('contextmenu', e => e.preventDefault());
+
+      // Set explicit CSS styles for proper sizing
+      videoElement.style.width = '100%';
+      videoElement.style.height = '100%';
+      videoElement.style.display = 'block';
 
       videoRef.current?.appendChild(videoElement);
 
@@ -126,15 +133,16 @@ export const VideoJS = ({
         videoElement,
         {
           ...options,
-          // Disable problematic features
+          // Enable responsive behavior exactly like working VideoJS
           fluid: true,
           responsive: true,
+          fill: true,
           controls: true,
           playbackRates: [0.5, 1, 1.25, 1.5, 2],
           controlBar: {
             ...options.controlBar,
             pictureInPictureToggle: false,
-            fullscreenToggle: false, // Disable fullscreen
+            fullscreenToggle: true, // Enable fullscreen
             downloadButton: false,
           },
           // Additional security options
@@ -153,14 +161,27 @@ export const VideoJS = ({
         }
       ));
 
-      // Prevent common piracy attempts
+      // Configure player-specific XHR headers after creation
+      player.ready(() => {});
+
+      // Prevent common piracy attempts and add fullscreen monitoring
       player.on('loadstart', () => {
         const videoEl = player.el().querySelector('video');
         if (videoEl) {
-          videoEl.setAttribute('controlsList', 'nodownload nofullscreen noremoteplayback');
+          videoEl.setAttribute('controlsList', 'nodownload noremoteplayback');
           videoEl.setAttribute('disablePictureInPicture', 'true');
           videoEl.addEventListener('contextmenu', e => e.preventDefault());
         }
+      });
+
+      // Monitor fullscreen events for security logging
+      player.on('fullscreenchange', () => {
+        const isFullscreen = player.isFullscreen();
+        handleSecurityEvent('fullscreen_change', {
+          isFullscreen,
+          timestamp: Date.now(),
+          videoCurrentTime: player.currentTime(),
+        });
       });
 
       // Monitor for suspicious activity
@@ -191,12 +212,12 @@ export const VideoJS = ({
   );
 
   const handleViolation = useCallback(
-    (type: string) => {
-      console.warn('Security violation:', type);
-      handleSecurityViolation(type);
+    (type: string, data?: any) => {
+      console.warn('Security violation:', type, data);
+      handleSecurityViolation(type, data);
 
       // Optionally pause video on serious violations
-      if (['screen_capture_device', 'get_display_media', 'excessive_hiding_css'].includes(type)) {
+      if (['screen_capture_device', 'get_display_media', 'excessive_hiding_css', 'suspicious_dom_manipulation'].includes(type)) {
         if (playerRef.current && !playerRef.current.paused()) {
           playerRef.current.pause();
         }
@@ -205,10 +226,11 @@ export const VideoJS = ({
     [handleSecurityViolation]
   );
 
-  // Handle watermark violations
+  // Handle watermark violations with enhanced data
   const handleWatermarkViolation = useCallback(
-    (violation: string) => {
-      handleSecurityViolation(violation);
+    (violation: string, data?: any) => {
+      console.warn('Watermark violation:', violation, data);
+      handleSecurityViolation(violation, data);
     },
     [handleSecurityViolation]
   );
@@ -225,9 +247,27 @@ export const VideoJS = ({
     };
   }, [playerRef]);
 
-  // Disable common keyboard shortcuts that could be used for piracy
+  // Handle keyboard shortcuts and disable piracy shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Allow 'f' key for fullscreen toggle
+      if (e.key === 'f' || e.key === 'F') {
+        if (playerRef.current) {
+          e.preventDefault();
+          if (playerRef.current.isFullscreen()) {
+            playerRef.current.exitFullscreen();
+          } else {
+            playerRef.current.requestFullscreen();
+          }
+          handleSecurityEvent('fullscreen_keyboard_toggle', {
+            key: e.key,
+            isFullscreen: !playerRef.current.isFullscreen(),
+            timestamp: Date.now(),
+          });
+        }
+        return;
+      }
+
       // Disable F12 (Developer Tools)
       if (e.key === 'F12') {
         e.preventDefault();
@@ -252,7 +292,7 @@ export const VideoJS = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleSecurityViolation]);
+  }, [handleSecurityViolation, handleSecurityEvent]);
 
   return (
     <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -263,9 +303,21 @@ export const VideoJS = ({
       {/* Screen Recording Detection */}
       <ScreenRecordingDetector enabled={detectionEnabled} onDetection={handleDetection} onViolation={handleViolation} />
 
-      {/* Dynamic Watermark */}
+      {/* Dynamic Watermark - absolutely positioned overlay */}
       {watermarkConfig && (
-        <VideoWatermark config={watermarkConfig} sessionId={sessionId || ''} onViolation={handleWatermarkViolation} />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            zIndex: 1000,
+          }}
+        >
+          <VideoWatermark config={watermarkConfig} sessionId={sessionId || ''} onViolation={handleWatermarkViolation} />
+        </Box>
       )}
     </Box>
   );

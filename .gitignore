@@ -3,10 +3,12 @@
 # dependencies
 /streamply-frontend/node_modules
 /streamply-backend/node_modules
-/streamply-frontend/.yarn/
+/streamply-frontend/.yarn/cache
+/streamply-frontend/.yarn/install-state.gz
 /streamply-backend/.yarn/
 
-.yarn/
+.yarn/cache
+.yarn/install-state.gz
 .VSCodeCounter/
 /.pnp
 node_modules/

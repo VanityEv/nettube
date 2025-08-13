@@ -1,7 +1,6 @@
-import axios from 'axios';
+import { HttpClient } from '../utils/httpClient';
 import { api } from '../constants';
 import { useQuery } from '@tanstack/react-query';
-import { getCookie } from 'typescript-cookie';
 
 type ProfileInfo = {
   fullname: string;
@@ -20,19 +19,11 @@ type UserData = {
 
 const fetchUser = async (username: string) => {
   try {
-    const response = await axios.post<ProfileInfo>(
-      `${api}/user/getUserData`,
-      {
-        username: username,
-      },
-      { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
-    );
+    const response = await HttpClient.post(`${api}/user/getUserData`, {
+      username: username,
+    }) as ProfileInfo;
 
-    if (response.status === 200) {
-      return response.data;
-    } else {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
+    return response;
   } catch (error) {
     console.error('Error fetching user data:', error);
     throw error;
@@ -41,18 +32,14 @@ const fetchUser = async (username: string) => {
 
 const fetchAvatar = async (username: string) => {
   try {
-    const response = await axios.get<AvatarResponse>(`${api}/user/getAvatar/${username}`);
+    const response = await HttpClient.get(`${api}/user/getAvatar/${username}`) as AvatarResponse;
 
-    if (response.status === 200) {
-      // Check if avatar was found and is a valid URL
-      if (response.data.result === 'AVATAR_NOT_FOUND') {
-        return '';
-      }
-      // Return the full B2 signed URL directly (don't prefix with api)
-      return response.data.result;
-    } else {
+    // Check if avatar was found and is a valid URL
+    if (response.result === 'AVATAR_NOT_FOUND') {
       return '';
     }
+    // Return the full B2 signed URL directly (don't prefix with api)
+    return response.result;
   } catch (error) {
     return '';
   }

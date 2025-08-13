@@ -2,7 +2,7 @@
 # Optimized for production with FFmpeg support
 
 # Stage 1: Build dependencies
-FROM node:20-alpine AS dependencies
+FROM node:lts-alpine AS dependencies
 
 # Install system dependencies for FFmpeg and video processing
 RUN apk add --no-cache \
@@ -23,7 +23,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci --only=production
 
 # Stage 2: Production build
-FROM node:20-alpine AS production
+FROM node:lts-alpine AS production
 
 # Install runtime dependencies
 RUN apk add --no-cache \

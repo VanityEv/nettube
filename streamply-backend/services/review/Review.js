@@ -76,8 +76,13 @@ const getReviewsByUser = async (username, requestCallback) => {
 
 const addComment = async (data, requestCallback) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { username: data.username }
+    const user = await prisma.user.findFirst({
+      where: { 
+        username: {
+          equals: data.username,
+          mode: 'insensitive'
+        }
+      }
     });
     
     if (!user) {
@@ -102,8 +107,13 @@ const addComment = async (data, requestCallback) => {
 
 const addReview = async (data, requestCallback) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: { username: data.username }
+    const user = await prisma.user.findFirst({
+      where: { 
+        username: {
+          equals: data.username,
+          mode: 'insensitive'
+        }
+      }
     });
     
     if (!user) {
@@ -215,8 +225,13 @@ const setIsBlocked = async (data, requestCallback) => {
 const setShowLike = async (data, requestCallback) => {
   try {
     // First get the user ID from username
-    const user = await prisma.user.findUnique({
-      where: { username: data.username },
+    const user = await prisma.user.findFirst({
+      where: { 
+        username: {
+          equals: data.username,
+          mode: 'insensitive'
+        }
+      },
       select: { id: true }
     });
 

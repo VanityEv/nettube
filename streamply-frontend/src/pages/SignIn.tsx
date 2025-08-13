@@ -1,5 +1,5 @@
 import { Box, Container } from '@mui/material';
-import { SignInPanel } from '../components/SignInPanelRedux';
+import { SignInPanel } from '../components/SignInPanel';
 import { LoginImage } from '../components/LoginImage';
 
 function SignIn() {

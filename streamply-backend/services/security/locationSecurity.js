@@ -1,14 +1,16 @@
 // Location-Based Security Service
 import geoip from 'geoip-lite';
 import crypto from 'crypto';
-import { sendNewDeviceAlert, sendSuspiciousLocationAlert } from '../mail/Mail.js';
+import { sendNewDeviceAlert, sendSuspiciousLocationAlert } from '../mail/MailSendGrid.js';
 import { logSecurityEvent } from './mongoLogger.js';
+import redis from '../cache/RedisClient.js';
 import { 
   isDeviceTrusted, 
   addTrustedDevice, 
   updateDeviceUsage,
   generateDeviceFingerprint 
 } from './trustedDeviceService.js';
+import { getRealClientIP } from '../../helpers/ipDetection.js';
 
 // In-memory store for verification codes (in production, use Redis)
 const verificationCodes = new Map();
@@ -118,44 +120,85 @@ export function generateVerificationCode() {
 }
 
 /**
- * Store verification code with expiration
+ * Store verification code with Redis (fallback to memory)
  */
-export function storeVerificationCode(userId, code, expiresIn = 10 * 60 * 1000) { // 10 minutes
+export async function storeVerificationCode(userId, code, expiresIn = 10 * 60 * 1000) { // 10 minutes
+  const expiresInSeconds = Math.floor(expiresIn / 1000);
+  let storedInRedis = false;
+  
+  // Always store in memory as primary fallback
   const expiresAt = Date.now() + expiresIn;
   verificationCodes.set(userId, { code, expiresAt });
+  console.log(`📝 Verification code stored in memory for user ${userId}: ${code} (expires in ${expiresIn/1000/60} minutes)`);
   
-  // Clean up expired codes
+  // Try Redis as additional backup (but memory is primary)
+  try {
+    await redis.setex(`verification:${userId}`, expiresInSeconds, code);
+    console.log(`✅ Verification code also stored in Redis for user ${userId} (expires in ${expiresInSeconds/60} minutes)`);
+    storedInRedis = true;
+  } catch (error) {
+    console.warn('⚠️  Redis failed for verification code storage (using memory only):', error.message);
+  }
+  
+  // Clean up expired codes from memory
   setTimeout(() => {
     verificationCodes.delete(userId);
   }, expiresIn);
   
-  console.log(`Verification code stored for user ${userId}: ${code} (expires in ${expiresIn/1000/60} minutes)`);
+  return { storedInRedis, storedInMemory: true };
 }
 
 /**
- * Verify a code for a user
+ * Verify a code for a user with Redis (fallback to memory)
  */
-export function verifyCode(userId, inputCode) {
-  const stored = verificationCodes.get(userId);
-  if (!stored) {
-    console.log(`No verification code found for user ${userId}`);
-    return { valid: false, reason: 'No code found' };
-  }
+export async function verifyCode(userId, inputCode) {
+  let storedCode = null;
   
-  if (Date.now() > stored.expiresAt) {
+  // Check memory first (primary storage)
+  const stored = verificationCodes.get(userId);
+  if (stored && Date.now() <= stored.expiresAt) {
+    storedCode = stored.code;
+    console.log(`📝 Found verification code in memory for user ${userId}`);
+  } else if (stored && Date.now() > stored.expiresAt) {
     verificationCodes.delete(userId);
-    console.log(`Verification code expired for user ${userId}`);
+    console.log(`⏰ Verification code expired in memory for user ${userId}`);
     return { valid: false, reason: 'Code expired' };
   }
   
-  if (stored.code !== inputCode) {
-    console.log(`Invalid verification code for user ${userId}. Expected: ${stored.code}, Got: ${inputCode}`);
+  // Try Redis as backup if not found in memory
+  if (!storedCode) {
+    try {
+      storedCode = await redis.get(`verification:${userId}`);
+      if (storedCode) {
+        console.log(`✅ Found verification code in Redis for user ${userId}`);
+      }
+    } catch (error) {
+      console.warn('⚠️  Redis failed for verification, memory only:', error.message);
+    }
+  }
+  
+  // No code found anywhere
+  if (!storedCode) {
+    console.log(`❌ No verification code found for user ${userId}`);
+    return { valid: false, reason: 'No code found' };
+  }
+  
+  // Verify the code
+  if (storedCode !== inputCode) {
+    console.log(`❌ Invalid verification code for user ${userId}. Expected: ${storedCode}, Got: ${inputCode}`);
     return { valid: false, reason: 'Invalid code' };
   }
   
-  // Code is valid, remove it
+  // Code is valid, remove it from both stores
   verificationCodes.delete(userId);
-  console.log(`Verification code validated for user ${userId}`);
+  try {
+    await redis.del(`verification:${userId}`);
+    console.log(`🗑️  Verification code removed from Redis for user ${userId}`);
+  } catch (error) {
+    console.warn('⚠️  Could not remove code from Redis:', error.message);
+  }
+  
+  console.log(`✅ Verification code validated and removed for user ${userId}`);
   return { valid: true };
 }
 
@@ -163,7 +206,7 @@ export function verifyCode(userId, inputCode) {
  * Main security check function for login attempts
  */
 export async function performSecurityCheck(req, user) {
-  const ipAddress = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
+  const ipAddress = getRealClientIP(req); // Use proper IP detection
   const userId = user.id;
   const userEmail = user.email;
   
@@ -205,7 +248,7 @@ export async function performSecurityCheck(req, user) {
     
     // Generate and store verification code
     const verificationCode = generateVerificationCode();
-    storeVerificationCode(userId, verificationCode);
+    await storeVerificationCode(userId, verificationCode);
     
     // Send new device alert email
     try {

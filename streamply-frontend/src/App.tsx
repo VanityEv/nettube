@@ -7,13 +7,14 @@ import Profile from './pages/Profile';
 import { createContext, useMemo } from 'react';
 import { ResetPassword } from './pages/ResetPassword';
 import ConfirmRegister from './pages/ConfirmRegister';
-import AppBar from './components/AppBarRedux';
+import AppBar from './components/AppBar';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import { MoviePlayer } from './pages/MoviePlayer';
 import { Box, createTheme, CssBaseline } from '@mui/material';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute, { ProtectedRouteProps } from './ProtectedRoute';
+import AdminRoute from './AdminRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getCookie } from 'typescript-cookie';
 import { VideoPage } from './components/VideoPage/VideoPage';
@@ -30,6 +31,7 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './store';
 import { UserInitializer } from './components/UserInitializer';
+import './utils/axiosConfig'; // Import axios configuration with interceptors
 
 declare module '@mui/material/styles' {
   interface BreakpointOverrides {
@@ -236,7 +238,7 @@ const App = () => {
                       />
                       <Route
                         path="/dashboard"
-                        element={<ProtectedRoute {...defaultProtectedRouteProps} outlet={<Dashboard />} />}
+                        element={<AdminRoute {...defaultProtectedRouteProps} outlet={<Dashboard />} />}
                       />
                       <Route
                         path="/movies"
@@ -285,10 +287,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   static getDerivedStateFromError(error: unknown) {
     return { hasError: true };
   }
-  componentDidCatch(error: unknown, errorInfo: unknown) {
-    // TODO: Send error to monitoring service (e.g. Sentry, backend log)
-    // fetch('/api/logError', { method: 'POST', body: JSON.stringify({ error, errorInfo }) });
-  }
+  componentDidCatch(error: unknown, errorInfo: unknown) {}
   render() {
     if (this.state.hasError) {
       return <h1>Something went wrong. Please refresh the page.</h1>;
@@ -296,15 +295,5 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     return this.props.children;
   }
 }
-
-// --- MONITORING/ALERTING: Integrate Sentry or custom backend logging for all frontend errors ---
-// Example:
-// import * as Sentry from '@sentry/react';
-// Sentry.init({ dsn: process.env.SENTRY_DSN });
-//
-// In ErrorBoundary/componentDidCatch:
-// Sentry.captureException(error, { extra: errorInfo });
-//
-// This ensures all production errors are logged and alertable.
 
 export default App;

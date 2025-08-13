@@ -31,6 +31,11 @@ export const MoviesCarousel = ({
 }: MoviesCarouselProps) => {
   const [isActive, setActive] = useState(selectedMovie);
 
+  // Safety check for movies array
+  if (!movies || !Array.isArray(movies) || movies.length === 0) {
+    return null;
+  }
+
   const handleActiveChange = (title: string) => {
     setActive(title);
     if (selectedMovie) {
@@ -58,7 +63,7 @@ export const MoviesCarousel = ({
         <Swiper
           modules={[Navigation, Scrollbar, Autoplay]}
           slidesPerView={slidesPerView}
-          loop
+          loop={movies.length > slidesPerView}
           draggable
           centeredSlides
           navigation={withNavigation}

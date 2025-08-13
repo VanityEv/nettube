@@ -89,18 +89,28 @@ export const SecurityFilters: React.FC<SecurityFiltersProps> = ({ filters, onFil
               label="Time Range"
               onChange={e => onFilterChange({ timeRange: e.target.value })}
               sx={{
-                bgcolor: '#0f172a',
+                bgcolor: '#334155',
                 color: 'white',
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
               }}
             >
-              <MenuItem value="1h">Last Hour</MenuItem>
-              <MenuItem value="24h">Last 24 Hours</MenuItem>
-              <MenuItem value="7d">Last 7 Days</MenuItem>
-              <MenuItem value="30d">Last 30 Days</MenuItem>
-              <MenuItem value="90d">Last 90 Days</MenuItem>
+              <MenuItem value="1h" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Last Hour
+              </MenuItem>
+              <MenuItem value="24h" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Last 24 Hours
+              </MenuItem>
+              <MenuItem value="7d" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Last 7 Days
+              </MenuItem>
+              <MenuItem value="30d" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Last 30 Days
+              </MenuItem>
+              <MenuItem value="90d" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Last 90 Days
+              </MenuItem>
             </Select>
           </FormControl>
 
@@ -112,18 +122,28 @@ export const SecurityFilters: React.FC<SecurityFiltersProps> = ({ filters, onFil
               label="Severity Level"
               onChange={e => onFilterChange({ severity: e.target.value })}
               sx={{
-                bgcolor: '#0f172a',
+                bgcolor: '#334155',
                 color: 'white',
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
               }}
             >
-              <MenuItem value="">All Severities</MenuItem>
-              <MenuItem value="critical">Critical ({summary?.severityBreakdown?.critical || 0})</MenuItem>
-              <MenuItem value="warning">Warning ({summary?.severityBreakdown?.warning || 0})</MenuItem>
-              <MenuItem value="info">Info ({summary?.severityBreakdown?.info || 0})</MenuItem>
-              <MenuItem value="debug">Debug ({summary?.severityBreakdown?.debug || 0})</MenuItem>
+              <MenuItem value="" sx={{ bgcolor: '#334155', color: 'white' }}>
+                All Severities
+              </MenuItem>
+              <MenuItem value="critical" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Critical ({summary?.severityBreakdown?.critical || 0})
+              </MenuItem>
+              <MenuItem value="warning" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Warning ({summary?.severityBreakdown?.warning || 0})
+              </MenuItem>
+              <MenuItem value="info" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Info ({summary?.severityBreakdown?.info || 0})
+              </MenuItem>
+              <MenuItem value="debug" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Debug ({summary?.severityBreakdown?.debug || 0})
+              </MenuItem>
             </Select>
           </FormControl>
 
@@ -135,17 +155,19 @@ export const SecurityFilters: React.FC<SecurityFiltersProps> = ({ filters, onFil
               label="Category"
               onChange={e => onFilterChange({ category: e.target.value })}
               sx={{
-                bgcolor: '#0f172a',
+                bgcolor: '#334155',
                 color: 'white',
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
               }}
             >
-              <MenuItem value="">All Categories</MenuItem>
+              <MenuItem value="" sx={{ bgcolor: '#334155', color: 'white' }}>
+                All Categories
+              </MenuItem>
               {summary?.categoryBreakdown &&
                 Object.entries(summary.categoryBreakdown).map(([category, count]) => (
-                  <MenuItem key={category} value={category}>
+                  <MenuItem key={category} value={category} sx={{ bgcolor: '#334155', color: 'white' }}>
                     {category} ({count})
                   </MenuItem>
                 ))}
@@ -160,21 +182,37 @@ export const SecurityFilters: React.FC<SecurityFiltersProps> = ({ filters, onFil
               label="Event Type"
               onChange={e => onFilterChange({ eventType: e.target.value })}
               sx={{
-                bgcolor: '#0f172a',
+                bgcolor: '#334155',
                 color: 'white',
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' },
                 '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
               }}
             >
-              <MenuItem value="">All Event Types</MenuItem>
-              <MenuItem value="authentication">Authentication</MenuItem>
-              <MenuItem value="authorization">Authorization</MenuItem>
-              <MenuItem value="data_access">Data Access</MenuItem>
-              <MenuItem value="video_upload">Video Upload</MenuItem>
-              <MenuItem value="video_deletion">Video Deletion</MenuItem>
-              <MenuItem value="security_incident">Security Incident</MenuItem>
-              <MenuItem value="system_error">System Error</MenuItem>
+              <MenuItem value="" sx={{ bgcolor: '#334155', color: 'white' }}>
+                All Event Types
+              </MenuItem>
+              <MenuItem value="authentication" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Authentication
+              </MenuItem>
+              <MenuItem value="authorization" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Authorization
+              </MenuItem>
+              <MenuItem value="data_access" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Data Access
+              </MenuItem>
+              <MenuItem value="video_upload" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Video Upload
+              </MenuItem>
+              <MenuItem value="video_deletion" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Video Deletion
+              </MenuItem>
+              <MenuItem value="security_incident" sx={{ bgcolor: '#334155', color: 'white' }}>
+                Security Incident
+              </MenuItem>
+              <MenuItem value="system_error" sx={{ bgcolor: '#334155', color: 'white' }}>
+                System Error
+              </MenuItem>
             </Select>
           </FormControl>
         </Box>
@@ -182,7 +220,7 @@ export const SecurityFilters: React.FC<SecurityFiltersProps> = ({ filters, onFil
         {/* Active Filters Display */}
         {getActiveFiltersCount() > 0 && (
           <Box sx={{ mt: 3 }}>
-            <Typography variant="body2" color="gray.400" gutterBottom>
+            <Typography variant="body2" color="white" gutterBottom>
               Active Filters:
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>

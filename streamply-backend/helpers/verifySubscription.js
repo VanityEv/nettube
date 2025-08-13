@@ -1,4 +1,4 @@
-import { getSubscription } from '../services/user/subscription.js';
+import { getSubscription } from '../services/user/subscription_new.js';
 import { logSecurityEvent } from '../services/security/mongoLogger.js';
 
 /**

@@ -17,13 +17,6 @@ import {
 } from 'recharts';
 import { TrendingUp } from '@mui/icons-material';
 
-interface TrendItem {
-  date?: string;
-  hour?: string;
-  severity: string;
-  count: number;
-}
-
 interface SecuritySummary {
   totalEvents: number;
   severityBreakdown: {
@@ -83,25 +76,21 @@ export const SecurityChartsSection: React.FC<SecurityChartsSectionProps> = ({ su
   // Prepare trend data
   const trendData = timeRange === '24h' ? summary.trends?.hourly || [] : summary.trends?.daily || [];
 
-  // Group trend data by time period and aggregate by severity
-  const trendChartData = (trendData as TrendItem[])
-    .reduce((acc: any[], item: TrendItem) => {
-      const timeKey = timeRange === '24h' ? item.hour || item.date : item.date || item.hour;
-      const existing = acc.find(d => d.time === timeKey);
-
-      if (existing) {
-        existing[item.severity] = (existing[item.severity] || 0) + item.count;
-        existing.total = (existing.total || 0) + item.count;
-      } else {
-        acc.push({
-          time: timeKey,
-          [item.severity]: item.count,
-          total: item.count,
-        });
-      }
-
-      return acc;
-    }, [])
+  // Transform trend data for chart display
+  const trendChartData = (trendData as any[])
+    .map((item: any) => {
+      const timeKey = timeRange === '24h' ? 
+        (item.hour ? new Date(item.hour).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Unknown') :
+        (item.date ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Unknown');
+      
+      return {
+        time: timeKey,
+        critical: item.critical || 0,
+        warning: item.warning || 0,
+        info: item.info || 0,
+        total: item.count || 0
+      };
+    })
     .slice(-24); // Show last 24 periods
 
   const CustomTooltip = ({ active, payload, label }: any) => {

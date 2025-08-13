@@ -5,9 +5,11 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import rateLimit from 'express-rate-limit';
 import validator from 'validator';
 import Stripe from 'stripe';
+import { createRateLimitMiddleware } from '../../middleware/rateLimit.js';
+import { getSecureClientIP, getIPForLogging, getGeolocationIP } from '../../security/secureIPDetection.js';
+import { getRealClientIP } from '../../helpers/ipDetection.js';
 import {
   isUserInDB,
   createUser,
@@ -28,12 +30,10 @@ import {
   revokeToken,
   promoteUser,
   demoteUser,
-  sendOtpEmail,
-  verifyOtp,
   createStripeSession,
-  getSubscription,
 } from './User.js';
-import { sendConfirmationEmail, sendPasswordResetMail } from '../mail/Mail.js';
+import { getSubscription } from './subscription_new.js';
+import { sendConfirmationEmail, sendPasswordResetMail, generateAndSendOtp, verifyOtp } from '../mail/MailSendGrid.js';
 import { logSecurityEvent, logAuthEvent } from '../security/mongoLogger.js';
 import { performSecurityCheck, verifyCode, markLoginAsTrusted, getLocationFromIP, getDeviceInfo } from '../security/locationSecurity.js';
 import { addTrustedDevice } from '../security/trustedDeviceService.js';
@@ -45,6 +45,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { verifyAdmin, verifyToken, verifyUser, verifyUsername } from '../../helpers/verifyToken.js';
 import { uploadToB2, generateB2SignedUrl, deleteFromB2, extractB2FilePath } from '../video/b2Helpers.js';
+import { csrfProtection } from '../../middleware/csrfProtection.js';
 import cors from 'cors';
 import helmet from 'helmet';
 
@@ -59,6 +60,9 @@ const allowedOrigins = [
   // Production domains (replace with your actual Vercel URLs)
   'https://your-streamply-app.vercel.app',
   'https://your-admin-panel.vercel.app',
+  // Railway domains
+  'https://streamply-frontend-production.up.railway.app',
+  'https://streamply-proxy-production.up.railway.app',
   // Development domains
   'http://localhost:3000',
   'http://localhost',
@@ -79,6 +83,11 @@ UserRouter.use(cors({
       return callback(null, true);
     }
     
+    // Allow any *.up.railway.app subdomain for Railway deployments
+    if (origin.endsWith('.up.railway.app')) {
+      return callback(null, true);
+    }
+    
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -87,18 +96,25 @@ UserRouter.use(cors({
 // Security middleware
 UserRouter.use(helmet());
 
-// Rate limiting
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs for auth endpoints
-  message: { error: 'Too many authentication attempts, please try again later.' },
-  standardHeaders: true,
-  legacyHeaders: false,
+// ✅ REDIS-BASED RATE LIMITING (UNIFIED SYSTEM)
+// User login: 20 attempts per user per 15 minutes (per your request)
+const loginRateLimiter = createRateLimitMiddleware('login', (req) => {
+  const secureIP = getSecureClientIP(req);
+  const identifier = req.body?.username || req.body?.email || secureIP;
+  return `login:${identifier}`;
 });
 
-UserRouter.use('/signin', authLimiter);
-UserRouter.use('/signup', authLimiter);
-UserRouter.use('/resetPassword', authLimiter);
+// Password reset: 5 attempts per IP per 15 minutes
+const passwordResetLimiter = createRateLimitMiddleware('password_reset', (req) => {
+  const secureIP = getSecureClientIP(req);
+  return `password_reset:${secureIP}`;
+});
+
+// Registration: 10 attempts per IP per 15 minutes  
+const signupRateLimiter = createRateLimitMiddleware('signup', (req) => {
+  const secureIP = getSecureClientIP(req);
+  return `signup:${secureIP}`;
+});
 
 //DESTRUCTURE ENV VARIABLES WITH DEFAULTS
 // Get JWT_SECRET from environment, fail if not present
@@ -125,15 +141,8 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit for avatars
 });
 
-// Rate limiting middleware
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: { error: 'Too many requests, please try again later.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-UserRouter.use(apiLimiter);
+// ✅ ALL RATE LIMITING MOVED TO REDIS-BASED SYSTEM
+// See rate limiters defined above: loginRateLimiter, passwordResetLimiter, signupRateLimiter
 
 // Helper to sanitize input
 function sanitizeInput(input) {
@@ -147,22 +156,17 @@ UserRouter.get('/getAvatar/:username', async (req, res) => {
   try {
     const username = sanitizeInput(req.params.username);
     
-    // Get user data from database to check for B2 avatar URL
     await findOneUser(username, async userData => {
       if (userData && userData[0] && userData[0].avatar_url) {
-        // Check if the stored value is a file path or a full URL
         const avatarValue = userData[0].avatar_url;
         
-        // If it's already a full URL, return it directly
         if (avatarValue.startsWith('http')) {
           res.status(200).json({ result: avatarValue });
         } else {
-          // If it's a file path, generate a signed URL
-          const signedUrl = await generateB2SignedUrl(avatarValue, 24 * 60 * 60); // 24 hour expiry
+          const signedUrl = await generateB2SignedUrl(avatarValue, 24 * 60 * 60); // 24 hour expiration
           res.status(200).json({ result: signedUrl });
         }
       } else {
-        // No avatar found
         res.status(200).json({ result: 'AVATAR_NOT_FOUND' });
       }
     });
@@ -179,7 +183,7 @@ UserRouter.get('/getAvatar/:username', async (req, res) => {
   }
 });
 
-UserRouter.post('/uploadAvatar/:username', verifyToken, verifyUser, upload.single('avatar'), async (req, res) => {
+UserRouter.post('/uploadAvatar/:username', csrfProtection, verifyToken, verifyUser, upload.single('avatar'), async (req, res) => {
   try {
     const username = sanitizeInput(req.params.username);
     const avatarFile = req.file;
@@ -277,12 +281,34 @@ UserRouter.post('/uploadAvatar/:username', verifyToken, verifyUser, upload.singl
   }
 });
 
-// Signup route to create a new user
-UserRouter.post('/signup', async (req, res) => {
+// Signup route to create a new user - RATE LIMITING DISABLED FOR TESTING
+UserRouter.post('/signup', signupRateLimiter, csrfProtection, async (req, res) => {
   try {
     console.log('Signup attempt for:', req.body.username);
+    
+    // Add validation and error handling for database query
     await isUserInDB(req.body.username, req.body.email, async data => {
-      const isUserAlreadySigned = data[0].count > 0;
+      console.log('Database response for user check:', data);
+      
+      // Handle case where database query fails or returns unexpected data
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        console.error('Invalid database response for user check:', data);
+        return res.status(500).json({ 
+          result: 'DATABASE_ERROR',
+          message: 'Failed to check user existence' 
+        });
+      }
+      
+      const dbResult = data[0];
+      if (!dbResult || typeof dbResult.count === 'undefined') {
+        console.error('Database result missing count field:', dbResult);
+        return res.status(500).json({ 
+          result: 'DATABASE_ERROR',
+          message: 'Invalid database response format' 
+        });
+      }
+      
+      const isUserAlreadySigned = dbResult.count > 0;
       if (!isUserAlreadySigned) {
         console.log('User not found, proceeding with registration');
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -310,11 +336,12 @@ UserRouter.post('/signup', async (req, res) => {
             
             // Add signup device as trusted device
             try {
-              const ipAddress = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
-              const locationInfo = getLocationFromIP(ipAddress);
+              const secureIP = getSecureClientIP(req); // For security/rate limiting
+              const geolocationIP = getGeolocationIP(req); // For location data
+              const locationInfo = getLocationFromIP(geolocationIP);
               const deviceInfo = getDeviceInfo(req);
               
-              await addTrustedDevice(status.id, deviceInfo, locationInfo, ipAddress);
+              await addTrustedDevice(status.id, deviceInfo, locationInfo, secureIP);
               console.log('Added signup device as trusted for user:', status.id);
               
               // Log the trusted device addition
@@ -355,7 +382,8 @@ UserRouter.post('/signup', async (req, res) => {
 });
 
 // Login route to verify a user and get a token
-UserRouter.post('/signin', async (req, res) => {
+// TEMPORARILY DISABLE LOGIN RATE LIMITING FOR CSRF TESTING
+UserRouter.post('/signin', loginRateLimiter, csrfProtection, async (req, res) => {
   if (req.body.password) {
     try {
       // check if the user exists
@@ -399,7 +427,7 @@ UserRouter.post('/signin', async (req, res) => {
                 return;
               } else {
                 // Mark this login as trusted for future reference
-                const ipAddress = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
+                const ipAddress = getRealClientIP(req); // Use proper IP detection
                 markLoginAsTrusted(userToLogin.id, securityCheck.deviceInfo, securityCheck.locationInfo, ipAddress);
               }
             } catch (securityError) {
@@ -414,7 +442,7 @@ UserRouter.post('/signin', async (req, res) => {
             const deviceInfo = {
               fingerprint: req.body.deviceFingerprint || null,
               userAgent: req.headers['user-agent'] || null,
-              ipAddress: req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'] || null
+              ipAddress: getRealClientIP(req) // Use proper IP detection
             };
             const { refreshToken } = await generateRefreshToken(userToLogin, deviceInfo);
 
@@ -431,6 +459,7 @@ UserRouter.post('/signin', async (req, res) => {
 
             const responseData = {
               result: 'SUCCESS',
+              userId: userToLogin.id,  // Add userId to response
               username: userToLogin.username,
               account_type: userToLogin.account_type,
               confirmed: Boolean(userToLogin.confirmed), // Ensure boolean type
@@ -441,7 +470,7 @@ UserRouter.post('/signin', async (req, res) => {
             res.cookie('refreshToken', refreshToken, {
               httpOnly: true,
               secure: process.env.NODE_ENV === 'production',
-              sameSite: 'strict',
+              sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-origin in production
               maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
             });
             
@@ -553,7 +582,7 @@ UserRouter.post('/signin', async (req, res) => {
   }
 });
 
-UserRouter.post('/changePassword', verifyToken, async (req, res) => {
+UserRouter.post('/changePassword', csrfProtection, verifyToken, async (req, res) => {
   try {
     //find user to update
     await findOneUser(req.body.username, async user => {
@@ -612,7 +641,7 @@ UserRouter.post('/verifyLoginCode', async (req, res) => {
     }
     
     // Verify the code
-    const codeVerification = verifyCode(decoded.sub, verificationCode);
+    const codeVerification = await verifyCode(decoded.sub, verificationCode);
     if (!codeVerification.valid) {
       res.status(400).json({ 
         error: 'Invalid verification code',
@@ -631,12 +660,13 @@ UserRouter.post('/verifyLoginCode', async (req, res) => {
       
       // Perform final security setup without triggering another verification
       try {
-        const ipAddress = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
-        const locationInfo = getLocationFromIP(ipAddress);
+        const secureIP = getSecureClientIP(req); // For security/rate limiting
+        const geolocationIP = getGeolocationIP(req); // For location data
+        const locationInfo = getLocationFromIP(geolocationIP);
         const deviceInfo = getDeviceInfo(req);
         
         // Mark device as trusted without performing another security check
-        await addTrustedDevice(userToLogin.id, deviceInfo, locationInfo, ipAddress);
+        await addTrustedDevice(userToLogin.id, deviceInfo, locationInfo, secureIP);
         console.log(`Device marked as trusted for user ${userToLogin.id} after verification`);
       } catch (securityError) {
         console.error('Security finalization failed:', securityError);
@@ -795,7 +825,7 @@ UserRouter.get('/userLikes/:username', async (req, res) => {
   }
 });
 
-UserRouter.post('/updateUser', verifyToken, verifyUser, verifyUsername, async (req, res) => {
+UserRouter.post('/updateUser', csrfProtection, verifyToken, verifyUser, verifyUsername, async (req, res) => {
   try {
     await updateUser(req.body.param, req.body.value, req.body.username, async response => {
       const status = response.changedRows === 1 ? 'SUCCESS' : 'ERROR';
@@ -852,7 +882,7 @@ UserRouter.get('/getAllUsers',verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
-UserRouter.post('/deleteUser',verifyToken, verifyAdmin, async (req, res) => {
+UserRouter.post('/deleteUser', csrfProtection, verifyToken, verifyAdmin, async (req, res) => {
   try {
     await deleteUser(req.body.id, async response => {
       const status = response.affectedRows === 1;
@@ -863,7 +893,7 @@ UserRouter.post('/deleteUser',verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
-UserRouter.post('/resetPassword', async (req, res) => {
+UserRouter.post('/resetPassword', passwordResetLimiter, async (req, res) => {
   try {
     await findOneUserByEmail(req.body.email, async response => {
       const user = response[0];
@@ -950,7 +980,7 @@ UserRouter.post('/setPassword', async (req, res) => {
   }
 });
 
-UserRouter.post('/promoteToModerator', verifyToken, verifyAdmin, async (req, res) => {
+UserRouter.post('/promoteToModerator', csrfProtection, verifyToken, verifyAdmin, async (req, res) => {
   try {
     await findOneUser(req.body.username, async response => {
       const user = response[0];
@@ -972,7 +1002,7 @@ UserRouter.post('/promoteToModerator', verifyToken, verifyAdmin, async (req, res
   }
 });
 
-UserRouter.post('/demoteModerator', verifyToken, verifyAdmin, async (req, res) => {
+UserRouter.post('/demoteModerator', csrfProtection, verifyToken, verifyAdmin, async (req, res) => {
   try {
     await findOneUser(req.body.username, async response => {
       const user = response[0];
@@ -1018,8 +1048,12 @@ UserRouter.get('/getSubscription/:username', verifyToken, async (req, res) => {
 UserRouter.post('/mfa/request', async (req, res) => {
   const { email, userId } = req.body;
   try {
-    await sendOtpEmail(email, userId);
-    res.status(200).json({ result: 'SUCCESS' });
+    const result = await generateAndSendOtp(email, userId);
+    if (result.success) {
+      res.status(200).json({ result: 'SUCCESS', message: result.message });
+    } else {
+      res.status(500).json({ result: 'ERROR', message: result.error });
+    }
   } catch (error) {
     res.status(500).json({ result: 'ERROR', message: 'Failed to send OTP' });
   }
@@ -1039,23 +1073,40 @@ UserRouter.post('/mfa/verify', (req, res) => {
 UserRouter.post('/stripe/session', async (req, res) => {
   const { userId, priceId } = req.body;
   try {
+    console.log('Received Stripe session request:', { userId, priceId });
     const url = await createStripeSession(userId, priceId);
+    console.log('Stripe session created successfully');
     res.status(200).json({ result: 'SUCCESS', url });
   } catch (error) {
-    res.status(500).json({ result: 'ERROR', message: 'Failed to create Stripe session' });
+    console.error('Failed to create Stripe session:', error.message);
+    console.error('Full error:', error);
+    res.status(500).json({ 
+      result: 'ERROR', 
+      message: 'Failed to create Stripe session',
+      error: error.message 
+    });
   }
 });
 
 // Stripe webhook endpoint
 UserRouter.post('/stripe-webhook', async (req, res) => {
+  console.log('🔔 WEBHOOK: Received request');
+  console.log('🔔 WEBHOOK: Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('🔔 WEBHOOK: Body type:', typeof req.body);
+  console.log('🔔 WEBHOOK: Body length:', req.body?.length);
+  
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  console.log('🔔 WEBHOOK: Signature present:', !!sig);
+  console.log('🔔 WEBHOOK: Secret present:', !!webhookSecret);
 
   let event;
 
   try {
     // Verify webhook signature
     event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    console.log('🔔 WEBHOOK: Signature verified successfully');
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -1095,8 +1146,8 @@ UserRouter.post('/refresh-token', async (req, res) => {
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', 
+      maxAge: 30 * 24 * 60 * 60 * 1000 
     });
     
     res.status(200).json({
@@ -1166,6 +1217,81 @@ UserRouter.post('/logout-all', verifyToken, async (req, res) => {
     
     res.status(500).json({ 
       error: 'Failed to logout from all devices',
+      message: error.message 
+    });
+  }
+});
+
+// EMERGENCY: Clear Redis rate limiting cache (temporary endpoint)
+UserRouter.post('/clear-rate-limits', async (req, res) => {
+  try {
+    const redis = (await import('../../services/cache/RedisClient.js')).default;
+    const keys = await redis.keys('rl_*');
+    if (keys.length > 0) {
+      await redis.del(keys);
+    }
+    res.status(200).json({ 
+      result: 'SUCCESS',
+      message: `Cleared ${keys.length} rate limit keys from Redis`,
+      clearedKeys: keys
+    });
+  } catch (error) {
+    console.error('Clear rate limits error:', error);
+    res.status(500).json({ 
+      error: 'Failed to clear rate limits',
+      message: error.message 
+    });
+  }
+});
+
+// Emergency endpoint to clear rate limits (no CSRF for emergency access)
+UserRouter.post('/clear-rate-limits', async (req, res) => {
+  try {
+    const redis = (await import('../../services/cache/RedisClient.js')).default;
+    
+    // Clear all rate limit keys
+    const keys = await redis.keys('rl_*');
+    if (keys.length > 0) {
+      await redis.del(keys);
+    }
+    
+    res.status(200).json({ 
+      result: 'SUCCESS',
+      message: `Cleared ${keys.length} rate limit entries`,
+      clearedKeys: keys.length
+    });
+  } catch (error) {
+    console.error('Rate limit clear error:', error);
+    res.status(500).json({ 
+      error: 'Failed to clear rate limits',
+      message: error.message 
+    });
+  }
+});
+
+// Debug endpoint to check Redis status
+UserRouter.get('/redis-status', async (req, res) => {
+  try {
+    const redis = (await import('../../services/cache/RedisClient.js')).default;
+    
+    // Test Redis connection
+    const info = await redis.info();
+    const keys = await redis.keys('rl_*');
+    
+    res.status(200).json({ 
+      result: 'SUCCESS',
+      redis: {
+        status: redis.status,
+        connected: redis.status === 'ready',
+        keyCount: keys.length,
+        keys: keys.slice(0, 10), // First 10 keys only
+        info: info.substring(0, 200) + '...' // First 200 chars of info
+      }
+    });
+  } catch (error) {
+    console.error('Redis status error:', error);
+    res.status(500).json({ 
+      error: 'Redis status check failed',
       message: error.message 
     });
   }

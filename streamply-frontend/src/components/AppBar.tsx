@@ -28,7 +28,6 @@ function ResponsiveAppBar() {
   const dispatch = useAppDispatch();
   const { username, avatarUrl } = useAppSelector(state => state.user);
   const [searchModalOpen, setSeachModalOpen] = useState(false);
-  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const isUserLoggedIn = Boolean(username);
   const { showSnackbar } = useContext(SnackbarContext);
@@ -43,7 +42,7 @@ function ResponsiveAppBar() {
   };
 
   const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
+    // Navigation menu functionality not implemented
   };
 
   const handleCloseUserMenu = () => {
@@ -103,7 +102,12 @@ function ResponsiveAppBar() {
               <Box sx={{ flexGrow: 0 }}>
                 <Tooltip title="Open settings">
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar src={avatarUrl ?? ''} sx={{ backgroundColor: 'primary.200', color: 'secondary.300' }} />
+                    <Avatar 
+                      src={avatarUrl ?? ''} 
+                      sx={{ backgroundColor: 'primary.200', color: 'secondary.300' }}
+                    >
+                      {!avatarUrl && username ? username.charAt(0).toUpperCase() : ''}
+                    </Avatar>
                   </IconButton>
                 </Tooltip>
                 <Menu

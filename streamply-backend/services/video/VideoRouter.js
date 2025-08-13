@@ -5,6 +5,8 @@ import { Router } from 'express'; // import router from express
 import jwt from 'jsonwebtoken';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getRealClientIP } from '../../helpers/ipDetection.js';
+import { getSecureClientIP } from '../../security/secureIPDetection.js';
 import {
   getAllVideos,
   getOneVideo,
@@ -41,17 +43,19 @@ import { verifyAdmin, verifyToken } from '../../helpers/verifyToken.js';
 import fs from 'fs/promises';
 import fsSync from 'fs';
 import validator from 'validator'; // For input validation
-import rateLimit from 'express-rate-limit';
+import { createRateLimitMiddleware } from '../../middleware/rateLimit.js';
 import { logSecurityEvent } from '../security/mongoLogger.js';
-import { uploadToB2, generateB2SignedUrl } from './b2Helpers.js';
+import { uploadToB2, generateB2SignedUrl, refreshB2SignedUrl } from './b2Helpers.js';
 import { v4 as uuidv4 } from 'uuid';
 import helmet from 'helmet';
 import cors from 'cors';
 import { verifySubscription } from '../../helpers/verifySubscription.js';
 import { generateEnhancedFingerprint, trackStreamingSession, checkConcurrentStreams, endStreamingSession } from '../security/deviceFingerprinting.js';
+import { createWatermarkConfig, generateForensicWatermark } from '../security/videoWatermarking.js';
 import { processMovieUpload, processEpisodeUpload, cleanupFailedUploads } from './videoProcessingService.js';
 import prisma from '../prisma.js';
 import crypto from 'crypto';
+import { csrfProtection } from '../../middleware/csrfProtection.js';
 
 const VideosRouter = Router(); // create router to create route bundle
 
@@ -131,29 +135,20 @@ function isValidImageFile(file) {
   return allowedTypes.includes(file.mimetype);
 }
 
-// Rate limiting middleware
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: { error: 'Too many requests, please try again later.' },
-  standardHeaders: true,
-  legacyHeaders: false,
+// ✅ REDIS-BASED RATE LIMITING (UNIFIED SYSTEM)
+// Video API: 100 requests per IP per 15 minutes
+const videoApiLimiter = createRateLimitMiddleware('video_api', (req) => {
+  const secureIP = getSecureClientIP(req);
+  return `video_api:${secureIP}`;
 });
 
-// More generous rate limit for streaming endpoints
-const streamingLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 50, // Increased from 20 to 50 for testing
-  message: { error: 'Too many streaming requests, please wait before trying again.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => {
-    // Include user ID in the key to make it per-user rather than per-IP
-    return `${req.ip}-${req.user?.id || 'anonymous'}`;
-  }
+// Video streaming: 50 requests per user per 5 minutes
+const videoStreamingLimiter = createRateLimitMiddleware('video_streaming', (req) => {
+  const secureIP = getSecureClientIP(req);
+  return `video_streaming:${secureIP}-${req.user?.id || 'anonymous'}`;
 });
 
-VideosRouter.use(apiLimiter);
+VideosRouter.use(videoApiLimiter);
 
 // --- GLOBAL SECURITY MIDDLEWARE ---
 // Helmet for HTTP headers
@@ -177,6 +172,9 @@ const allowedOrigins = [
   // Production domains (replace with your actual Vercel URLs)
   'https://your-streamply-app.vercel.app',
   'https://your-admin-panel.vercel.app',
+  // Railway domains
+  'https://streamply-frontend-production.up.railway.app',
+  'https://streamply-proxy-production.up.railway.app',
   // Development domains
   'http://localhost:3000',
   'http://localhost:3001',
@@ -208,6 +206,11 @@ VideosRouter.use(cors({
     
     // Allow any *.vercel.app subdomain for preview deployments
     if (origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Allow any *.up.railway.app subdomain for Railway deployments
+    if (origin.endsWith('.up.railway.app')) {
       return callback(null, true);
     }
     
@@ -256,7 +259,7 @@ VideosRouter.use((req, res, next) => {
     if (res.statusCode === 401 || res.statusCode === 403) {
       logSecurityEvent({
         type: 'auth_failure',
-        ip: req.ip,
+        ip: getRealClientIP(req), // Use proper IP detection
         url: req.originalUrl,
         userAgent: req.headers['user-agent'],
         username: (req.body && req.body.username) || (req.params && req.params.username) || null
@@ -268,28 +271,11 @@ VideosRouter.use((req, res, next) => {
   next();
 });
 
-// Log suspicious body payloads (e.g., attempts at SQLi/XSS)
-VideosRouter.use((req, res, next) => {
-  // Safely check if body exists and stringify it
-  if (req.body && typeof req.body === 'object') {
-    const bodyString = JSON.stringify(req.body);
-    if (bodyString && bodyString.match(/(\$ne|\$or|\$gt|\$lt|<script|--|;)/i)) {
-      logSecurityEvent({
-        type: 'suspicious_body',
-        ip: req.ip,
-        url: req.originalUrl,
-        body: req.body,
-        userAgent: req.headers['user-agent'],
-      });
-    }
-  }
-  next();
-});
-
 // PHASE 4: Media Security - Secure upload endpoints, prepare for B2
 // Replace all local file operations with TODOs for B2 upload and signed URL generation
 VideosRouter.post(
   '/upload/movie',
+  csrfProtection,
   verifyToken,
   verifyAdmin,
   upload.fields([
@@ -397,6 +383,7 @@ VideosRouter.post(
 
 VideosRouter.post(
   '/upload/episode',
+  csrfProtection,
   verifyToken,
   verifyAdmin,
   upload.single('episode_file'),
@@ -609,7 +596,7 @@ VideosRouter.get('/titles/:title', async (req, res) => {
   }
 });
 
-VideosRouter.get('/all', async (req, res) => {
+VideosRouter.get('/all', verifyToken, async (req, res) => {
   try {
     await getAllVideos(videos => {
       res.status(200).json({ result: 'SUCCESS', data: videos });
@@ -619,7 +606,7 @@ VideosRouter.get('/all', async (req, res) => {
   }
 });
 
-VideosRouter.post('/deleteVideo', verifyToken, verifyAdmin, async (req, res) => {
+VideosRouter.post('/deleteVideo', csrfProtection, verifyToken, verifyAdmin, async (req, res) => {
   try {
     await deleteVideo(req.body.title, async response => {
       const status = response.affectedRows === 1;
@@ -630,7 +617,7 @@ VideosRouter.post('/deleteVideo', verifyToken, verifyAdmin, async (req, res) => 
   }
 });
 
-VideosRouter.post('/deleteEpisode', verifyToken, verifyAdmin, async (req, res) => {
+VideosRouter.post('/deleteEpisode', csrfProtection, verifyToken, verifyAdmin, async (req, res) => {
   try {
     const { episodeId } = req.body;
     
@@ -709,14 +696,14 @@ VideosRouter.options('/video/stream/:id', (req, res) => {
   res.set({
     'Access-Control-Allow-Origin': origin || '*',
     'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Device-Fingerprint, ngrok-skip-browser-warning, Cache-Control, Pragma, X-Requested-With',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Device-Fingerprint, ngrok-skip-browser-warning, Cache-Control, Pragma, X-Requested-With, Accept, DNT, User-Agent, Referer, Bypass-Tunnel-Reminder, Sec-CH-UA, Sec-CH-UA-Mobile, Sec-CH-UA-Platform, Range',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Max-Age': '86400', // Cache preflight for 24 hours
   });
   res.status(200).end();
 });
 
-VideosRouter.get('/video/stream/:id', streamingLimiter, verifyToken, verifySubscription, async (req, res) => {
+VideosRouter.get('/video/stream/:id', videoStreamingLimiter, verifyToken, verifySubscription, async (req, res) => {
   const videoId = sanitizeUUID(req.params.id);
   const clientFingerprint = req.headers['x-device-fingerprint'] || '';
   
@@ -724,14 +711,19 @@ VideosRouter.get('/video/stream/:id', streamingLimiter, verifyToken, verifySubsc
     videoId: videoId.substring(0, 8) + '...',
     userId: req.user?.id,
     username: req.user?.username,
-    ip: req.ip,
+    ip: getRealClientIP(req), // Use proper IP detection
     timestamp: new Date().toISOString()
   });
   
   try {
     // 0. Get user ID from username (since JWT only contains username)
-    const user = await prisma.user.findUnique({
-      where: { username: req.user.username },
+    const user = await prisma.user.findFirst({
+      where: { 
+        username: {
+          equals: req.user.username,
+          mode: 'insensitive'
+        }
+      },
       select: { id: true, username: true, account_type: true }
     });
     
@@ -811,26 +803,22 @@ VideosRouter.get('/video/stream/:id', streamingLimiter, verifyToken, verifySubsc
     // 4.5. Create streaming session ID for HLS access
     const streamingSessionId = crypto.randomUUID();
     
-    // 5. Generate watermark configuration (mocked for now)
-    const watermarkConfig = {
-      watermarkId: crypto.randomUUID(),
-      userId: req.user.id,
-      username: req.user.username,
-      videoId,
-      sessionId, // Anti-piracy session ID for watermark tracking
-      streamingSessionId, // HLS streaming session ID for URL generation
-      fontSize: '12px',
-      updateInterval: 45000,
-      position: 'top-right',
-      opacity: 0.7
-    };
+    // 5. Generate watermark configuration using proper watermarking service
+    const watermarkConfig = createWatermarkConfig(
+      req.user.id, 
+      req.user.username, 
+      videoId, 
+      sessionId,
+      {
+        fontSize: '14px',
+        color: 'rgba(255, 255, 255, 0.8)', // Slightly more opaque for visibility
+        updateInterval: 20000, // 20 seconds - more frequent for short videos
+        fadeTransition: 1500 // 1.5 second fade
+      }
+    );
     
-    // 6. Generate forensic watermark data (mocked for now)
-    const forensicData = {
-      forensicId: crypto.randomUUID(),
-      invisibleMarker: `${req.user.id}-${videoId}-${Date.now()}`,
-      timestamp: new Date()
-    };
+    // 6. Generate forensic watermark data using proper service
+    const forensicData = generateForensicWatermark(req.user.id, videoId, req.deviceFingerprint || 'unknown');
     
     // 7. Log watermark generation (mocked for now)
     console.log('Watermark generated:', {
@@ -859,10 +847,10 @@ VideosRouter.get('/video/stream/:id', streamingLimiter, verifyToken, verifySubsc
       userId: req.user.id,
       username: req.user.username,
       videoId,
-      antiPiracySessionId: sessionId, // Store the anti-piracy session ID separately
-      streamingSessionId: streamingSessionId, // Store the HLS streaming session ID
+      antiPiracySessionId: sessionId, 
+      streamingSessionId: streamingSessionId, 
       createdAt: Date.now(),
-      expiresAt: Date.now() + (4 * 60 * 60 * 1000) // 4 hours
+      expiresAt: Date.now() + (4 * 60 * 60 * 1000) 
     });
     
     console.log('🔐 Created streaming session:', {
@@ -873,41 +861,24 @@ VideosRouter.get('/video/stream/:id', streamingLimiter, verifyToken, verifySubsc
       totalSessions: global.streamingSessions.size
     });
     
-    // Debug the request to see why HTTPS is being used
-    console.log('🔍 Request details for URL generation:', {
-      protocol: req.protocol,
-      secure: req.secure,
-      host: req.get('host'),
-      originalUrl: req.originalUrl,
-      headers: {
-        host: req.headers.host,
-        'x-forwarded-proto': req.headers['x-forwarded-proto'],
-        'x-forwarded-for': req.headers['x-forwarded-for']
-      }
-    });
     
     // Force HTTP for localhost development
     const isLocalhost = req.get('host').includes('localhost');
     const baseUrl = isLocalhost 
       ? `http://${req.get('host')}` 
       : `${req.protocol}://${req.get('host')}`;
-    
-    console.log('🌐 Generated base URL:', baseUrl);
-    
-    // Return clean HLS URL without tokens - auth handled by session
+        
     const streamingUrl = `${baseUrl}/videos/video/hls/${videoId}/playlist.m3u8?session=${streamingSessionId}`;
-    
-    console.log('🎬 Final streaming URL:', streamingUrl);
-    
-    // 9. Return secure streaming response with anti-piracy data
+        
     const origin = req.headers.origin;
     console.log('Setting CORS headers for origin:', origin);
     
     res.set({
-      'Access-Control-Allow-Origin': origin || 'http://localhost:3000',
+      'Access-Control-Allow-Origin': origin || '*',
       'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Device-Fingerprint, Cache-Control, Pragma',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Device-Fingerprint, Cache-Control, Pragma, Accept, DNT, User-Agent, Referer, Bypass-Tunnel-Reminder, Sec-CH-UA, Sec-CH-UA-Mobile, Sec-CH-UA-Platform, Range, X-Requested-With, ngrok-skip-browser-warning',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges, Content-Type, Content-Disposition, ETag, Last-Modified, Cache-Control, Expires'
     });
     
     res.status(200).json({
@@ -929,21 +900,14 @@ VideosRouter.get('/video/stream/:id', streamingLimiter, verifyToken, verifySubsc
     
   } catch (error) {
     console.error('Streaming endpoint error:', error);
-    await logSecurityEvent({
-      type: 'streaming_error',
-      userId: req.user?.id,
-      error: error.message,
-      ip: req.ip,
-      userAgent: req.headers['user-agent']
-    });
     
-    // Add CORS headers for error responses too
     const origin = req.headers.origin;
     res.set({
-      'Access-Control-Allow-Origin': origin || 'http://localhost:3000',
+      'Access-Control-Allow-Origin': origin || '*',
       'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Device-Fingerprint, Cache-Control, Pragma',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Device-Fingerprint, Cache-Control, Pragma, Accept, DNT, User-Agent, Referer, Bypass-Tunnel-Reminder, Sec-CH-UA, Sec-CH-UA-Mobile, Sec-CH-UA-Platform, Range, X-Requested-With, ngrok-skip-browser-warning',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges, Content-Type, Content-Disposition, ETag, Last-Modified, Cache-Control, Expires'
     });
     
     res.status(500).json({ result: 'ERROR', message: 'Streaming service unavailable' });
@@ -1097,6 +1061,11 @@ VideosRouter.options('/video/hls/:id', (req, res) => {
   res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Range');
   res.header('Access-Control-Expose-Headers', 'Content-Range, Accept-Ranges, Content-Length');
+  
+  // Add ngrok bypass headers to prevent ngrok warning page
+  res.header('ngrok-skip-browser-warning', 'true');
+  res.header('Bypass-Tunnel-Reminder', 'true');
+  
   res.status(200).send();
 });
 
@@ -1107,6 +1076,10 @@ VideosRouter.get('/video/hls/:id/:sessionId/:quality/:segment', async (req, res)
   res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Range');
   res.header('Access-Control-Expose-Headers', 'Content-Range, Accept-Ranges, Content-Length');
+  
+  // Add ngrok bypass headers to prevent ngrok warning page
+  res.header('ngrok-skip-browser-warning', 'true');
+  res.header('Bypass-Tunnel-Reminder', 'true');
   
   const videoId = sanitizeUUID(req.params.id);
   const quality = sanitizeInput(req.params.quality);
@@ -1227,6 +1200,10 @@ VideosRouter.get('/video/hls/:id/:quality/:segment.ts', async (req, res) => {
   res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Range');
   res.header('Access-Control-Expose-Headers', 'Content-Range, Accept-Ranges, Content-Length');
+  
+  // Add ngrok bypass headers to prevent ngrok warning page
+  res.header('ngrok-skip-browser-warning', 'true');
+  res.header('Bypass-Tunnel-Reminder', 'true');
   
   const videoId = sanitizeUUID(req.params.id);
   const quality = sanitizeInput(req.params.quality);
@@ -1357,6 +1334,10 @@ VideosRouter.get('/video/hls/:id/playlist.m3u8', async (req, res) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Range');
   res.header('Access-Control-Expose-Headers', 'Content-Range, Accept-Ranges, Content-Length');
   
+  // Add ngrok bypass headers to prevent ngrok warning page
+  res.header('ngrok-skip-browser-warning', 'true');
+  res.header('Bypass-Tunnel-Reminder', 'true');
+  
   const videoId = sanitizeUUID(req.params.id);
   const sessionId = req.query.session;
   
@@ -1428,10 +1409,27 @@ VideosRouter.get('/video/hls/:id/playlist.m3u8', async (req, res) => {
     // Return the main HLS playlist with CORS headers and rewritten URLs
     if (video.link) {
       try {
-        console.log('Fetching playlist from B2:', video.link);
+        console.log('Original video link:', video.link);
         
-        // Fetch the content from B2 using built-in fetch (Node.js 18+)
-        const response = await fetch(video.link);
+        // Check if the URL is expired by testing it first, and refresh if needed
+        let playlistUrl = video.link;
+        try {
+          const testResponse = await fetch(video.link, { method: 'HEAD' });
+          if (!testResponse.ok && testResponse.status === 401) {
+            console.log('Video link appears to be expired (401), refreshing...');
+            playlistUrl = await refreshB2SignedUrl(video.link, 7 * 24 * 60 * 60); // 1 week
+            console.log('Refreshed video link:', playlistUrl);
+          }
+        } catch (testError) {
+          console.log('Error testing original URL, attempting to refresh:', testError.message);
+          playlistUrl = await refreshB2SignedUrl(video.link, 7 * 24 * 60 * 60); // 1 week
+          console.log('Refreshed video link after test error:', playlistUrl);
+        }
+        
+        console.log('Fetching playlist from B2:', playlistUrl);
+        
+        // Fetch the content from B2 using the (possibly refreshed) URL
+        const response = await fetch(playlistUrl);
         
         if (!response.ok) {
           throw new Error(`B2 response not ok: ${response.status}`);
@@ -1494,6 +1492,10 @@ VideosRouter.get('/video/hls/:id/:sessionId/:quality.m3u8', async (req, res) => 
   res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Range');
   res.header('Access-Control-Expose-Headers', 'Content-Range, Accept-Ranges, Content-Length');
+  
+  // Add ngrok bypass headers to prevent ngrok warning page
+  res.header('ngrok-skip-browser-warning', 'true');
+  res.header('Bypass-Tunnel-Reminder', 'true');
   
   const videoId = sanitizeUUID(req.params.id);
   const quality = sanitizeInput(req.params.quality);
@@ -1634,6 +1636,10 @@ VideosRouter.get('/video/hls/:id/:quality.m3u8', async (req, res) => {
   res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Range');
   res.header('Access-Control-Expose-Headers', 'Content-Range, Accept-Ranges, Content-Length');
+  
+  // Add ngrok bypass headers to prevent ngrok warning page
+  res.header('ngrok-skip-browser-warning', 'true');
+  res.header('Bypass-Tunnel-Reminder', 'true');
   
   const videoId = sanitizeUUID(req.params.id);
   const quality = sanitizeInput(req.params.quality);
@@ -1916,18 +1922,34 @@ VideosRouter.post('/video/stream/end', verifyToken, async (req, res) => {
 
 // WATERMARK VERIFICATION ENDPOINT
 VideosRouter.post('/security/watermark/verify', verifyToken, async (req, res) => {
-  const { watermarkId, sessionId, violations } = req.body;
+  const { watermarkId, sessionId, violations, violationData, timestamp } = req.body;
   
   try {
     if (violations && violations.length > 0) {
       await logSecurityEvent({
         type: 'watermark_violation',
-        userId: req.user.id,
-        watermarkId,
-        sessionId,
-        violations,
-        ip: req.ip,
-        userAgent: req.headers['user-agent']
+        severity: 'warning',
+        message: `Watermark violations detected: ${violations.join(', ')}`,
+        user: {
+          id: req.user.id,
+          username: req.user.username,
+          accountType: req.user.account_type
+        },
+        req: req,
+        category: 'security_violation',
+        source: 'watermark_monitor',
+        metadata: {
+          watermarkId,
+          sessionId,
+          violations,
+          violationCount: violations.length,
+          violationData: violationData || {},
+          clientTimestamp: timestamp,
+          serverTimestamp: new Date().toISOString(),
+          ip: req.ip,
+          userAgent: req.headers['user-agent'],
+          enhancedLogging: true
+        }
       });
     }
     
@@ -1945,13 +1967,24 @@ VideosRouter.post('/security/event', verifyToken, async (req, res) => {
   try {
     await logSecurityEvent({
       type: eventType,
-      userId: req.user?.id,
-      videoId,
-      sessionId,
-      data,
-      ip: req.ip,
-      userAgent: req.headers['user-agent'],
-      timestamp: new Date()
+      severity: 'info',
+      message: `Security event: ${eventType}`,
+      user: {
+        id: req.user?.id,
+        username: req.user?.username,
+        accountType: req.user?.account_type
+      },
+      req: req,
+      category: 'security_monitoring',
+      source: 'video_security_system',
+      metadata: {
+        videoId,
+        sessionId,
+        data,
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        timestamp: new Date()
+      }
     });
     
     res.status(200).json({ result: 'SUCCESS' });

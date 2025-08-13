@@ -8,6 +8,7 @@ import { capitalizeFirstLetter } from '../../helpers/capitalizeFirstLetter';
 import SafeVideoList from '../SafeVideoList';
 import ErrorBoundary from '../ErrorBoundary';
 import { safeArray, isValidArray } from '../../helpers/safeData';
+import { parseGenres } from '../../helpers/genreHelpers';
 
 export const VideoList = ({ type }: { type: 'film' | 'series' }) => {
   const { videos } = useAppSelector(state => state.videos);
@@ -31,14 +32,23 @@ export const VideoList = ({ type }: { type: 'film' | 'series' }) => {
     );
   }
 
+  // Group videos by individual genres (split comma-separated genres)
   const groupedVideos: { [genre: string]: Video[] } = videosByGenre.reduce((acc, video) => {
-    const genre = video?.genre || 'Unknown';
+    const genres = parseGenres(video?.genre || 'Unknown');
 
-    if (!acc[genre]) {
-      acc[genre] = [video];
-    } else {
-      acc[genre].push(video);
+    // If no genres found, add to 'Unknown' category
+    if (genres.length === 0) {
+      genres.push('Unknown');
     }
+
+    // Add video to each of its genres
+    genres.forEach(genre => {
+      if (!acc[genre]) {
+        acc[genre] = [video];
+      } else {
+        acc[genre].push(video);
+      }
+    });
 
     return acc;
   }, {} as Record<string, Video[]>);

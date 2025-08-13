@@ -2,7 +2,7 @@ import { Box, Button, IconButton, Typography } from '@mui/material';
 import { useGetReviews } from '../../../hooks/useGetReviews';
 import { Video } from '../../../types/videos.types';
 import { SingleReview } from './SingleReview';
-import { AddReviewField } from './AddReviewFieldRedux';
+import { AddReviewField } from './AddReviewField';
 import { Fragment, useContext, useState } from 'react';
 import axios from 'axios';
 import { SignalResponse } from '../../../types/response.types';

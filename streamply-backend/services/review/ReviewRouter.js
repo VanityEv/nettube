@@ -13,9 +13,10 @@ import {
   setIsBlocked,
 } from './Review.js';
 import { verifyAdmin, verifyModerator, verifyToken, verifyUser } from '../../helpers/verifyToken.js';
+import { getSecureClientIP } from '../../security/secureIPDetection.js';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
+import { createRateLimitMiddleware } from '../../middleware/rateLimit.js';
 import validator from 'validator';
 import { logSecurityEvent } from '../security/mongoLogger.js';
 
@@ -26,6 +27,9 @@ const allowedOrigins = [
   // Production domains (replace with your actual Vercel URLs)
   'https://your-streamply-app.vercel.app',
   'https://your-admin-panel.vercel.app',
+  // Railway domains
+  'https://streamply-frontend-production.up.railway.app',
+  'https://streamply-proxy-production.up.railway.app',
   // Development domains
   'http://localhost:3000',
   'http://localhost',
@@ -46,6 +50,11 @@ ReviewsRouter.use(cors({
       return callback(null, true);
     }
     
+    // Allow any *.up.railway.app subdomain for Railway deployments
+    if (origin.endsWith('.up.railway.app')) {
+      return callback(null, true);
+    }
+    
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -54,18 +63,15 @@ ReviewsRouter.use(cors({
 // Security middleware
 ReviewsRouter.use(helmet());
 
-// Rate limiting
-const reviewLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // limit each IP to 20 requests per windowMs for reviews
-  message: { error: 'Too many review requests, please try again later.' },
-  standardHeaders: true,
-  legacyHeaders: false,
+// ✅ REDIS-BASED RATE LIMITING (UNIFIED SYSTEM)
+// Reviews: 20 requests per IP per 15 minutes
+const reviewRateLimiter = createRateLimitMiddleware('reviews', (req) => {
+  const secureIP = getSecureClientIP(req);
+  return `reviews:${secureIP}`;
 });
 
-ReviewsRouter.use(reviewLimiter);
+ReviewsRouter.use(reviewRateLimiter);
 
-// Helper to sanitize input
 function sanitizeInput(input) {
   if (typeof input === 'string') {
     return validator.escape(input.trim());
@@ -73,11 +79,9 @@ function sanitizeInput(input) {
   return input;
 }
 
-// Helper to sanitize UUID without escaping
 function sanitizeUUID(input) {
   if (typeof input === 'string') {
     const trimmed = input.trim();
-    // Validate UUID format
     if (validator.isUUID(trimmed)) {
       return trimmed;
     }
@@ -96,25 +100,6 @@ ReviewsRouter.use((req, res, next) => {
       userAgent: req.headers['user-agent'],
       username: req.body.username || req.params.username || null
     });
-  }
-  next();
-});
-
-// Log suspicious body payloads (e.g., attempts at SQLi/XSS)
-ReviewsRouter.use((req, res, next) => {
-  try {
-    const bodyStr = req.body ? JSON.stringify(req.body) : '';
-    if (bodyStr && bodyStr.match(/(\$ne|\$or|\$gt|\$lt|<script|--|;)/i)) {
-      logSecurityEvent({
-        type: 'suspicious_body',
-        ip: req.ip,
-        url: req.originalUrl,
-        body: req.body,
-        userAgent: req.headers['user-agent'],
-      });
-    }
-  } catch (error) {
-    // Silently ignore JSON.stringify errors for security middleware
   }
   next();
 });

@@ -2,12 +2,11 @@ import { CancelOutlined, Done, Edit } from '@mui/icons-material';
 import { Box, IconButton, TextField, Typography } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import axios from 'axios';
+import { HttpClient } from '../../utils/httpClient';
 import dayjs, { Dayjs } from 'dayjs';
 import { HTMLInputTypeAttribute, useContext, useState } from 'react';
 import { api } from '../../constants';
 import { useAppSelector } from '../../store/hooks';
-import { getCookie } from 'typescript-cookie';
 import { SnackbarContext } from '../../App';
 
 type UpdateResponse = {
@@ -52,26 +51,21 @@ export const EditableInput = ({ param, value, type, onSuccess }: EditableInputPr
         valueToUpdate = editedValue.format('YYYY-MM-DD');
       }
       if (param === 'username' || param === 'email') {
-        const occurencyCheckResult = await axios.post<OccurencyCheckResult>(
-          `${api}/user/checkOccurency`,
-          { param: param, value: valueToUpdate },
-          { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
-        );
-        if (occurencyCheckResult.data.result === 'ALREADY_EXISTS') {
+        const occurencyCheckResult = await HttpClient.post(`${api}/user/checkOccurency`, { 
+          param: param, 
+          value: valueToUpdate 
+        }) as OccurencyCheckResult;
+        if (occurencyCheckResult.result === 'ALREADY_EXISTS') {
           showSnackbar('This email or password are already in use!', 'error');
           return;
         }
       }
-      const response = await axios.post<UpdateResponse>(
-        `${api}/user/updateUser`,
-        {
-          param: param,
-          value: valueToUpdate,
-          username: username,
-        },
-        { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
-      );
-      if (response.data.result === 'SUCCESS') {
+      const response = await HttpClient.post(`${api}/user/updateUser`, {
+        param: param,
+        value: valueToUpdate,
+        username: username,
+      }) as UpdateResponse;
+      if (response.result === 'SUCCESS') {
         showSnackbar('Updated Information', 'success');
         onSuccess();
       }

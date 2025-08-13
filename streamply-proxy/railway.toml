@@ -1,0 +1,19 @@
+[deploy]
+region = "eu-central-1"
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+
+[build]
+builder = "NIXPACKS"
+
+[environments.production]
+BACKEND_URL = "https://streamply-backend-production-4ce8.up.railway.app"
+FRONTEND_URL = "https://streamply-frontend.vercel.app"
+NODE_ENV = "production"
+PORT = "3000"
+
+[environments.production.variables]
+LOG_LEVEL = "info"
+RATE_LIMIT_WINDOW_MS = "60000"
+RATE_LIMIT_MAX_REQUESTS = "100"

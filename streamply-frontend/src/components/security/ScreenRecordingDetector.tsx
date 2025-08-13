@@ -1,11 +1,11 @@
 // Screen Recording Detection (Frontend Component)
 // Advanced browser-based screen recording and capture prevention
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 interface ScreenRecordingDetectorProps {
   onDetection: (type: string, details: any) => void;
-  onViolation: (violation: string) => void;
+  onViolation: (violation: string, data?: any) => void;
   enabled?: boolean;
 }
 
@@ -14,8 +14,6 @@ export const ScreenRecordingDetector: React.FC<ScreenRecordingDetectorProps> = (
   onViolation,
   enabled = true,
 }) => {
-  const [isRecording, setIsRecording] = useState(false);
-  const [violations, setViolations] = useState<string[]>([]);
   const detectionIntervalRef = useRef<NodeJS.Timeout>();
 
   // 1. Media Devices API Detection
@@ -44,18 +42,41 @@ export const ScreenRecordingDetector: React.FC<ScreenRecordingDetectorProps> = (
     }
   }, [enabled, onDetection, onViolation]);
 
-  // 2. DOM Manipulation Detection
+  // Enhanced DOM Manipulation Detection with smart filtering
   const detectDOMManipulation = useCallback(() => {
     if (!enabled) return;
 
     let mutationCount = 0;
+    let suspiciousMutationCount = 0;
+    const mutationWindow = 5000; // 5 second window
+    let windowStart = Date.now();
+
     const observer = new MutationObserver(mutations => {
-      mutationCount += mutations.length;
+      const now = Date.now();
+
+      // Reset counter every 5 seconds
+      if (now - windowStart > mutationWindow) {
+        mutationCount = 0;
+        suspiciousMutationCount = 0;
+        windowStart = now;
+      }
 
       mutations.forEach(mutation => {
+        const target = mutation.target as Element;
+
+        // Skip watermark-related legitimate updates
+        if (
+          target.closest('[data-watermark]') ||
+          target.classList?.contains('video-watermark') ||
+          target.id?.includes('watermark')
+        ) {
+          return; // Don't count watermark updates
+        }
+
+        mutationCount++;
+
         // Check for suspicious style changes (hiding elements)
         if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-          const target = mutation.target as Element;
           const style = target.getAttribute('style');
 
           if (
@@ -63,19 +84,60 @@ export const ScreenRecordingDetector: React.FC<ScreenRecordingDetectorProps> = (
             style?.includes('visibility: hidden') ||
             style?.includes('opacity: 0')
           ) {
+            suspiciousMutationCount++;
             onDetection('element_hidden', {
               element: target.tagName,
+              className: target.className,
               style,
-              timestamp: Date.now(),
+              timestamp: now,
             });
           }
         }
+
+        // Check for suspicious element removal
+        if (mutation.type === 'childList' && mutation.removedNodes.length > 0) {
+          mutation.removedNodes.forEach(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              if (
+                element.tagName === 'VIDEO' ||
+                element.classList?.contains('video-js') ||
+                element.closest('.video-container')
+              ) {
+                suspiciousMutationCount += 5; // Video manipulation is highly suspicious
+                onDetection('video_element_removed', {
+                  element: element.tagName,
+                  className: element.className,
+                  timestamp: now,
+                });
+              }
+            }
+          });
+        }
       });
 
-      // Too many mutations might indicate recording software manipulation
-      if (mutationCount > 100) {
-        onViolation('excessive_dom_manipulation');
+      // Adjusted thresholds for better detection
+      if (mutationCount > 200) {
+        // Increased threshold for total mutations
+        onViolation('excessive_dom_manipulation', {
+          mutationCount,
+          suspiciousMutationCount,
+          timeWindow: mutationWindow,
+          timestamp: now,
+        });
         mutationCount = 0;
+        suspiciousMutationCount = 0;
+      }
+
+      // Lower threshold for clearly suspicious activities
+      if (suspiciousMutationCount > 10) {
+        onViolation('suspicious_dom_manipulation', {
+          suspiciousMutationCount,
+          mutationCount,
+          timeWindow: mutationWindow,
+          timestamp: now,
+        });
+        suspiciousMutationCount = 0;
       }
     });
 

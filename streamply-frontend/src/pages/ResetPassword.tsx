@@ -3,8 +3,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { SignalResponse } from '../types/response.types';
+import { HttpClient } from '../utils/httpClient';
 import { api } from '../constants';
 import { useContext } from 'react';
 import { SnackbarContext } from '../App';
@@ -48,8 +47,8 @@ export const ResetPassword = () => {
       return;
     }
     try {
-      const response = await axios.post<SignalResponse>(`${api}/user/setPassword`, {email: email, token: token, password: data.password });
-      if(response.data.result === 'SUCCESS') {
+      const response = await HttpClient.post(`${api}/user/setPassword`, {email: email, token: token, password: data.password });
+      if(response.result === 'SUCCESS') {
         showSnackbar('Password reset completed! You can log in now.', 'success');
         navigate('/signin')
       }
@@ -103,6 +102,8 @@ export const ResetPassword = () => {
                 label="Password"
                 type="password"
                 id="password"
+                tabIndex={1}
+                autoFocus
                 sx={fieldSx}
                 error={!!form.formState.errors.password}
                 helperText={form.formState.errors.password?.message}
@@ -123,6 +124,7 @@ export const ResetPassword = () => {
                 label="Confirm Password"
                 type="password"
                 id="confirm-password"
+                tabIndex={2}
                 sx={fieldSx}
                 error={!!form.formState.errors.confirmPassword}
                 helperText={form.formState.errors.confirmPassword?.message}

@@ -3,11 +3,10 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAppSelector } from '../../store/hooks';
-import axios from 'axios';
+import { HttpClient } from '../../utils/httpClient';
 import { useContext, useState } from 'react';
 import { SnackbarContext } from '../../App';
 import { api } from '../../constants';
-import { getCookie } from 'typescript-cookie';
 
 export const UploadEpisodeForm = () => {
   const { videos } = useAppSelector(state => state.videos);
@@ -80,20 +79,12 @@ export const UploadEpisodeForm = () => {
       setIsLoading(true);
 
       // Send the form data to the backend
-      const response = await axios.post(`${api}/videos/upload/episode`, formData, {
-        headers: { Authorization: `Bearer ${getCookie('userToken')}` },
-      });
+      await HttpClient.post(`${api}/videos/upload/episode`, formData);
 
       // Handle the response
-      if (response.status === 200) {
-        showSnackbar('Episode uploaded successfully', 'success');
-        setIsLoading(false);
-        form.reset();
-      } else {
-        showSnackbar('Episode upload error', 'error');
-        setIsLoading(false);
-        console.error('Form submission failed:', response.statusText);
-      }
+      showSnackbar('Episode uploaded successfully', 'success');
+      setIsLoading(false);
+      form.reset();
     } catch (error) {
       console.error('Error submitting the form:', error);
       setIsLoading(false);

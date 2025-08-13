@@ -2,7 +2,7 @@ import { Box, Typography, Stack, TextField, Button, Link } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
+import { HttpClient } from '../utils/httpClient';
 import { api } from '../constants';
 import { useAppDispatch } from '../store/hooks';
 import { setUserData } from '../store/slices/userSlice';
@@ -18,20 +18,21 @@ import TwoFactorVerification from './TwoFactorVerification';
 type LoginResponse = {
   username: string;
   token: string;
+  accessToken: string;
   account_type: number;
-  confirmed: boolean;
-  result: string;
-  // New 2FA fields
-  alertType?: 'new_device' | 'suspicious_location';
+  confirmed: number;
+  result?: string;
+  tempToken?: string;
+  alertType?: string;
   locationInfo?: any;
   deviceInfo?: any;
-  verificationCodeSent?: boolean;
-  tempToken?: string;
   message?: string;
-  // Legacy MFA fields
   mfaRequired?: boolean;
   email?: string;
   userId?: string;
+  data?: {
+    userId?: string;
+  };
 };
 
 export const SignInPanel = () => {
@@ -43,13 +44,13 @@ export const SignInPanel = () => {
   const [pendingUser, setPendingUser] = useState<{ username: string; email: string; userId: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // New 2FA state
+  // New 2FA verification states
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [twoFactorData, setTwoFactorData] = useState<{
     tempToken: string;
     alertType: 'new_device' | 'suspicious_location';
-    locationInfo: any;
-    deviceInfo: any;
+    locationInfo?: any;
+    deviceInfo?: any;
   } | null>(null);
 
   const FormSchema = z.object({
@@ -72,79 +73,101 @@ export const SignInPanel = () => {
 
   const onSubmit = async (data: Schema) => {
     setIsLoading(true);
+    console.log('🔄 Starting login attempt...');
     try {
-      const loginResponse = await axios.post<LoginResponse>(`${api}/user/signin`, {
+      const loginResponse = await HttpClient.post(`${api}/user/signin`, {
         ...data,
-      });
+      }) as LoginResponse;
 
-      console.log('🚀 FULL LOGIN RESPONSE:', {
-        status: loginResponse.status,
-        data: loginResponse.data,
-        result: loginResponse.data?.result,
-      });
+      console.log('✅ Login response received:', loginResponse);
 
       // Handle new 2FA verification system
-      if (loginResponse.data.result === 'VERIFICATION_REQUIRED') {
+      if (loginResponse.result === 'VERIFICATION_REQUIRED') {
+        console.log('🔐 2FA verification required');
         setTwoFactorData({
-          tempToken: loginResponse.data.tempToken!,
-          alertType: loginResponse.data.alertType!,
-          locationInfo: loginResponse.data.locationInfo,
-          deviceInfo: loginResponse.data.deviceInfo,
+          tempToken: loginResponse.tempToken!,
+          alertType: loginResponse.alertType! as 'new_device' | 'suspicious_location',
+          locationInfo: loginResponse.locationInfo,
+          deviceInfo: loginResponse.deviceInfo,
         });
         setShowTwoFactor(true);
-        showSnackbar(loginResponse.data.message || 'Security verification required', 'info');
-        setIsLoading(false);
+        showSnackbar(loginResponse.message || 'Security verification required', 'info');
         return;
       }
 
-      // Handle old MFA system (if still needed)
-      if (loginResponse.data.mfaRequired) {
+      // If MFA is required, trigger MFA step (legacy system)
+      if (loginResponse.mfaRequired) {
+        console.log('📱 MFA required');
         setPendingUser({
           username: data.username,
-          email: loginResponse.data.email || '',
-          userId: loginResponse.data.userId || data.username,
+          email: loginResponse.email || '',
+          userId: loginResponse.userId || data.username,
         });
         // Request OTP
-        await axios.post(`${api}/user/mfa/request`, {
-          email: loginResponse.data.email,
-          userId: loginResponse.data.userId || data.username,
+        await HttpClient.post(`${api}/user/mfa/request`, {
+          email: loginResponse.email,
+          userId: loginResponse.data?.userId || data.username,
         });
         setMfaStep('pending');
         showSnackbar('MFA code sent to your email.', 'info');
-        setIsLoading(false);
         return;
       }
 
-      await dispatch(fetchAllVideosData());
-      if (loginResponse.status === 200 && loginResponse.data.result === 'SUCCESS') {
+      if (loginResponse.result === 'SUCCESS') {
+        console.log('✅ Login successful, checking confirmation status');
         // Check confirmed status - all users must have confirmed email
-        const isConfirmed = Boolean(loginResponse.data.confirmed);
-
-        console.log('🔍 LOGIN DEBUG:', {
-          confirmed: loginResponse.data.confirmed,
-          isConfirmed,
-          accountType: loginResponse.data.account_type,
-        });
+        const isConfirmed = Boolean(loginResponse.confirmed);
+        console.log('📧 Confirmation status:', isConfirmed);
 
         if (!isConfirmed) {
+          console.log('❌ Email not confirmed');
           showSnackbar('Email not confirmed! Please check your email and click the confirmation link.', 'error');
         } else {
+          console.log('🎉 Login completed successfully');
           showSnackbar('Logged in!', 'success');
-          await dispatch(setUserData(loginResponse.data.username));
-          setCookie('userToken', loginResponse.data.token);
-          setCookie('userAccountType', loginResponse.data.account_type.toString());
+
+          // First set cookies and user data
+          setCookie('userToken', loginResponse.accessToken);
+          setCookie('userId', loginResponse.userId);  // Store userId
+          setCookie('userAccountType', loginResponse.account_type);
+          await dispatch(setUserData(loginResponse.username));
+
+          // Then fetch videos with the token
+          await dispatch(fetchAllVideosData());
+
+          // Finally navigate to home
           navigate('/');
         }
-      }
-    } catch (error: any) {
-      console.error('Login error:', error);
-      if (error.response?.status === 401) {
-        showSnackbar('Incorrect username / password', 'error');
       } else {
-        showSnackbar('Login failed. Please try again.', 'error');
+        console.log('❌ Login failed - unexpected result:', loginResponse.result);
+        showSnackbar('Login failed - please try again', 'error');
       }
+    } catch (error) {
+      console.error('❌ Login error caught:', error);
+      
+      // Enhanced error handling with status codes
+      if (error && typeof error === 'object' && 'status' in error) {
+        const status = (error as any).status;
+        console.log('🔍 Error status:', status);
+        
+        if (status === 401) {
+          showSnackbar('Invalid username or password', 'error');
+        } else if (status === 429) {
+          showSnackbar('Too many login attempts. Please try again later.', 'error');
+        } else if (status >= 500) {
+          showSnackbar('Server error. Please try again later.', 'error');
+        } else {
+          showSnackbar('Login failed. Please try again.', 'error');
+        }
+      } else {
+        console.log('🔍 Network or unknown error');
+        showSnackbar('Network error. Please check your connection.', 'error');
+      }
+    } finally {
+      // Always reset loading state
+      console.log('🔄 Resetting loading state');
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   // MFA OTP verification handler
@@ -153,22 +176,27 @@ export const SignInPanel = () => {
     if (!pendingUser) return;
     setMfaStep('verifying');
     try {
-      const verifyRes = await axios.post(`${api}/user/mfa/verify`, {
+      const verifyRes = await HttpClient.post(`${api}/user/mfa/verify`, {
         userId: pendingUser.userId,
         code: otp,
       });
-      if (verifyRes.data.result === 'SUCCESS') {
+      if (verifyRes.result === 'SUCCESS') {
         // Now fetch the real login token (simulate or re-login, depending on backend design)
         // For demo, assume backend returns token in original response or you need to re-login
         // Here, re-login to get token
-        const loginResponse = await axios.post<LoginResponse>(`${api}/user/signin`, {
+        const loginResponse = await HttpClient.post(`${api}/user/signin`, {
           username: pendingUser.username,
           password: form.getValues('password'),
         });
-        if (loginResponse.status === 200 && loginResponse.data.confirmed) {
+
+        // Check confirmed status with admin bypass
+        const isConfirmed = Boolean(loginResponse.confirmed);
+        const isAdmin = loginResponse.account_type === 3;
+
+        if (loginResponse.result === 'SUCCESS' && (isConfirmed || isAdmin)) {
           showSnackbar('Logged in!', 'success');
-          await dispatch(setUserData(loginResponse.data.username));
-          setCookie('userToken', loginResponse.data.token);
+          await dispatch(setUserData(loginResponse.username));
+          setCookie('userToken', loginResponse.accessToken || loginResponse.token);
           setCookie('userAccountType', loginResponse.data.account_type);
           navigate('/');
         } else {
@@ -176,26 +204,41 @@ export const SignInPanel = () => {
         }
       } else {
         showSnackbar('Invalid or expired OTP code.', 'error');
+        setMfaStep('pending');
       }
     } catch (err) {
       showSnackbar('Invalid or expired OTP code.', 'error');
+      setMfaStep('pending');
     }
-    setMfaStep('pending');
   };
 
   // Handle 2FA verification success
   const handle2FASuccess = async (token: string, userInfo: any) => {
+    // Close modal immediately
+    setShowTwoFactor(false);
+    setTwoFactorData(null);
+
     try {
       showSnackbar('Login verified successfully!', 'success');
       await dispatch(setUserData(userInfo.username));
       setCookie('userToken', token);
       setCookie('userAccountType', userInfo.account_type.toString());
-      await dispatch(fetchAllVideosData());
-      setShowTwoFactor(false);
+
+      // Try to fetch videos but don't let it block navigation
+      try {
+        await dispatch(fetchAllVideosData());
+      } catch (videoError) {
+        console.warn('Failed to fetch videos during login:', videoError);
+      }
+
       navigate('/');
     } catch (error) {
       console.error('Error completing login:', error);
       showSnackbar('Login completion failed', 'error');
+      // Still navigate even if there's an error
+      navigate('/');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -203,6 +246,7 @@ export const SignInPanel = () => {
   const handle2FACancel = () => {
     setShowTwoFactor(false);
     setTwoFactorData(null);
+    setIsLoading(false);
     showSnackbar('Login cancelled', 'info');
   };
 
@@ -244,6 +288,8 @@ export const SignInPanel = () => {
               onChange={e => setOtp(e.target.value)}
               inputProps={{ maxLength: 6, inputMode: 'numeric', pattern: '[0-9]*' }}
               sx={{ width: { mobile: '75%', desktop: '50%' } }}
+              tabIndex={1}
+              autoFocus
               required
             />
             <Button
@@ -257,7 +303,10 @@ export const SignInPanel = () => {
             <Button
               onClick={async () => {
                 if (pendingUser) {
-                  await axios.post(`${api}/user/mfa/request`, { email: pendingUser.email, userId: pendingUser.userId });
+                  await HttpClient.post(`${api}/user/mfa/request`, {
+                    email: pendingUser.email,
+                    userId: pendingUser.userId,
+                  });
                   showSnackbar('OTP resent to your email.', 'info');
                 }
               }}
@@ -297,6 +346,7 @@ export const SignInPanel = () => {
                   id="username"
                   label="Username"
                   autoFocus
+                  tabIndex={1}
                   sx={{
                     input: { color: 'white' },
                     width: {
@@ -325,6 +375,7 @@ export const SignInPanel = () => {
                   label="Password"
                   type="password"
                   id="password"
+                  tabIndex={2}
                   sx={{
                     width: {
                       mobile: '75%',
@@ -345,6 +396,7 @@ export const SignInPanel = () => {
             <Button
               type="submit"
               variant="contained"
+              tabIndex={3}
               sx={{ mt: 3, mb: 2, px: 8, backgroundColor: 'primary.600' }}
               disabled={isLoading}
             >
@@ -373,8 +425,3 @@ export const SignInPanel = () => {
     </Box>
   );
 };
-
-// --- API URLS: Always use config/env, never hardcode ---
-// Example:
-// import { api } from '../constants';
-// axios.post(`${api}/user/login`, ...)

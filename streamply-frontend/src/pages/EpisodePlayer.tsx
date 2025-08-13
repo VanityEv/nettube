@@ -1,18 +1,16 @@
 import { Box, Typography } from '@mui/material';
-import { useContext, useRef, useState, useEffect } from 'react';
+import { useContext, useRef, useState } from 'react';
 import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
 import VideoJSSecure from '../components/VideoJSSecure';
 import { useLocation, useParams } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { api } from '../constants';
-import axios from 'axios';
+import { HttpClient } from '../utils/httpClient';
 import { getCookie } from 'typescript-cookie';
-import { SignalResponse } from '../types/response.types';
 import { SnackbarContext } from '../App';
 import { Episodes } from '../components/VideoPage/contents/Episodes';
 import { SubscriptionModal } from '../components/SubscriptionModal';
-import { deviceFingerprinter } from '../services/security/deviceFingerprinting';
 
 export const EpisodePlayer = () => {
   const { title, season, episode } = useParams();
@@ -27,11 +25,11 @@ export const EpisodePlayer = () => {
   // Check subscription status before allowing video playback
   const checkSubscriptionAndPlay = async () => {
     try {
-      const response = await axios.get(`${api}/user/getSubscription/${username}`, {
+      const response = await HttpClient.get(`${api}/user/getSubscription/${username}`, {
         headers: { Authorization: `Bearer ${getCookie('userToken')}` },
       });
 
-      if (response.data.status !== 'active') {
+      if (response.status !== 'active') {
         setSubscriptionModalOpen(true);
         return false;
       }
@@ -63,12 +61,12 @@ export const EpisodePlayer = () => {
       if (!timestamp) {
         return;
       }
-      const response = await axios.post<SignalResponse>(
+      const response = await HttpClient.post(
         `${api}/videos/setProgress/${username}`,
         { showID: showID, season: season, episode: episode, timeWatched: timestamp },
         { headers: { Authorization: `Bearer ${getCookie('userToken')}` } }
       );
-      if (response.data.result === 'SUCCESS') {
+      if (response.result === 'SUCCESS') {
         return;
       }
     } catch (error) {
